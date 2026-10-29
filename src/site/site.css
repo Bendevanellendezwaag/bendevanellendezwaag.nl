@@ -10,7 +10,7 @@
   position: absolute;
   inset: 0 0 auto;
   z-index: 5;
-  padding: clamp(16px, 3vw, 40px) clamp(16px, 4vw, 64px) 0;
+  padding: calc(clamp(16px, 3vw, 40px) + env(safe-area-inset-top, 0px)) clamp(16px, 4vw, 64px) 0;
 }
 
 .bv-nav {
@@ -372,7 +372,7 @@
     align-content: center;
     gap: 7px;
     position: absolute;
-    top: 18px;
+    top: calc(18px + env(safe-area-inset-top, 0px));
     right: 16px;
     z-index: 6;
     width: 46px;
