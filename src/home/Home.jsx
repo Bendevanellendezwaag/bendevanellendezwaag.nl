@@ -1,22 +1,23 @@
 import { useCallback, useEffect, useState } from 'react';
 import Kop from './Kop.jsx';
 import { Intro } from './Logo.jsx';
-import { Agenda, Band, Contact, OverDeBende, Socials, Sponsors, Voet } from './Secties.jsx';
+import { Agenda, Instagram, OverDeBende, Sponsors, Voet } from './Secties.jsx';
 import Wagens from './Wagens.jsx';
-import { useOnthullen } from './hulp.js';
+import { useOnthullen, useScrollMotor } from './hulp.js';
 import './home.css';
 
 const ACHTERGROND = '#2563FF';
 
 /**
  * De homepagina. Elk onderdeel staat in een eigen bestand; de inhoud komt uit gegevens.js.
- * Komen er later losse pagina's bij, dan kunnen Kop en Voet daar gewoon hergebruikt worden.
+ * De onderdelen zijn gekleurde lagen die bij het scrollen over elkaar heen schuiven.
  */
 export default function Home({ onLeden }) {
   // De intro speelt bij elke keer laden of verversen van de pagina.
   const [intro, setIntro] = useState(true);
   const klaar = useCallback(() => setIntro(false), []);
   useOnthullen();
+  useScrollMotor();
 
   // Eigen achtergrond- en themakleur voor deze pagina.
   useEffect(() => {
@@ -40,12 +41,10 @@ export default function Home({ onLeden }) {
       <Kop onLeden={onLeden} />
       <main>
         <Wagens />
-        <Band />
         <OverDeBende />
         <Agenda />
         <Sponsors />
-        <Socials />
-        <Contact />
+        <Instagram />
       </main>
       <Voet onLeden={onLeden} />
     </div>

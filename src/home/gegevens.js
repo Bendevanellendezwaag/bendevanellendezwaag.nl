@@ -7,15 +7,17 @@
 /* ------------------------------------------------------------------ wagens */
 
 // Nieuwste eerst. De tijdlijn loopt van het oudste jaar tot het nieuwste.
-// foto:  hoofdfoto naast de titel (zet bestanden in public/wagens/). Leeg = nette placeholder.
+// foto:  hoofdfoto (zet bestanden in public/wagens/, liefst als .webp). Leeg = nette placeholder.
+// plek:  eindklassering in de optocht (getal). Laat weg als er geen is; dan verdwijnt de sticker.
 // fotos: { wagen: [...], bouw: [...] } voor het fotoalbum achter de knop.
 export const wagens = [
   {
     jaar: 2026,
-    titel: 'Naam of spreuk van de wagen', // PLACEHOLDER
+    titel: 'Woningnood in Zwaag',
     tekst:
-      'Hier komt een kort stukje over de wagen van dit jaar: het idee erachter, hoe lang we gebouwd hebben en wat je ervan moet weten als je hem langs ziet komen.', // PLACEHOLDER
-    foto: '/wagens/placeholder-2026.svg', // PLACEHOLDER
+      'We waren klaar met de woningnood, dus zijn we zelf maar huizen gaan bouwen. We behaalden dit jaar een mooie 4e plek.',
+    foto: '/wagens/2026-woningnood-in-zwaag.webp',
+    plek: 4,
     fotos: { wagen: [], bouw: [] },
   },
   // PLACEHOLDER: eerdere jaren
@@ -31,11 +33,10 @@ export const wagens = [
 /* ------------------------------------------------------------------ over de bende */
 
 export const deBende = {
-  kop: 'Een vriendengroep uit Zwaag met één missie: elk jaar een wagen waar je niet omheen kunt.', // PLACEHOLDER
+  kop: 'Een Bende van Ellende',
   alineas: [
-    // PLACEHOLDER
-    'Wij zijn de Bende van Ellende. Van het eerste idee aan de keukentafel tot de laatste lik verf in de schuur: alles bedenken, lassen, timmeren en schilderen we zelf.',
-    'Maandenlang bouwen we avond aan avond aan één doel. En als de wagen dan eindelijk door de straten van Zwaag rolt, vieren we dat samen met iedereen die langs de kant staat.',
+    'Wij zijn de Bende van Ellende. Van de eerste ideeën bedenken in de kroeg tot de laatste lik verf in de schuur: alles bedenken, lassen, schroeven, piepschuimen en schilderen we zelf.',
+    'Wekenlang bouwen we avond aan avond aan één doel. En als de wagen dan eindelijk door de straten van Zwaag rolt, vieren we dat samen met iedereen die langs de kant staat.',
   ],
   foto: '', // PLACEHOLDER: groepsfoto, bijvoorbeeld '/bende/groep.jpg'
   // Getallen naast de tekst. Laat 'waarde' leeg om een getal te verbergen.
@@ -70,21 +71,19 @@ export const sponsors = [
   ...Array.from({ length: 21 }, (_, i) => ({ naam: `Sponsor ${i + 1}`, niveau: 'sponsor', logo: '', url: '' })),
 ];
 
-// Waar de knop ‘Word ook sponsor’ naartoe gaat. Leeg = naar het contactformulier.
+// Waar de knop ‘Word ook sponsor’ naartoe gaat, bijvoorbeeld 'mailto:...'. Leeg = naar ons Instagram-profiel.
 export const sponsorWorden = '';
 
-/* ------------------------------------------------------------------ socials en contact */
+/* ------------------------------------------------------------------ instagram */
 
-// Laat url leeg tot het account er is; dan toont de kaart 'binnenkort'.
-export const socials = [
-  { netwerk: 'instagram', naam: 'Instagram', account: '', url: '' }, // PLACEHOLDER
-  { netwerk: 'facebook', naam: 'Facebook', account: '', url: '' }, // PLACEHOLDER
-  { netwerk: 'tiktok', naam: 'TikTok', account: '', url: '' }, // PLACEHOLDER
-];
-
-export const contact = {
-  email: '', // PLACEHOLDER: bijvoorbeeld 'info@bendevanellendezwaag.nl'
-  tekst: 'Vragen, sponsoring, een optreden of zin om mee te bouwen? Laat het ons weten, we reageren zo snel mogelijk.',
+export const instagram = {
+  account: 'bendevanellendezwaag',
+  url: 'https://www.instagram.com/bendevanellendezwaag/',
+  // De 3 nieuwste posts komen automatisch binnen via een gratis Behold-feed (behold.so):
+  // maak daar een account, koppel Instagram, kies 'JSON feed' en plak de feed-link hieronder,
+  // bijvoorbeeld 'https://feeds.behold.so/AbCdEf123'. Zolang dit leeg is, toont de site nette tegels
+  // die naar het Instagram-profiel linken.
+  feed: '',
 };
 
 /* ------------------------------------------------------------------ menu */
@@ -97,5 +96,5 @@ export const paginas = [
   { label: 'De Bende', href: '#over', klaar: true },
   { label: 'Agenda', href: '#agenda', klaar: true },
   { label: 'Sponsors', href: '#sponsors', klaar: true },
-  { label: 'Contact', href: '#contact', klaar: true },
+  { label: 'Instagram', href: '#instagram', klaar: true },
 ];

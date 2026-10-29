@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { wagens } from './gegevens.js';
-import { minderBeweging } from './hulp.js';
+import { minderBeweging, woorden } from './hulp.js';
 import Icoon from './iconen.jsx';
 import { Logo } from './Logo.jsx';
 
@@ -14,6 +14,29 @@ function WagenFoto({ wagen, jaar }) {
     <div className="bv-foto-leeg">
       <Logo titel="" />
       <span>Foto wagen {jaar} volgt</span>
+    </div>
+  );
+}
+
+/** Ronde sticker met de eindklassering, met tekst die rondom draait. */
+function PlekSticker({ plek, jaar }) {
+  const tekst = `${plek}e plek · optocht ${jaar} · `;
+  return (
+    <div className="bv-sticker" aria-label={`${plek}e plek in de optocht van ${jaar}`}>
+      <svg viewBox="0 0 200 200" aria-hidden="true">
+        <defs>
+          <path id={`bv-cirkel-${jaar}`} d="M100,100 m-76,0 a76,76 0 1,1 152,0 a76,76 0 1,1 -152,0" />
+        </defs>
+        <text>
+          <textPath href={`#bv-cirkel-${jaar}`} textLength="477">
+            {(tekst + tekst).toUpperCase()}
+          </textPath>
+        </text>
+      </svg>
+      <span className="bv-sticker-plek">
+        {plek}
+        <sup>e</sup>
+      </span>
     </div>
   );
 }
@@ -244,29 +267,42 @@ export default function Wagens() {
   const [actief, setActief] = useState(nieuwste);
   const [album, setAlbum] = useState(false);
   const wagen = perJaar[actief];
+  const titel = wagen ? wagen.titel : `Geen wagen in ${actief}`;
 
   return (
-    <section id="wagens" className="bv-wagens" aria-label="Onze wagens door de jaren heen">
-      <div className="bv-held">
-        <div className="bv-held-foto" key={`f${actief}`}>
-          <WagenFoto wagen={wagen} jaar={actief} />
-          <span className="bv-held-jaar" aria-hidden="true">
-            {actief}
-          </span>
-        </div>
-        <div className="bv-held-tekst" key={`t${actief}`}>
-          <p className="bv-label">{actief === nieuwste ? `Wagen ${actief} · heden` : `Wagen ${actief}`}</p>
-          <h1>{wagen ? wagen.titel : `Geen wagen in ${actief}`}</h1>
-          <p className="bv-held-intro">{wagen ? wagen.tekst : 'In dit jaar hebben we geen wagen gebouwd.'}</p>
-          {wagen && (
-            <button className="bv-knop" onClick={() => setAlbum(true)}>
-              Bekijk de foto's <Icoon naam="pijl" grootte={18} />
-            </button>
-          )}
-        </div>
+    <section id="wagens" className="bv-hero" aria-label="Onze wagens door de jaren heen">
+      <div className="bv-kader bv-hero-kop">
+        <p className="bv-label">{actief === nieuwste ? `Wagen ${actief} · heden` : `Wagen ${actief}`}</p>
+        <h1 className="bv-hero-titel" key={`h${actief}`} aria-label={titel}>
+          {woorden(titel).map((w, i) => (
+            <span className="bv-woord" key={`${w}${i}`} aria-hidden="true">
+              <span style={{ '--i': i }}>{w}</span>
+            </span>
+          ))}
+        </h1>
       </div>
 
-      <Tijdlijn jaren={jaren} actief={actief} onKies={setActief} />
+      <div className="bv-hero-beeld-vak">
+        <div className="bv-hero-beeld" data-scroll="groei">
+          <div className="bv-hero-foto" key={`f${actief}`} data-scroll="door">
+            <WagenFoto wagen={wagen} jaar={actief} />
+          </div>
+        </div>
+        {wagen?.plek ? <PlekSticker key={`s${actief}`} plek={wagen.plek} jaar={actief} /> : null}
+      </div>
+
+      <div className="bv-kader bv-hero-onder" key={`o${actief}`}>
+        <p className="bv-hero-intro">{wagen ? wagen.tekst : 'In dit jaar hebben we geen wagen gebouwd.'}</p>
+        {wagen && (
+          <button className="bv-knop is-groot" onClick={() => setAlbum(true)}>
+            Bekijk de foto's <Icoon naam="pijl" grootte={18} />
+          </button>
+        )}
+      </div>
+
+      <div className="bv-kader">
+        <Tijdlijn jaren={jaren} actief={actief} onKies={setActief} />
+      </div>
 
       {album && wagen && <Album wagen={wagen} onSluit={() => setAlbum(false)} />}
     </section>

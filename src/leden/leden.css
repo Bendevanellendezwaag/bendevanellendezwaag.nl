@@ -1569,9 +1569,7 @@
 .ld-login-beeld {
   position: relative;
   display: grid;
-  grid-template-rows: auto 1fr;
-  justify-items: center;
-  align-items: center;
+  place-items: center;
   padding: 40px;
   overflow: hidden;
   background:
@@ -1606,16 +1604,10 @@
 }
 
 .ld-login-logo {
-  width: 170px;
-  margin-top: 24px;
-}
-
-.ld-login-wagen {
-  width: min(560px, 90%);
-  max-height: 62vh;
-  object-fit: contain;
+  width: min(380px, 62%);
   animation: bv-zweef 7s ease-in-out infinite;
 }
+
 
 .ld-login-vak {
   display: grid;
@@ -1761,19 +1753,13 @@
   }
 
   .ld-login-beeld {
-    padding: calc(64px + env(safe-area-inset-top, 0px)) 24px 0;
-    grid-template-rows: auto auto;
+    padding: calc(72px + env(safe-area-inset-top, 0px)) 24px 64px;
   }
 
   .ld-login-logo {
-    width: 130px;
-    margin: 0;
+    width: min(220px, 60%);
   }
 
-  .ld-login-wagen {
-    width: min(300px, 80%);
-    margin: 8px 0 -36px;
-  }
 
   .ld-login-vak {
     position: relative;
@@ -2006,7 +1992,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ld-login-wagen {
+  .ld-login-logo {
     animation: none;
   }
 }

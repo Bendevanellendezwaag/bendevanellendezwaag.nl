@@ -88,7 +88,6 @@ export default function Leden({ onSite }) {
           <Icoon naam="links" grootte={18} /> Website
         </a>
         <img className="ld-login-logo" src="/logo.svg" alt="Bende van Ellende" />
-        <img className="ld-login-wagen" src="/wagens/wagen-1.png" alt="" />
       </section>
       <section className="ld-login-vak">
         <div className="ld-login-form">{inhoud}</div>

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { paginas, socials } from './gegevens.js';
+import { instagram, paginas } from './gegevens.js';
 import { minderBeweging, scrolNaar } from './hulp.js';
 import Icoon from './iconen.jsx';
 import { LevendLogo } from './Logo.jsx';
@@ -62,11 +62,10 @@ export default function Kop({ onLeden }) {
     onLeden();
   };
 
-  const actieveSocials = socials.filter((s) => s.url);
-
   return (
     <>
       <header className={`bv-kop ${gescrold ? 'is-gescrold' : ''} ${menu !== 'dicht' ? 'is-menu' : ''}`}>
+        <div className="bv-kop-binnen">
         <LevendLogo
           onClick={(e) => {
             e.preventDefault();
@@ -96,6 +95,7 @@ export default function Kop({ onLeden }) {
               <i />
             </span>
           </button>
+        </div>
         </div>
       </header>
 
@@ -129,15 +129,9 @@ export default function Kop({ onLeden }) {
               <Icoon naam="slot" grootte={18} />
               Ledenportaal
             </a>
-            {actieveSocials.length > 0 && (
-              <div className="bv-menu-socials">
-                {actieveSocials.map((s) => (
-                  <a key={s.netwerk} href={s.url} target="_blank" rel="noopener noreferrer" aria-label={s.naam}>
-                    <Icoon naam={s.netwerk} grootte={20} />
-                  </a>
-                ))}
-              </div>
-            )}
+            <a className="bv-menu-insta" href={instagram.url} target="_blank" rel="noopener noreferrer">
+              <Icoon naam="instagram" grootte={20} />@{instagram.account}
+            </a>
           </div>
         </nav>
       )}

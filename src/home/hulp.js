@@ -60,3 +60,69 @@ export function datumDelen(iso) {
   const d = new Date(`${iso.slice(0, 10)}T12:00:00`);
   return { dag: String(d.getDate()).padStart(2, '0'), maand: MAANDEN[d.getMonth()], jaar: d.getFullYear() };
 }
+
+const binnen = (x) => Math.min(1, Math.max(0, x));
+
+/**
+ * Scroll-motor voor de effecten. Elk element met data-scroll krijgt een CSS-variabele --p (0 tot 1)
+ * die meeloopt met het scrollen; de CSS bepaalt wat er met die waarde gebeurt.
+ *   data-scroll="groei"  0 bij het laden, 1 als het element bijna bovenaan staat (hero-foto)
+ *   data-scroll="door"   0 als het onderaan binnenkomt, 1 als het bovenaan verdwijnt (parallax)
+ *   data-scroll="in"     0 als het onderaan binnenkomt, 1 als het een derde in beeld is
+ *   data-scroll="lees"   loopt van 0 naar 1 terwijl je langs een tekst scrolt (woord voor woord)
+ */
+export function useScrollMotor() {
+  useEffect(() => {
+    const rustig = minderBeweging();
+    let frame = 0;
+
+    const reken = () => {
+      frame = 0;
+      const vh = window.innerHeight;
+      document.querySelectorAll('[data-scroll]').forEach((el) => {
+        if (rustig) {
+          el.style.setProperty('--p', '1');
+          return;
+        }
+        const r = el.getBoundingClientRect();
+        if (r.bottom < -vh * 0.5 || r.top > vh * 1.5) return;
+        let p;
+        switch (el.dataset.scroll) {
+          case 'groei':
+            p = (vh * 0.42 - r.top) / (vh * 0.42);
+            break;
+          case 'door':
+            p = (vh - r.top) / (vh + r.height);
+            break;
+          case 'lees':
+            p = (vh * 0.85 - r.top) / (r.height + vh * 0.2);
+            break;
+          default:
+            p = (vh - r.top) / (vh * 0.7);
+        }
+        el.style.setProperty('--p', binnen(p).toFixed(4));
+      });
+    };
+
+    const plan = () => {
+      if (!frame) frame = requestAnimationFrame(reken);
+    };
+    reken();
+    // Nieuwe onderdelen (bijvoorbeeld als de Instagram-posts binnenkomen) ook meenemen.
+    const mo = new MutationObserver(plan);
+    mo.observe(document.body, { childList: true, subtree: true });
+    window.addEventListener('scroll', plan, { passive: true });
+    window.addEventListener('resize', plan);
+    return () => {
+      cancelAnimationFrame(frame);
+      mo.disconnect();
+      window.removeEventListener('scroll', plan);
+      window.removeEventListener('resize', plan);
+    };
+  }, []);
+}
+
+/** Splitst tekst in woorden, zodat ze één voor één kunnen verschijnen. */
+export function woorden(tekst) {
+  return tekst.split(/\s+/).filter(Boolean);
+}
