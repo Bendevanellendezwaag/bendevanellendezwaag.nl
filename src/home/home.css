@@ -1,10 +1,12 @@
-/* Homepagina Bende van Ellende — donkere basis, wit en limoengroen als accent, lettertype Unbounded. */
+/* Homepagina Bende van Ellende — helder blauw, lichtblauwe knoppen, wit en limoengroen als accent, lettertype Unbounded. */
 .bv-home {
-  --bg: #171a15;
-  --bg-licht: #1f231c;
+  --bg: #2563ff;
+  --bg-licht: #1a4de0;
+  --knop: #b8dcff;
+  --knop-hover: #a3cfff;
   --wit: #ffffff;
-  --zacht: rgba(255, 255, 255, 0.62);
-  --lijn: rgba(255, 255, 255, 0.12);
+  --zacht: rgba(255, 255, 255, 0.8);
+  --lijn: rgba(255, 255, 255, 0.24);
   --accent: #aeff00;
   --rond: 25px;
   --rand: clamp(16px, 4vw, 48px);
@@ -26,7 +28,7 @@
   box-sizing: border-box;
 }
 
-.bv-home button {
+:where(.bv-home button) {
   font: inherit;
   color: inherit;
 }
@@ -237,7 +239,7 @@ html.bv-geen-scroll {
 }
 
 .bv-kop.is-gescrold:not(.is-menu) {
-  background: rgba(23, 26, 21, 0.82);
+  background: rgba(37, 99, 255, 0.86);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   box-shadow: 0 1px 0 var(--lijn);
@@ -257,7 +259,7 @@ html.bv-geen-scroll {
   padding: 0 8px 0 20px;
   border: 1px solid var(--lijn);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.1);
   cursor: pointer;
   font-size: 0.78rem;
   font-weight: 500;
@@ -274,8 +276,8 @@ html.bv-geen-scroll {
 }
 
 .bv-menuknop.is-open {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--knop);
+  border-color: var(--knop);
   color: var(--bg);
 }
 
@@ -339,7 +341,7 @@ html.bv-geen-scroll {
 
 .bv-menuknop.is-open .bv-menuknop-streepjes i {
   top: 15px;
-  background: var(--accent);
+  background: var(--knop);
 }
 
 .bv-menuknop.is-open .bv-menuknop-streepjes i:first-child {
@@ -529,13 +531,15 @@ html.bv-geen-scroll {
 }
 
 .bv-knop-accent {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--knop);
+  border-color: var(--knop);
   color: var(--bg);
 }
 
 .bv-knop-accent:hover {
-  box-shadow: 0 10px 30px -8px rgba(174, 255, 0, 0.55);
+  background: var(--knop-hover);
+  border-color: var(--knop-hover);
+  box-shadow: 0 10px 30px -8px rgba(8, 26, 90, 0.45);
 }
 
 .bv-knop-groot {
@@ -544,8 +548,8 @@ html.bv-geen-scroll {
 }
 
 .bv-knop-groot:hover {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--knop);
+  border-color: var(--knop);
 }
 
 /* ---------- Wagens ---------- */
@@ -593,10 +597,10 @@ html.bv-geen-scroll {
   justify-items: center;
   gap: 18px;
   background:
-    radial-gradient(60% 60% at 50% 45%, rgba(174, 255, 0, 0.09), transparent 70%),
+    radial-gradient(60% 60% at 50% 45%, rgba(255, 255, 255, 0.12), transparent 70%),
     repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0 2px, transparent 2px 22px),
     var(--bg-licht);
-  color: rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.28);
 }
 
 .bv-foto-leeg .bv-logo {
@@ -791,7 +795,7 @@ html.bv-geen-scroll {
   display: grid;
   place-items: center;
   padding: var(--rand);
-  background: rgba(10, 12, 9, 0.72);
+  background: rgba(8, 26, 90, 0.55);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   animation: bv-vervaag 0.3s ease both;
@@ -889,7 +893,7 @@ html.bv-geen-scroll {
   gap: 16px;
   padding: 48px 16px;
   text-align: center;
-  color: rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.28);
 }
 
 .bv-album-leeg .bv-logo {
@@ -956,7 +960,7 @@ html.bv-geen-scroll {
   padding: 18px;
   border: 1px solid var(--lijn);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.025);
+  background: rgba(255, 255, 255, 0.06);
   color: var(--zacht);
   text-align: center;
   text-decoration: none;
@@ -968,8 +972,8 @@ html.bv-geen-scroll {
 
 .bv-sponsor-raster a:hover,
 .bv-sponsor-raster div:hover {
-  border-color: rgba(174, 255, 0, 0.5);
-  background: rgba(174, 255, 0, 0.05);
+  border-color: var(--knop);
+  background: rgba(184, 220, 255, 0.12);
   transform: translateY(-3px);
 }
 

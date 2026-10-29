@@ -3,27 +3,11 @@ import { LOGO_PADEN, LOGO_VIEWBOX } from './logoPaden.js';
 import { paginas, sponsors, sponsorWorden, wagens } from './gegevens.js';
 import './home.css';
 
-const ACHTERGROND = '#171A15';
-const INTRO_SLEUTEL = 'bve-intro-gezien';
+const ACHTERGROND = '#2563FF';
 const LOGO_ANIMATIES = ['hup', 'wiebel', 'flits', 'stuiter'];
 
 const minderBeweging = () =>
   typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-
-function leesSessie(sleutel) {
-  try {
-    return window.sessionStorage.getItem(sleutel);
-  } catch {
-    return null;
-  }
-}
-function schrijfSessie(sleutel, waarde) {
-  try {
-    window.sessionStorage.setItem(sleutel, waarde);
-  } catch {
-    /* privévenster of geblokkeerde opslag: dan zie je de intro gewoon vaker */
-  }
-}
 
 /* ---------- Logo ---------- */
 
@@ -558,11 +542,9 @@ function Sponsors() {
 /* ---------- Pagina ---------- */
 
 export default function Home({ onLeden }) {
-  const [intro, setIntro] = useState(() => !leesSessie(INTRO_SLEUTEL));
-  const klaar = useCallback(() => {
-    schrijfSessie(INTRO_SLEUTEL, '1');
-    setIntro(false);
-  }, []);
+  // De intro speelt bij elke keer laden of verversen van de pagina.
+  const [intro, setIntro] = useState(true);
+  const klaar = useCallback(() => setIntro(false), []);
 
   // Eigen achtergrond- en themakleur voor deze pagina.
   useEffect(() => {

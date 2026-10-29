@@ -1,10 +1,10 @@
-/* Gedeeld: lettertype, kleuren en basis. Kleuren uit het ontwerp (rood verloop). */
+/* Gedeeld: lettertype, kleuren en basis. Zelfde kleuren en lettertype als de homepagina (helder blauw). */
 :root {
-  --font: 'Lexend', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --hemel: #d62f2f;
-  --blauw: #b3121f;
-  --diep: #7a0c14;
-  --nacht: #4a070c;
+  --font: 'Unbounded', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --hemel: #4f86ff;
+  --blauw: #2563ff;
+  --diep: #1a4de0;
+  --nacht: #123ab8;
   --wit: #ffffff;
   --zacht: rgba(255, 255, 255, 0.74);
   --lijn: rgba(255, 255, 255, 0.2);
@@ -12,6 +12,7 @@
   --geel: #ffd84a;
   --rood: #ff9a9a;
   --groen: #7be3a4;
+  --lichtblauw: #b8dcff;
   --radius: 18px;
 }
 

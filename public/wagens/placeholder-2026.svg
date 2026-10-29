@@ -2,8 +2,8 @@
   <!-- PLACEHOLDER: vervang door een echte foto van de wagen van 2026 -->
   <defs>
     <linearGradient id="lucht" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#2b3126"/>
-      <stop offset="1" stop-color="#1d2119"/>
+      <stop offset="0" stop-color="#3d76ff"/>
+      <stop offset="1" stop-color="#1a4de0"/>
     </linearGradient>
     <radialGradient id="gloed" cx="0.5" cy="0.55" r="0.5">
       <stop offset="0" stop-color="#aeff00" stop-opacity="0.22"/>
@@ -40,8 +40,8 @@
     <path d="M610 410 h0 M670 410 h0" stroke="#aeff00" stroke-width="16"/>
     <path d="M605 445 Q640 475 675 445" stroke="#aeff00"/>
     <path d="M450 560 V470 M520 560 V500"/>
-    <circle cx="340" cy="660" r="38" fill="#1d2119"/>
-    <circle cx="860" cy="660" r="38" fill="#1d2119"/>
+    <circle cx="340" cy="660" r="38" fill="#1a4de0"/>
+    <circle cx="860" cy="660" r="38" fill="#1a4de0"/>
     <path d="M950 610 H1020 L1040 640"/>
   </g>
 
