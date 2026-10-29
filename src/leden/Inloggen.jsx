@@ -1,12 +1,6 @@
 import { useState } from 'react';
 import * as api from './api.js';
 
-const KOPPEN = {
-  inloggen: 'Inloggen',
-  registreren: 'Account aanmaken',
-  vergeten: 'Wachtwoord vergeten',
-};
-
 export default function Inloggen() {
   const [stand, setStand] = useState('inloggen');
   const [naam, setNaam] = useState('');
@@ -33,91 +27,85 @@ export default function Inloggen() {
     else if (stand === 'registreren') {
       r = await api.registreren(naam.trim(), schoon, wachtwoord);
       // Staat e-mailbevestiging aan in Supabase, dan is er nog geen sessie.
-      if (!r.error && !r.data?.session)
-        setGelukt('Bijna klaar! Klik op de link in de mail die je net kreeg om je account te bevestigen.');
+      if (!r.error && !r.data?.session) setGelukt('Bevestig je account via de link in je mail.');
     } else {
       r = await api.wachtwoordVergeten(schoon);
-      if (!r.error) setGelukt('Als dit adres bij ons bekend is, staat er nu een mail klaar met een link.');
+      if (!r.error) setGelukt('Check je mail voor een link om een nieuw wachtwoord te kiezen.');
     }
     setBezig(false);
     if (r.error) setFout(r.error);
   }
 
-  return (
-    <form className="ld-kaart ld-form" onSubmit={verstuur}>
-      <h1 className="ld-titel">{KOPPEN[stand]}</h1>
-      {stand === 'inloggen' && (
-        <p className="ld-zacht">De ledenomgeving van de Bende van Ellende.</p>
-      )}
-      {stand === 'registreren' && (
-        <p className="ld-zacht">Na het aanmaken keurt de beheerder je account goed.</p>
-      )}
+  if (stand === 'vergeten') {
+    return (
+      <form className="ld-form" onSubmit={verstuur}>
+        <h1 className="ld-login-titel">Wachtwoord vergeten</h1>
+        <Veld label="E-mailadres" type="email" value={email} onChange={setEmail} autoComplete="email" autoFocus />
+        {fout && <p className="ld-fout">{fout}</p>}
+        {gelukt && <p className="ld-gelukt">{gelukt}</p>}
+        <button className="ld-knop" type="submit" disabled={bezig}>
+          {bezig ? 'Versturen…' : 'Stuur link'}
+        </button>
+        <button type="button" className="ld-link ld-midden" onClick={() => wissel('inloggen')}>
+          Terug naar inloggen
+        </button>
+      </form>
+    );
+  }
 
-      {stand === 'registreren' && (
-        <label className="ld-veld">
-          <span>Naam</span>
-          <input
-            className="ld-input"
-            value={naam}
-            onChange={(e) => setNaam(e.target.value)}
-            autoComplete="name"
-            maxLength={60}
-            required
-          />
-        </label>
-      )}
-      <label className="ld-veld">
-        <span>E-mailadres</span>
-        <input
-          className="ld-input"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          autoComplete="email"
-          required
-        />
-      </label>
-      {stand !== 'vergeten' && (
-        <label className="ld-veld">
-          <span>Wachtwoord</span>
-          <input
-            className="ld-input"
-            type="password"
-            value={wachtwoord}
-            onChange={(e) => setWachtwoord(e.target.value)}
-            autoComplete={stand === 'registreren' ? 'new-password' : 'current-password'}
-            minLength={stand === 'registreren' ? 8 : undefined}
-            required
-          />
-          {stand === 'registreren' && <small>Minstens 8 tekens.</small>}
-        </label>
-      )}
+  const nieuw = stand === 'registreren';
+
+  return (
+    <form className="ld-form" onSubmit={verstuur}>
+      <h1 className="ld-login-titel">{nieuw ? 'Word lid' : 'Welkom terug'}</h1>
+
+      <div className="ld-segment" role="tablist">
+        <button type="button" role="tab" aria-selected={!nieuw} className={!nieuw ? 'is-aan' : ''} onClick={() => wissel('inloggen')}>
+          Inloggen
+        </button>
+        <button type="button" role="tab" aria-selected={nieuw} className={nieuw ? 'is-aan' : ''} onClick={() => wissel('registreren')}>
+          Account aanmaken
+        </button>
+      </div>
+
+      {nieuw && <Veld label="Naam" value={naam} onChange={setNaam} autoComplete="name" maxLength={60} />}
+      <Veld label="E-mailadres" type="email" value={email} onChange={setEmail} autoComplete="email" />
+      <Veld
+        label="Wachtwoord"
+        type="password"
+        value={wachtwoord}
+        onChange={setWachtwoord}
+        autoComplete={nieuw ? 'new-password' : 'current-password'}
+        minLength={nieuw ? 8 : undefined}
+        placeholder={nieuw ? 'Minstens 8 tekens' : undefined}
+        extra={
+          !nieuw && (
+            <button type="button" className="ld-link is-klein" onClick={() => wissel('vergeten')}>
+              Vergeten?
+            </button>
+          )
+        }
+      />
 
       {fout && <p className="ld-fout">{fout}</p>}
       {gelukt && <p className="ld-gelukt">{gelukt}</p>}
 
       <button className="ld-knop" type="submit" disabled={bezig}>
-        {bezig ? 'Even wachten…' : stand === 'vergeten' ? 'Stuur een link' : KOPPEN[stand]}
+        {bezig ? 'Even wachten…' : nieuw ? 'Account aanmaken' : 'Inloggen'}
       </button>
-
-      <div className="ld-wissel">
-        {stand !== 'inloggen' && (
-          <button type="button" className="ld-link" onClick={() => wissel('inloggen')}>
-            Ik heb al een account
-          </button>
-        )}
-        {stand !== 'registreren' && (
-          <button type="button" className="ld-link" onClick={() => wissel('registreren')}>
-            Account aanmaken
-          </button>
-        )}
-        {stand === 'inloggen' && (
-          <button type="button" className="ld-link" onClick={() => wissel('vergeten')}>
-            Wachtwoord vergeten?
-          </button>
-        )}
-      </div>
     </form>
+  );
+}
+
+function Veld({ label, onChange, extra, ...props }) {
+  return (
+    <label className="ld-veld">
+      <span className="ld-veld-kop">
+        {label}
+        {extra}
+      </span>
+      <input className="ld-input" required {...props} onChange={(e) => onChange(e.target.value)} />
+    </label>
   );
 }
 
@@ -129,7 +117,7 @@ export function NieuwWachtwoord({ klaar }) {
 
   return (
     <form
-      className="ld-kaart ld-form"
+      className="ld-form"
       onSubmit={async (e) => {
         e.preventDefault();
         setBezig(true);
@@ -139,20 +127,17 @@ export function NieuwWachtwoord({ klaar }) {
         else klaar();
       }}
     >
-      <h1 className="ld-titel">Nieuw wachtwoord</h1>
-      <label className="ld-veld">
-        <span>Kies een nieuw wachtwoord</span>
-        <input
-          className="ld-input"
-          type="password"
-          value={wachtwoord}
-          onChange={(e) => setWachtwoord(e.target.value)}
-          autoComplete="new-password"
-          minLength={8}
-          required
-          autoFocus
-        />
-      </label>
+      <h1 className="ld-login-titel">Nieuw wachtwoord</h1>
+      <Veld
+        label="Nieuw wachtwoord"
+        type="password"
+        value={wachtwoord}
+        onChange={setWachtwoord}
+        autoComplete="new-password"
+        minLength={8}
+        placeholder="Minstens 8 tekens"
+        autoFocus
+      />
       {fout && <p className="ld-fout">{fout}</p>}
       <button className="ld-knop" type="submit" disabled={bezig}>
         {bezig ? 'Opslaan…' : 'Opslaan'}

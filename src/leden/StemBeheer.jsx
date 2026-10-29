@@ -1,19 +1,19 @@
 import { useEffect, useState } from 'react';
 import * as api from './api.js';
+import Icoon from './iconen.jsx';
+import { meld } from './melding.js';
+import { Paginakop } from './onderdelen.jsx';
 import { RONDES, Uitslag } from './Stemming.jsx';
 
-const STATUS = { gepland: 'Nog niet begonnen', open: 'Open', gesloten: 'Gesloten' };
+const STATUS = { gepland: 'Gepland', open: 'Open', gesloten: 'Gesloten' };
 const DOOR = { 1: 5, 2: 3 }; // standaard voorselectie: top 5 na ronde 1, top 3 na ronde 2
 
 /** Beheerder: rondes openen/sluiten, uitslagen bekijken, thema's doorzetten en beheren. */
 export default function StemBeheer({ data, ververs }) {
   return (
     <>
-      <h1 className="ld-titel">Beheer stemming</h1>
-      <p className="ld-zacht ld-klein">
-        Werkwijze: zet de thema's erin, open ronde 1, sluit hem en kies wie doorgaat naar ronde 2.
-        Herhaal dat voor de finale. De uitslag van ronde 2 zie alleen jij.
-      </p>
+      <Paginakop titel="Beheer" />
+      <h2 className="ld-kopje">Rondes</h2>
       {data.rondes.map((r) => (
         <RondeBeheer key={r.nr} ronde={r} data={data} ververs={ververs} />
       ))}
@@ -43,56 +43,67 @@ function RondeBeheer({ ronde, data, ververs }) {
     };
   }, [ronde.nr, ronde.status, gestemd, data]);
 
-  async function doe(belofte) {
+  async function doe(belofte, tekst) {
     setFout(null);
     const r = await belofte;
     if (r.error) setFout(r.error);
+    else if (tekst) meld(tekst);
     ververs();
   }
 
   function openen() {
     if (andereOpen && !window.confirm(`${RONDES[andereOpen.nr].naam} staat nog open en wordt dan gesloten. Doorgaan?`)) return;
-    doe(api.rondeOpenen(ronde.nr));
+    doe(api.rondeOpenen(ronde.nr), `${RONDES[ronde.nr].naam} staat open voor de leden`);
   }
 
   return (
     <section className={`ld-kaart ld-ronde is-${ronde.status}`}>
       <button className="ld-ronde-kop" onClick={() => setUitgeklapt((u) => !u)} aria-expanded={uitgeklapt}>
-        <span>
+        <span className="ld-ronde-nr">{ronde.nr}</span>
+        <span className="ld-ronde-naam">
           <strong>{RONDES[ronde.nr].naam}</strong>
-          <span className="ld-zacht ld-klein">
+          <small>
             {mee.length} thema's · {gestemd} {gestemd === 1 ? 'stem' : 'stemmen'}
-          </span>
+          </small>
         </span>
         <em className={`ld-status is-${ronde.status}`}>{STATUS[ronde.status]}</em>
+        <span className={`ld-pijltje ${uitgeklapt ? 'is-open' : ''}`}>
+          <Icoon naam="neer" grootte={18} />
+        </span>
       </button>
 
       {uitgeklapt && (
         <div className="ld-ronde-inhoud">
-          <p className="ld-zacht ld-klein">{RONDES[ronde.nr].soort}</p>
           {fout && <p className="ld-fout">{fout}</p>}
 
           <div className="ld-rij-knoppen">
             {ronde.status === 'open' ? (
-              <button className="ld-knop is-klein" onClick={() => doe(api.rondeBijwerken(ronde.nr, { status: 'gesloten' }))}>
-                Ronde sluiten
+              <button className="ld-knop is-klein" onClick={() => doe(api.rondeBijwerken(ronde.nr, { status: 'gesloten' }), `${RONDES[ronde.nr].naam} is gesloten`)}>
+                Sluiten
               </button>
             ) : (
               <button className="ld-knop is-klein" onClick={openen} disabled={mee.length === 0}>
-                {ronde.status === 'gesloten' ? 'Opnieuw openen' : 'Ronde openen'}
+                {ronde.status === 'gesloten' ? 'Opnieuw openen' : 'Openzetten voor leden'}
               </button>
             )}
-            {ronde.nr !== 2 ? (
+            {ronde.nr === 1 ? (
               <label className="ld-schakel">
                 <input
                   type="checkbox"
                   checked={ronde.uitslag_openbaar}
-                  onChange={(e) => doe(api.rondeBijwerken(ronde.nr, { uitslag_openbaar: e.target.checked }))}
+                  onChange={(e) =>
+                    doe(
+                      api.rondeBijwerken(ronde.nr, { uitslag_openbaar: e.target.checked }),
+                      e.target.checked ? 'Uitslag zichtbaar voor leden' : 'Uitslag verborgen',
+                    )
+                  }
                 />
-                Uitslag tonen aan leden (na sluiten)
+                Uitslag zichtbaar voor leden
               </label>
             ) : (
-              <span className="ld-zacht ld-klein">🔒 Uitslag alleen voor beheerders</span>
+              <span className="ld-geheim">
+                <Icoon naam="slot" grootte={16} /> Uitslag alleen voor jou
+              </span>
             )}
           </div>
           {mee.length === 0 && ronde.nr > 1 && (
@@ -100,18 +111,18 @@ function RondeBeheer({ ronde, data, ververs }) {
           )}
 
           <label className="ld-veld">
-            <span>Uitleg bij deze ronde (zien de leden boven de stemming)</span>
+            <span>Uitleg voor de leden (optioneel)</span>
             <textarea className="ld-input" rows={2} value={tekst} maxLength={4000} onChange={(e) => setTekst(e.target.value)} />
           </label>
           {tekst !== ronde.toelichting && (
-            <button className="ld-knop is-klein is-rand" onClick={() => doe(api.rondeBijwerken(ronde.nr, { toelichting: tekst }))}>
+            <button className="ld-knop is-klein is-rand" onClick={() => doe(api.rondeBijwerken(ronde.nr, { toelichting: tekst }), 'Uitleg opgeslagen')}>
               Uitleg opslaan
             </button>
           )}
 
           {uitslag && (
             <div className="ld-ronde-uitslag">
-              <h3 className="ld-sub">Uitslag {ronde.status === 'open' && <span>live</span>}</h3>
+              <h3 className="ld-sub">Uitslag {ronde.status === 'open' && <span className="ld-live">live</span>}</h3>
               <Uitslag ronde={ronde.nr} uitslag={uitslag} />
               {uitslag.stemmers?.length > 0 && (
                 <p className="ld-zacht ld-klein">Gestemd: {uitslag.stemmers.join(', ')}</p>
@@ -140,9 +151,6 @@ function Doorzetten({ ronde, mee, uitslag, ververs }) {
       <h3 className="ld-sub">
         Door naar {RONDES[ronde + 1].naam.toLowerCase()} <span>{keuze.length} gekozen</span>
       </h3>
-      <p className="ld-zacht ld-klein">
-        Voorgeselecteerd: de top {DOOR[ronde]}. Pas aan wat je wilt, bijvoorbeeld bij een gelijke stand.
-      </p>
       <ul className="ld-lijst">
         {volgorde.map((t) => (
           <li key={t.id}>
@@ -162,7 +170,8 @@ function Doorzetten({ ronde, mee, uitslag, ververs }) {
         disabled={keuze.length === 0}
         onClick={async () => {
           const r = await api.doorzetten(ronde, keuze);
-          setKlaar(r.error || `✓ ${keuze.length} thema's staan klaar voor ${RONDES[ronde + 1].naam.toLowerCase()}.`);
+          if (r.error) setKlaar(r.error);
+          else meld(`${keuze.length} thema's door naar ${RONDES[ronde + 1].naam.toLowerCase()}`);
           ververs();
         }}
       >
@@ -181,10 +190,16 @@ function ThemaBeheer({ themas, ververs }) {
   const [bewerk, setBewerk] = useState(null);
 
   return (
-    <section className="ld-kaart">
-      <h2 className="ld-sub">
-        Thema's <span>{themas.length}</span>
+    <>
+      <h2 className="ld-kopje">
+        Thema's
+        {!bewerk && (
+          <button className="ld-knop is-klein" onClick={() => setBewerk(LEEG)}>
+            <Icoon naam="plus" grootte={16} /> Nieuw thema
+          </button>
+        )}
       </h2>
+    <section className="ld-kaart">
       {bewerk ? (
         <ThemaForm
           thema={bewerk}
@@ -195,28 +210,31 @@ function ThemaBeheer({ themas, ververs }) {
         />
       ) : (
         <>
-          <ul className="ld-lijst">
+          {themas.length === 0 && <p className="ld-zacht">Nog geen thema's.</p>}
+          <ul className="ld-lijst is-scheiding">
             {themas.map((t) => (
-              <li key={t.id} className="ld-rij is-beheer">
-                {t.fotos?.[0] ? <img className="ld-mini" src={api.fotoUrl(t.fotos[0])} alt="" /> : <span className="ld-mini is-leeg" />}
-                <span className="ld-rij-tekst">
-                  {t.titel}
-                  <small className="ld-zacht">
-                    {t.fotos?.length || 0} foto's · {t.ronde > 1 ? `in ronde ${t.ronde}` : 'ronde 1'}
-                  </small>
-                </span>
-                <button className="ld-link" onClick={() => setBewerk(t)}>
-                  Bewerken
+              <li key={t.id}>
+                <button className="ld-rij is-beheer" onClick={() => setBewerk(t)}>
+                  {t.fotos?.[0] ? (
+                    <img className="ld-mini" src={api.fotoUrl(t.fotos[0])} alt="" />
+                  ) : (
+                    <span className="ld-mini is-leeg">{t.titel.slice(0, 1)}</span>
+                  )}
+                  <span className="ld-rij-tekst">
+                    {t.titel}
+                    <small>
+                      {t.fotos?.length || 0} foto's · {RONDES[t.ronde].naam}
+                    </small>
+                  </span>
+                  <Icoon naam="pen" grootte={18} />
                 </button>
               </li>
             ))}
           </ul>
-          <button className="ld-knop is-klein" onClick={() => setBewerk(LEEG)}>
-            + Nieuw thema
-          </button>
         </>
       )}
     </section>
+    </>
   );
 }
 
@@ -261,6 +279,7 @@ function ThemaForm({ thema, klaar }) {
     }
     // Weggehaalde foto's ook uit de opslag halen.
     for (const pad of (thema.fotos || []).filter((p) => !fotos.includes(p))) await api.fotoVerwijder(pad);
+    meld(thema.id ? 'Thema opgeslagen' : 'Thema toegevoegd');
     klaar();
   }
 
@@ -279,6 +298,7 @@ function ThemaForm({ thema, klaar }) {
       return;
     }
     for (const pad of [...(thema.fotos || []), ...nieuw]) await api.fotoVerwijder(pad);
+    meld('Thema verwijderd');
     klaar();
   }
 

@@ -38,16 +38,6 @@ export default function Site({ onLeden }) {
             </a>
           ))}
         </nav>
-        <a
-          className="bv-leden-knop"
-          href="/leden"
-          onClick={(e) => {
-            e.preventDefault();
-            onLeden();
-          }}
-        >
-          Leden
-        </a>
         <button
           className="bv-hamburger"
           aria-label={menuOpen ? 'Menu sluiten' : 'Menu openen'}
@@ -73,7 +63,7 @@ export default function Site({ onLeden }) {
               onLeden();
             }}
           >
-            Leden
+            Inloggen voor leden
           </a>
         </div>
       )}
@@ -133,6 +123,28 @@ export default function Site({ onLeden }) {
           {contact.email && <a href={`mailto:${contact.email}`}>{contact.email}</a>}
           {contact.instagram && <a href={contact.instagram}>Instagram</a>}
           {contact.facebook && <a href={contact.facebook}>Facebook</a>}
+        </div>
+      </section>
+
+      <section className="bv-sectie">
+        <div className="bv-leden">
+          <div>
+            <h2>Lid van de Bende?</h2>
+            <p>Log in voor de ledenomgeving: stemmen op het nieuwe thema en alles over het komende seizoen.</p>
+          </div>
+          <a
+            className="bv-leden-knop"
+            href="/leden"
+            onClick={(e) => {
+              e.preventDefault();
+              onLeden();
+            }}
+          >
+            Inloggen
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 12h14M13 6l6 6-6 6" />
+            </svg>
+          </a>
         </div>
       </section>
 

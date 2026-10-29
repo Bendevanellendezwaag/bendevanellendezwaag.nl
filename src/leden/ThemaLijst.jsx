@@ -1,51 +1,61 @@
 import { useEffect, useState } from 'react';
 import { fotoUrl } from './api.js';
+import Icoon from './iconen.jsx';
+import { Leeg, Paginakop } from './onderdelen.jsx';
 
 /** Alle thema's als kaarten; tik er een aan voor de volledige toelichting. */
 export default function ThemaLijst({ themas }) {
   const [open, setOpen] = useState(null);
 
-  if (!themas.length) {
-    return <p className="ld-zacht ld-midden">Er staan nog geen thema's klaar.</p>;
-  }
-
   return (
     <>
-      <h1 className="ld-titel">Thema's</h1>
-      <div className="ld-themas">
-        {themas.map((t) => (
-          <ThemaKaart key={t.id} thema={t} onOpen={() => setOpen(t)} />
-        ))}
-      </div>
+      <Paginakop titel="Thema's" sub={themas.length ? `${themas.length} ideeën voor de nieuwe wagen` : undefined} />
+      {themas.length === 0 ? (
+        <Leeg titel="Nog geen thema's" />
+      ) : (
+        <div className="ld-themas">
+          {themas.map((t) => (
+            <ThemaKaart key={t.id} thema={t} onOpen={() => setOpen(t)} />
+          ))}
+        </div>
+      )}
       {open && <ThemaDetail thema={open} onSluit={() => setOpen(null)} />}
     </>
   );
 }
 
-export function ThemaKaart({ thema, onOpen }) {
+function ThemaKaart({ thema, onOpen }) {
   const foto = thema.fotos?.[0];
   return (
     <button className="ld-themakaart" onClick={onOpen}>
       <span className="ld-themakaart-foto">
         {foto ? <img src={fotoUrl(foto)} alt="" loading="lazy" /> : <span>{thema.titel.slice(0, 1)}</span>}
-        {thema.ronde > 1 && <em>Door naar ronde {thema.ronde}</em>}
+        {thema.ronde > 1 && <em>{thema.ronde === 3 ? 'Stemronde 2' : 'Stemronde 1'}</em>}
+        {thema.fotos?.length > 1 && (
+          <i>
+            <Icoon naam="foto" grootte={14} /> {thema.fotos.length}
+          </i>
+        )}
       </span>
-      <strong>{thema.titel}</strong>
-      {thema.kort && <span className="ld-zacht">{thema.kort}</span>}
+      <span className="ld-themakaart-tekst">
+        <strong>{thema.titel}</strong>
+        {thema.kort && <span>{thema.kort}</span>}
+      </span>
     </button>
   );
 }
 
 /** Volledig scherm: foto's om doorheen te bladeren + de uitgebreide toelichting. */
-export function ThemaDetail({ thema, onSluit, kopje }) {
+export function ThemaDetail({ thema, onSluit }) {
   const fotos = thema.fotos || [];
   const [i, setI] = useState(0);
+  const stap = (r) => setI((x) => (x + r + fotos.length) % fotos.length);
 
   useEffect(() => {
     const toets = (e) => {
       if (e.key === 'Escape') onSluit();
-      if (e.key === 'ArrowRight') setI((x) => Math.min(fotos.length - 1, x + 1));
-      if (e.key === 'ArrowLeft') setI((x) => Math.max(0, x - 1));
+      if (fotos.length > 1 && e.key === 'ArrowRight') setI((x) => (x + 1) % fotos.length);
+      if (fotos.length > 1 && e.key === 'ArrowLeft') setI((x) => (x - 1 + fotos.length) % fotos.length);
     };
     window.addEventListener('keydown', toets);
     document.body.style.overflow = 'hidden';
@@ -59,26 +69,18 @@ export function ThemaDetail({ thema, onSluit, kopje }) {
     <div className="ld-detail" role="dialog" aria-modal="true" aria-label={thema.titel} onClick={onSluit}>
       <article className="ld-detail-blad" onClick={(e) => e.stopPropagation()}>
         <button className="ld-detail-sluit" onClick={onSluit} aria-label="Sluiten">
-          ✕
+          <Icoon naam="kruis" />
         </button>
         {fotos.length > 0 && (
           <div className="ld-fotos">
             <img src={fotoUrl(fotos[i])} alt={`${thema.titel}, foto ${i + 1}`} />
             {fotos.length > 1 && (
               <>
-                <button
-                  className="ld-fotos-pijl is-links"
-                  onClick={() => setI((x) => (x - 1 + fotos.length) % fotos.length)}
-                  aria-label="Vorige foto"
-                >
-                  ‹
+                <button className="ld-fotos-pijl is-links" onClick={() => stap(-1)} aria-label="Vorige foto">
+                  <Icoon naam="links" />
                 </button>
-                <button
-                  className="ld-fotos-pijl is-rechts"
-                  onClick={() => setI((x) => (x + 1) % fotos.length)}
-                  aria-label="Volgende foto"
-                >
-                  ›
+                <button className="ld-fotos-pijl is-rechts" onClick={() => stap(1)} aria-label="Volgende foto">
+                  <Icoon naam="rechts" />
                 </button>
                 <div className="ld-fotos-stip">
                   {fotos.map((f, j) => (
@@ -90,11 +92,9 @@ export function ThemaDetail({ thema, onSluit, kopje }) {
           </div>
         )}
         <div className="ld-detail-tekst">
-          {kopje}
-          <h2 className="ld-titel">{thema.titel}</h2>
+          <h2>{thema.titel}</h2>
           {thema.kort && <p className="ld-detail-kort">{thema.kort}</p>}
           {thema.toelichting && <div className="ld-detail-uitleg">{thema.toelichting}</div>}
-          {!thema.kort && !thema.toelichting && <p className="ld-zacht">Nog geen toelichting.</p>}
         </div>
       </article>
     </div>

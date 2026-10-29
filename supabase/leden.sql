@@ -11,9 +11,9 @@
 --    Alleen goedgekeurde leden zien iets van de ledenomgeving.
 --
 --  Stemming in drie rondes
---    ronde 1: iedereen zet alle thema's op volgorde (punten: nr. 1 krijgt N, nr. 2 N-1, ...)
---    ronde 2: maximaal 3 stemmen op de thema's die door zijn — uitslag ALLEEN voor de beheerder
---    ronde 3: één stem
+--    ronde 1 "eerste vergadering": alle thema's op volgorde (punten: nr. 1 krijgt N, ...)
+--    ronde 2 "stemronde 1": maximaal 3 stemmen — uitslag ALLEEN voor de beheerder
+--    ronde 3 "stemronde 2": één stem — uitslag ALLEEN voor de beheerder
 --    Na elke ronde kiest de beheerder zelf welke thema's doorgaan (themas.ronde).
 --    Een thema doet mee aan ronde r als themas.ronde >= r.
 --
@@ -163,10 +163,14 @@ create table if not exists public.rondes (
   status           text not null default 'gepland' check (status in ('gepland', 'open', 'gesloten')),
   uitslag_openbaar boolean not null default false,
   toelichting      text not null default '' check (char_length(toelichting) <= 4000),
-  bijgewerkt_op    timestamptz not null default now(),
-  check (nr <> 2 or not uitslag_openbaar)                 -- ronde 2 blijft geheim
+  bijgewerkt_op    timestamptz not null default now()
 );
 insert into public.rondes (nr) values (1), (2), (3) on conflict (nr) do nothing;
+-- Ronde 1 = eerste vergadering (uitslag mag openbaar), 2 en 3 = stemronde 1 en 2: altijd geheim.
+alter table public.rondes drop constraint if exists rondes_check;
+update public.rondes set uitslag_openbaar = false where nr <> 1;
+alter table public.rondes drop constraint if exists rondes_uitslag_geheim;
+alter table public.rondes add constraint rondes_uitslag_geheim check (nr = 1 or not uitslag_openbaar);
 create unique index if not exists rondes_een_open on public.rondes ((true)) where status = 'open';
 alter table public.rondes enable row level security;
 
@@ -273,8 +277,8 @@ begin
       from public.rondes r), '{}'::jsonb));
 end $fn$;
 
--- Uitslag van een ronde. De beheerder altijd; leden alleen als de beheerder
--- de uitslag openbaar heeft gemaakt — en ronde 2 nooit.
+-- Uitslag van een ronde. De beheerder altijd; leden alleen van de eerste
+-- vergadering, en alleen als de beheerder die openbaar heeft gemaakt.
 create or replace function public.uitslag(p_ronde int)
 returns jsonb
 language plpgsql
@@ -287,7 +291,7 @@ declare
   v_n int;
 begin
   if not v_beheerder and not (
-       public.is_lid() and p_ronde <> 2
+       public.is_lid() and p_ronde = 1
        and coalesce((select uitslag_openbaar from public.rondes where nr = p_ronde), false)) then
     return null;
   end if;

@@ -1,18 +1,22 @@
 import { useEffect, useState } from 'react';
 import * as api from './api.js';
+import Icoon from './iconen.jsx';
+import { meld } from './melding.js';
+import { Leeg, Paginakop } from './onderdelen.jsx';
 import { ThemaDetail } from './ThemaLijst.jsx';
 
 export const RONDES = {
-  1: { naam: 'Ronde 1', soort: 'Zet alle thema’s op volgorde, van favoriet naar minst leuk.' },
-  2: { naam: 'Ronde 2', soort: 'Stem op maximaal 3 thema’s. De uitslag blijft geheim.' },
-  3: { naam: 'Finale', soort: 'Eén stem op je favoriete thema.' },
+  1: { naam: 'Eerste vergadering', soort: 'Zet de thema’s op volgorde' },
+  2: { naam: 'Stemronde 1', soort: 'Kies maximaal 3 thema’s' },
+  3: { naam: 'Stemronde 2', soort: 'Kies je favoriet' },
 };
 
 export default function Stemming({ data, ververs }) {
   const [detail, setDetail] = useState(null);
   const open = data.rondes.find((r) => r.status === 'open');
   const gesloten = data.rondes.filter((r) => r.status === 'gesloten');
-  const openbaar = data.rondes.filter((r) => r.status === 'gesloten' && r.uitslag_openbaar && r.nr !== 2);
+  // Alleen de eerste vergadering kan een openbare uitslag hebben; de stemrondes blijven geheim.
+  const openbaar = data.rondes.filter((r) => r.nr === 1 && r.status === 'gesloten' && r.uitslag_openbaar);
 
   let hoofd;
   if (open) {
@@ -28,7 +32,7 @@ export default function Stemming({ data, ververs }) {
       <>
         <RondeKop ronde={open} deelname={data.deelname} />
         {mee.length === 0 ? (
-          <p className="ld-zacht">Er staan nog geen thema's in deze ronde.</p>
+          <Leeg>Nog geen thema's in deze ronde.</Leeg>
         ) : open.nr === 1 ? (
           <Ranken key={open.nr} {...props} />
         ) : (
@@ -36,29 +40,17 @@ export default function Stemming({ data, ververs }) {
         )}
       </>
     );
-  } else if (!gesloten.length) {
-    hoofd = (
-      <div className="ld-kaart ld-midden">
-        <h1 className="ld-titel">De stemming begint binnenkort</h1>
-        <p className="ld-zacht">
-          Zodra de eerste ronde opengaat kun je hier stemmen. Kijk alvast bij Thema's wat er op
-          tafel ligt.
-        </p>
-      </div>
-    );
   } else {
     const laatste = gesloten[gesloten.length - 1];
     hoofd = (
-      <div className="ld-kaart ld-midden">
-        <h1 className="ld-titel">
-          {laatste.nr === 3 ? 'De stemming is klaar' : `${RONDES[laatste.nr].naam} is gesloten`}
-        </h1>
-        <p className="ld-zacht">
-          {laatste.nr === 3
-            ? 'Bedankt voor het stemmen! De uitslag hoor je van de beheerder.'
-            : 'Bedankt voor je stem. De volgende ronde opent binnenkort.'}
-        </p>
-      </div>
+      <>
+        <Paginakop titel="Stemming" />
+        {laatste?.nr === 3 ? (
+          <Leeg titel="De stemming is klaar">Bedankt voor het stemmen!</Leeg>
+        ) : (
+          <Leeg titel="Er staat nu geen stemming open">Bekijk alvast de thema’s.</Leeg>
+        )}
+      </>
     );
   }
 
@@ -69,10 +61,10 @@ export default function Stemming({ data, ververs }) {
         .slice()
         .reverse()
         .map((r) => (
-          <div key={r.nr} className="ld-kaart">
+          <section key={r.nr} className="ld-kaart">
             <h2 className="ld-sub">Uitslag {RONDES[r.nr].naam.toLowerCase()}</h2>
             <UitslagLaden ronde={r.nr} />
-          </div>
+          </section>
         ))}
       {detail && <ThemaDetail thema={detail} onSluit={() => setDetail(null)} />}
     </>
@@ -81,22 +73,29 @@ export default function Stemming({ data, ververs }) {
 
 function RondeKop({ ronde, deelname }) {
   const gestemd = deelname?.per_ronde?.[ronde.nr] ?? 0;
+  const totaal = deelname?.leden || 0;
   return (
-    <div className="ld-rondekop">
-      <div className="ld-stappen" aria-label={`Ronde ${ronde.nr} van 3`}>
-        {[1, 2, 3].map((n) => (
-          <span key={n} className={n < ronde.nr ? 'is-klaar' : n === ronde.nr ? 'is-nu' : ''} />
-        ))}
-      </div>
-      <h1 className="ld-titel">{RONDES[ronde.nr].naam}</h1>
-      <p className="ld-zacht">{RONDES[ronde.nr].soort}</p>
-      {ronde.toelichting && <p className="ld-rondetekst">{ronde.toelichting}</p>}
-      {deelname && (
-        <p className="ld-klein ld-zacht">
-          {gestemd} van de {deelname.leden} leden hebben gestemd
-        </p>
+    <>
+      <Paginakop titel={RONDES[ronde.nr].naam} sub={RONDES[ronde.nr].soort}>
+        <div className="ld-deelname" title={`${gestemd} van ${totaal} leden hebben gestemd`}>
+          <span className="ld-ring" style={{ '--p': totaal ? gestemd / totaal : 0 }} />
+          <span>
+            <strong>{gestemd}</strong>/{totaal}
+            <small>gestemd</small>
+          </span>
+        </div>
+      </Paginakop>
+      {ronde.nr > 1 && (
+        <div className="ld-stappen">
+          {[2, 3].map((n) => (
+            <span key={n} className={n < ronde.nr ? 'is-klaar' : n === ronde.nr ? 'is-nu' : ''}>
+              {RONDES[n].naam}
+            </span>
+          ))}
+        </div>
       )}
-    </div>
+      {ronde.toelichting && <p className="ld-rondetekst">{ronde.toelichting}</p>}
+    </>
   );
 }
 
@@ -104,21 +103,25 @@ function InfoKnop({ thema, onInfo }) {
   return (
     <button
       type="button"
-      className="ld-info"
+      className="ld-rondje"
       onClick={(e) => {
         e.stopPropagation();
         onInfo(thema);
       }}
       aria-label={`Meer over ${thema.titel}`}
     >
-      i
+      <Icoon naam="info" grootte={18} />
     </button>
   );
 }
 
 function Mini({ thema }) {
   const foto = thema.fotos?.[0];
-  return foto ? <img className="ld-mini" src={api.fotoUrl(foto)} alt="" loading="lazy" /> : null;
+  return foto ? (
+    <img className="ld-mini" src={api.fotoUrl(foto)} alt="" loading="lazy" />
+  ) : (
+    <span className="ld-mini is-leeg">{thema.titel.slice(0, 1)}</span>
+  );
 }
 
 function Verstuur({ klaar, zelfde, bezig, tekst, onKlik, melding }) {
@@ -126,7 +129,9 @@ function Verstuur({ klaar, zelfde, bezig, tekst, onKlik, melding }) {
     <div className="ld-onder">
       {melding && <p className="ld-fout">{melding}</p>}
       {zelfde ? (
-        <p className="ld-gelukt">✓ Je stem is binnen. Aanpassen mag tot de ronde sluit.</p>
+        <p className="ld-binnen">
+          <Icoon naam="vink" grootte={18} /> Je stem is binnen
+        </p>
       ) : (
         <button className="ld-knop" onClick={onKlik} disabled={!klaar || bezig}>
           {bezig ? 'Versturen…' : tekst}
@@ -165,20 +170,23 @@ function Ranken({ ronde, themas, opgeslagen, ververs, onInfo }) {
     const r = await api.stem(ronde, geplaatst);
     setBezig(false);
     if (r.error) setMelding(r.error);
-    else ververs();
+    else {
+      meld('Je volgorde is opgeslagen');
+      ververs();
+    }
   }
 
   return (
     <>
-      <p className="ld-zacht ld-klein">
-        Tik eerst je favoriet aan, dan de volgende, tot alles een plek heeft. Met de pijltjes schuif
-        je nog. Via <b>i</b> lees je meer over een thema.
-      </p>
-
       {geplaatst.length > 0 && (
-        <div className="ld-kaart">
+        <section className="ld-kaart is-plat">
           <h2 className="ld-sub">
-            Jouw volgorde <span>favoriet bovenaan</span>
+            Jouw volgorde
+            {geplaatst.length > 1 && (
+              <button className="ld-link is-klein" onClick={() => setVolgorde([])}>
+                Opnieuw
+              </button>
+            )}
           </h2>
           <ol className="ld-lijst">
             {geplaatst.map((id, i) => (
@@ -189,25 +197,26 @@ function Ranken({ ronde, themas, opgeslagen, ververs, onInfo }) {
                 <InfoKnop thema={perId[id]} onInfo={onInfo} />
                 <span className="ld-pijlen">
                   <button onClick={() => schuif(i, -1)} disabled={i === 0} aria-label="Hoger">
-                    ▲
+                    <Icoon naam="op" grootte={16} />
                   </button>
                   <button onClick={() => schuif(i, 1)} disabled={i === geplaatst.length - 1} aria-label="Lager">
-                    ▼
+                    <Icoon naam="neer" grootte={16} />
                   </button>
                   <button onClick={() => setVolgorde(geplaatst.filter((x) => x !== id))} aria-label="Terugzetten">
-                    ✕
+                    <Icoon naam="kruis" grootte={16} />
                   </button>
                 </span>
               </li>
             ))}
           </ol>
-        </div>
+        </section>
       )}
 
       {open.length > 0 && (
-        <div className="ld-kaart">
+        <section className="ld-kaart is-plat">
           <h2 className="ld-sub">
-            Nog te plaatsen <span>{open.length}</span>
+            {geplaatst.length === 0 ? 'Tik je favoriet aan' : `Kies nummer ${geplaatst.length + 1}`}
+            <span>{open.length} over</span>
           </h2>
           <ul className="ld-lijst">
             {open.map((t) => (
@@ -219,16 +228,20 @@ function Ranken({ ronde, themas, opgeslagen, ververs, onInfo }) {
                   onClick={() => setVolgorde([...geplaatst, t.id])}
                   onKeyDown={(e) => e.key === 'Enter' && setVolgorde([...geplaatst, t.id])}
                 >
-                  <span className="ld-nr is-leeg">{geplaatst.length + 1}</span>
                   <Mini thema={t} />
-                  <span className="ld-rij-tekst">{t.titel}</span>
+                  <span className="ld-rij-tekst">
+                    {t.titel}
+                    {t.kort && <small>{t.kort}</small>}
+                  </span>
                   <InfoKnop thema={t} onInfo={onInfo} />
-                  <span className="ld-plus">+</span>
+                  <span className="ld-plus">
+                    <Icoon naam="plus" grootte={18} />
+                  </span>
                 </div>
               </li>
             ))}
           </ul>
-        </div>
+        </section>
       )}
 
       <Verstuur
@@ -237,7 +250,7 @@ function Ranken({ ronde, themas, opgeslagen, ververs, onInfo }) {
         bezig={bezig}
         melding={melding}
         onKlik={verstuur}
-        tekst={compleet ? (opgeslagen ? 'Wijziging versturen' : 'Volgorde versturen') : `Nog ${open.length} te plaatsen`}
+        tekst={compleet ? (opgeslagen ? 'Wijziging opslaan' : 'Volgorde versturen') : `Nog ${open.length} te plaatsen`}
       />
     </>
   );
@@ -266,17 +279,22 @@ function Kiezen({ ronde, themas, opgeslagen, ververs, onInfo, max }) {
     const r = await api.stem(ronde, geldig);
     setBezig(false);
     if (r.error) setMelding(r.error);
-    else ververs();
+    else {
+      meld('Je stem is opgeslagen');
+      ververs();
+    }
   }
 
   return (
     <>
-      <p className="ld-zacht ld-klein">
-        {max === 1
-          ? 'Tik je favoriet aan en verstuur je stem.'
-          : `Gekozen: ${geldig.length} van maximaal ${max}.`}{' '}
-        Via <b>i</b> lees je meer over een thema.
-      </p>
+      {max > 1 && (
+        <p className="ld-teller-regel">
+          {[...Array(max)].map((_, i) => (
+            <span key={i} className={i < geldig.length ? 'is-aan' : ''} />
+          ))}
+          {geldig.length} van {max} gekozen
+        </p>
+      )}
       <div className="ld-keuzes">
         {themas.map((t) => {
           const aan = geldig.includes(t.id);
@@ -294,15 +312,15 @@ function Kiezen({ ronde, themas, opgeslagen, ververs, onInfo, max }) {
             >
               <span className="ld-keuze-foto">
                 {t.fotos?.[0] ? <img src={api.fotoUrl(t.fotos[0])} alt="" loading="lazy" /> : <span>{t.titel.slice(0, 1)}</span>}
+                <span className="ld-vink" aria-hidden="true">
+                  {aan && <Icoon naam="vink" grootte={16} />}
+                </span>
               </span>
               <span className="ld-keuze-tekst">
                 <strong>{t.titel}</strong>
                 {t.kort && <span>{t.kort}</span>}
               </span>
               <InfoKnop thema={t} onInfo={onInfo} />
-              <span className="ld-vink" aria-hidden="true">
-                {aan ? '✓' : ''}
-              </span>
             </div>
           );
         })}
@@ -319,10 +337,8 @@ function Kiezen({ ronde, themas, opgeslagen, ververs, onInfo, max }) {
               ? 'Kies een thema'
               : 'Kies minstens één thema'
             : opgeslagen
-              ? 'Wijziging versturen'
-              : max === 1
-                ? 'Stem versturen'
-                : `${geldig.length} ${geldig.length === 1 ? 'stem' : 'stemmen'} versturen`
+              ? 'Wijziging opslaan'
+              : 'Stem versturen'
         }
       />
     </>
@@ -331,7 +347,7 @@ function Kiezen({ ronde, themas, opgeslagen, ververs, onInfo, max }) {
 
 // ---------------------------------------------------------------- uitslag
 
-export function UitslagLaden({ ronde, tik }) {
+export function UitslagLaden({ ronde }) {
   const [u, setU] = useState(null);
   const [fout, setFout] = useState(null);
 
@@ -345,7 +361,7 @@ export function UitslagLaden({ ronde, tik }) {
     return () => {
       weg = true;
     };
-  }, [ronde, tik]);
+  }, [ronde]);
 
   if (fout) return <p className="ld-fout">{fout}</p>;
   if (!u) return <p className="ld-zacht">Laden…</p>;
@@ -359,33 +375,26 @@ export function Uitslag({ ronde, uitslag }) {
   let plek = 0;
   let vorige = null;
   return (
-    <>
-      <p className="ld-zacht ld-klein">
-        {uitslag.aantal_stemmen} {uitslag.aantal_stemmen === 1 ? 'lid heeft' : 'leden hebben'} gestemd
-        {ronde === 1 && ' · punten: nummer 1 krijgt de meeste'}
-      </p>
-      <ol className="ld-uitslag">
-        {rijen.map((r, i) => {
-          if (r.punten !== vorige) plek = i + 1;
-          vorige = r.punten;
-          return (
-            <li key={r.id} className={plek <= 3 && r.punten > 0 ? `is-top is-${plek}` : ''}>
-              <span className="ld-uit-plek">{plek}</span>
-              <div className="ld-uit-midden">
-                <strong>{r.titel}</strong>
-                <span className="ld-balk">
-                  <span style={{ width: `${(r.punten / max) * 100}%` }} />
-                </span>
-                {ronde === 1 && r.eerste > 0 && <span className="ld-klein ld-zacht">{r.eerste}× op nummer 1</span>}
-              </div>
-              <span className="ld-uit-punten">
-                {r.punten}
-                <small>{ronde === 1 ? 'pt' : r.punten === 1 ? 'stem' : 'stemmen'}</small>
+    <ol className="ld-uitslag">
+      {rijen.map((r, i) => {
+        if (r.punten !== vorige) plek = i + 1;
+        vorige = r.punten;
+        return (
+          <li key={r.id} className={plek === 1 && r.punten > 0 ? 'is-1' : ''}>
+            <span className="ld-uit-plek">{plek}</span>
+            <div className="ld-uit-midden">
+              <strong>{r.titel}</strong>
+              <span className="ld-balk">
+                <span style={{ width: `${(r.punten / max) * 100}%` }} />
               </span>
-            </li>
-          );
-        })}
-      </ol>
-    </>
+            </div>
+            <span className="ld-uit-punten">
+              {r.punten}
+              <small>{ronde === 1 ? 'pt' : r.punten === 1 ? 'stem' : 'stemmen'}</small>
+            </span>
+          </li>
+        );
+      })}
+    </ol>
   );
 }

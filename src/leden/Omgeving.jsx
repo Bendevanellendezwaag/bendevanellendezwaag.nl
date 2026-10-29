@@ -1,14 +1,27 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import * as api from './api.js';
+import Icoon from './iconen.jsx';
+import { luister } from './melding.js';
 import Stemming from './Stemming.jsx';
 import ThemaLijst from './ThemaLijst.jsx';
 import LedenBeheer from './LedenBeheer.jsx';
 import StemBeheer from './StemBeheer.jsx';
 
-/** De ledenomgeving voor goedgekeurde leden; de beheerder krijgt er twee tabbladen bij. */
+const TAB_KEY = 'bve-tab';
+
+/** De ledenomgeving: zijbalk op desktop, tabbalk onderin op de telefoon. */
 export default function Omgeving({ profiel, onSite, onProfiel }) {
-  const beheerder = profiel.rol === 'beheerder';
-  const [tab, setTab] = useState('stemming');
+  const echteBeheerder = profiel.rol === 'beheerder';
+  // De beheerder kan de omgeving bekijken zoals een gewoon lid hem ziet.
+  const [alsLid, setAlsLid] = useState(false);
+  const beheerder = echteBeheerder && !alsLid;
+  const [tab, setTab] = useState(() => {
+    try {
+      return sessionStorage.getItem(TAB_KEY) || 'stemming';
+    } catch {
+      return 'stemming';
+    }
+  });
   const [data, setData] = useState(null);
   const [fout, setFout] = useState(null);
   const [wachtend, setWachtend] = useState(0);
@@ -32,35 +45,65 @@ export default function Omgeving({ profiel, onSite, onProfiel }) {
       deelname: d.data,
       mijnStemmen: Object.fromEntries(m.data.map((s) => [s.ronde, s.keuze])),
     });
-    if (beheerder) {
+    if (echteBeheerder) {
       const l = await api.alleLeden();
       if (!l.error) setWachtend(l.data.filter((x) => x.status === 'wacht').length);
     }
-  }, [profiel.id, beheerder]);
+  }, [profiel.id, echteBeheerder]);
 
   useEffect(() => {
     ververs();
     const t = setInterval(ververs, 10000);
-    return () => clearInterval(t);
+    // Terug naar het tabblad = meteen bijwerken.
+    const zicht = () => document.visibilityState === 'visible' && ververs();
+    document.addEventListener('visibilitychange', zicht);
+    return () => {
+      clearInterval(t);
+      document.removeEventListener('visibilitychange', zicht);
+    };
   }, [ververs]);
 
   const tabs = [
-    { id: 'stemming', label: 'Stemming' },
-    { id: 'themas', label: "Thema's" },
+    { id: 'stemming', label: 'Stemming', icoon: 'stemming' },
+    { id: 'themas', label: "Thema's", icoon: 'themas' },
     ...(beheerder
       ? [
-          { id: 'stembeheer', label: 'Beheer stemming' },
-          { id: 'leden', label: 'Leden', teller: wachtend },
+          { id: 'stembeheer', label: 'Beheer', icoon: 'beheer' },
+          { id: 'leden', label: 'Leden', icoon: 'leden', teller: wachtend },
         ]
       : []),
   ];
+  const actief = tabs.some((t) => t.id === tab) ? tab : 'stemming';
+
+  function kies(id) {
+    setTab(id);
+    window.scrollTo(0, 0);
+    try {
+      sessionStorage.setItem(TAB_KEY, id);
+    } catch {
+      /* geen opslag: dan maar niet onthouden */
+    }
+  }
+
+  const navKnoppen = tabs.map((t) => (
+    <button
+      key={t.id}
+      className={`ld-nav-knop ${actief === t.id ? 'is-aan' : ''}`}
+      onClick={() => kies(t.id)}
+      aria-current={actief === t.id ? 'page' : undefined}
+    >
+      <Icoon naam={t.icoon} />
+      <span>{t.label}</span>
+      {t.teller > 0 && <em className="ld-teller">{t.teller}</em>}
+    </button>
+  ));
 
   return (
-    <div className="ld">
-      <header className="ld-kop">
+    <div className="ld-app">
+      <aside className="ld-zij">
         <a
           href="/"
-          className="ld-logo"
+          className="ld-zij-logo"
           onClick={(e) => {
             e.preventDefault();
             onSite();
@@ -68,39 +111,78 @@ export default function Omgeving({ profiel, onSite, onProfiel }) {
         >
           <img src="/logo.png" alt="Bende van Ellende – naar de website" />
         </a>
-        <Account profiel={profiel} onProfiel={onProfiel} />
+        <nav className="ld-zij-nav" aria-label="Ledenomgeving">
+          {navKnoppen}
+        </nav>
+        <Account profiel={profiel} onProfiel={onProfiel} onSite={onSite} alsLid={echteBeheerder ? [alsLid, setAlsLid] : null} />
+      </aside>
+
+      <header className="ld-top">
+        <img src="/logo.png" alt="Bende van Ellende" className="ld-top-logo" />
+        <Account profiel={profiel} onProfiel={onProfiel} onSite={onSite} alsLid={echteBeheerder ? [alsLid, setAlsLid] : null} compact />
       </header>
 
-      <nav className="ld-tabs" aria-label="Ledenomgeving">
-        {tabs.map((t) => (
-          <button key={t.id} className={tab === t.id ? 'is-aan' : ''} onClick={() => setTab(t.id)}>
-            {t.label}
-            {t.teller > 0 && <span className="ld-teller">{t.teller}</span>}
-          </button>
-        ))}
+      <main className="ld-inhoud">
+        {alsLid && (
+          <div className="ld-alslid">
+            <span>Je bekijkt de ledenversie</span>
+            <button onClick={() => setAlsLid(false)}>Terug naar beheer</button>
+          </div>
+        )}
+        {fout && <p className="ld-fout">{fout}</p>}
+        {!data && !fout && <Laden />}
+        {data && actief === 'stemming' && <Stemming data={data} ververs={ververs} />}
+        {data && actief === 'themas' && <ThemaLijst themas={data.themas} />}
+        {data && actief === 'stembeheer' && <StemBeheer data={data} ververs={ververs} />}
+        {actief === 'leden' && <LedenBeheer mijnId={profiel.id} onWijziging={ververs} />}
+      </main>
+
+      <nav className="ld-onderbalk" aria-label="Ledenomgeving">
+        {navKnoppen}
       </nav>
 
-      <main className="ld-main">
-        {fout && <p className="ld-fout">{fout}</p>}
-        {!data && !fout && <p className="ld-zacht ld-midden">Even laden…</p>}
-        {data && tab === 'stemming' && <Stemming data={data} ververs={ververs} />}
-        {data && tab === 'themas' && <ThemaLijst themas={data.themas} />}
-        {data && tab === 'stembeheer' && <StemBeheer data={data} ververs={ververs} />}
-        {tab === 'leden' && <LedenBeheer mijnId={profiel.id} onWijziging={ververs} />}
-      </main>
+      <Meldingen />
     </div>
   );
 }
 
-function Account({ profiel, onProfiel }) {
+function Laden() {
+  return (
+    <div className="ld-skelet" aria-label="Laden">
+      <span />
+      <span />
+      <span />
+    </div>
+  );
+}
+
+function Account({ profiel, onProfiel, onSite, alsLid, compact }) {
   const [open, setOpen] = useState(false);
   const [naam, setNaam] = useState(profiel.naam);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const buiten = (e) => !ref.current?.contains(e.target) && setOpen(false);
+    const esc = (e) => e.key === 'Escape' && setOpen(false);
+    document.addEventListener('pointerdown', buiten);
+    document.addEventListener('keydown', esc);
+    return () => {
+      document.removeEventListener('pointerdown', buiten);
+      document.removeEventListener('keydown', esc);
+    };
+  }, [open]);
 
   return (
-    <div className="ld-account">
+    <div className={`ld-account ${compact ? 'is-compact' : ''}`} ref={ref}>
       <button className="ld-account-knop" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
         <span className="ld-avatar">{profiel.naam.slice(0, 1).toUpperCase()}</span>
-        <span className="ld-account-naam">{profiel.naam}</span>
+        {!compact && (
+          <span className="ld-account-tekst">
+            <strong>{profiel.naam}</strong>
+            <small>{profiel.rol !== 'beheerder' ? 'Lid' : alsLid?.[0] ? 'Bekijkt als lid' : 'Beheerder'}</small>
+          </span>
+        )}
       </button>
       {open && (
         <div className="ld-account-menu">
@@ -114,19 +196,57 @@ function Account({ profiel, onProfiel }) {
             }}
           >
             <label className="ld-veld">
-              <span>Je naam</span>
+              <span>Naam</span>
               <input className="ld-input" value={naam} maxLength={60} onChange={(e) => setNaam(e.target.value)} />
             </label>
-            <button className="ld-knop is-klein" type="submit">
-              Naam opslaan
-            </button>
+            {naam.trim() !== profiel.naam && (
+              <button className="ld-knop is-klein" type="submit">
+                Opslaan
+              </button>
+            )}
           </form>
-          <p className="ld-zacht ld-klein">{profiel.email}</p>
-          <button className="ld-link" onClick={() => api.uitloggen()}>
-            Uitloggen
+          <p className="ld-klein ld-zacht">{profiel.email}</p>
+          {alsLid && (
+            <button
+              className="ld-menu-regel"
+              onClick={() => {
+                alsLid[1](!alsLid[0]);
+                setOpen(false);
+              }}
+            >
+              <Icoon naam={alsLid[0] ? 'beheer' : 'leden'} grootte={18} /> {alsLid[0] ? 'Terug naar beheer' : 'Bekijk als lid'}
+            </button>
+          )}
+          <button className="ld-menu-regel" onClick={onSite}>
+            <Icoon naam="site" grootte={18} /> Naar de website
+          </button>
+          <button className="ld-menu-regel" onClick={() => api.uitloggen()}>
+            <Icoon naam="uit" grootte={18} /> Uitloggen
           </button>
         </div>
       )}
+    </div>
+  );
+}
+
+function Meldingen() {
+  const [lijst, setLijst] = useState([]);
+  useEffect(
+    () =>
+      luister((m) => {
+        setLijst((l) => [...l, m]);
+        setTimeout(() => setLijst((l) => l.filter((x) => x.id !== m.id)), 2600);
+      }),
+    [],
+  );
+  return (
+    <div className="ld-meldingen" aria-live="polite">
+      {lijst.map((m) => (
+        <div key={m.id} className={`ld-melding is-${m.soort}`}>
+          {m.soort === 'goed' && <Icoon naam="vink" grootte={18} />}
+          {m.tekst}
+        </div>
+      ))}
     </div>
   );
 }

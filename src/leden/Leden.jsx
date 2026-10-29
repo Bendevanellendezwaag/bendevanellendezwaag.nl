@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { cloudEnabled, supabase } from '../lib/supabase.js';
 import * as api from './api.js';
+import Icoon from './iconen.jsx';
 import Inloggen, { NieuwWachtwoord } from './Inloggen.jsx';
 import Omgeving from './Omgeving.jsx';
 import './leden.css';
@@ -12,7 +13,7 @@ import './leden.css';
 export default function Leden({ onSite }) {
   const [sessie, setSessie] = useState(undefined); // undefined = nog aan het laden
   const [herstel, setHerstel] = useState(false);
-  const [profiel, setProfiel] = useState(null);
+  const [profiel, setProfiel] = useState(undefined);
   const [fout, setFout] = useState(null);
 
   useEffect(() => {
@@ -42,65 +43,70 @@ export default function Leden({ onSite }) {
     laadProfiel();
   }, [laadProfiel]);
 
-  // Wie op goedkeuring wacht, ziet het vanzelf zodra het zover is.
+  // Wie op goedkeuring wacht, komt vanzelf binnen zodra het zover is.
   useEffect(() => {
     if (profiel?.status !== 'wacht') return undefined;
     const t = setInterval(laadProfiel, 15000);
     return () => clearInterval(t);
   }, [profiel?.status, laadProfiel]);
 
+  if (sessie && profiel?.status === 'goedgekeurd' && !herstel) {
+    return <Omgeving profiel={profiel} onSite={onSite} onProfiel={laadProfiel} />;
+  }
+
   let inhoud;
-  if (!cloudEnabled) inhoud = <Melding titel="Geen verbinding">De database is niet ingesteld.</Melding>;
-  else if (sessie === undefined) inhoud = <p className="ld-zacht ld-midden">Even laden…</p>;
+  if (!cloudEnabled) inhoud = <Melding titel="Geen verbinding" />;
+  else if (sessie === undefined || (sessie && profiel === undefined)) inhoud = <p className="ld-zacht">Even laden…</p>;
   else if (herstel && sessie) inhoud = <NieuwWachtwoord klaar={() => setHerstel(false)} />;
   else if (!sessie) inhoud = <Inloggen />;
   else if (fout) inhoud = <Melding titel="Er ging iets mis">{fout}</Melding>;
-  else if (!profiel) inhoud = <p className="ld-zacht ld-midden">Je account wordt klaargezet…</p>;
+  else if (!profiel) inhoud = <p className="ld-zacht">Je account wordt klaargezet…</p>;
   else if (profiel.status === 'wacht')
     inhoud = (
-      <Melding titel={`Welkom, ${profiel.naam}!`}>
-        Je account is aangemaakt. Zodra de beheerder je heeft goedgekeurd, kom je hier in de
-        ledenomgeving. Je hoeft deze pagina niet te verversen.
+      <Melding titel={`Hoi ${profiel.naam.split(' ')[0]}!`} uitloggen>
+        Je account wacht op goedkeuring.
       </Melding>
     );
-  else if (profiel.status === 'afgewezen')
+  else
     inhoud = (
-      <Melding titel="Geen toegang">
-        Je account is niet goedgekeurd voor de ledenomgeving. Denk je dat dit niet klopt? Neem dan
-        contact op met de beheerder.
+      <Melding titel="Geen toegang" uitloggen>
+        Dit account heeft geen toegang tot de ledenomgeving.
       </Melding>
     );
-  else return <Omgeving profiel={profiel} onSite={onSite} onProfiel={laadProfiel} />;
 
   return (
-    <div className="ld">
-      <header className="ld-kop is-los">
+    <div className="ld-login">
+      <section className="ld-login-beeld">
         <a
           href="/"
-          className="ld-logo"
+          className="ld-login-terug"
           onClick={(e) => {
             e.preventDefault();
             onSite();
           }}
         >
-          <img src="/logo.png" alt="Bende van Ellende – naar de website" />
+          <Icoon naam="links" grootte={18} /> Website
         </a>
-        {sessie && (
-          <button className="ld-link" onClick={() => api.uitloggen()}>
-            Uitloggen
-          </button>
-        )}
-      </header>
-      <main className="ld-main is-smal">{inhoud}</main>
+        <img className="ld-login-logo" src="/logo.png" alt="Bende van Ellende" />
+        <img className="ld-login-wagen" src="/wagens/wagen-1.png" alt="" />
+      </section>
+      <section className="ld-login-vak">
+        <div className="ld-login-form">{inhoud}</div>
+      </section>
     </div>
   );
 }
 
-function Melding({ titel, children }) {
+function Melding({ titel, children, uitloggen }) {
   return (
-    <div className="ld-kaart ld-midden">
-      <h1 className="ld-titel">{titel}</h1>
-      <p className="ld-zacht">{children}</p>
+    <div className="ld-login-melding">
+      <h1 className="ld-login-titel">{titel}</h1>
+      {children && <p className="ld-zacht">{children}</p>}
+      {uitloggen && (
+        <button className="ld-knop is-rand" onClick={() => api.uitloggen()}>
+          Uitloggen
+        </button>
+      )}
     </div>
   );
 }
