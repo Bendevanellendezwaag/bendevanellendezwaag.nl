@@ -1,11 +1,14 @@
-import { useEffect, useState } from 'react';
-import Home from './Home.jsx';
-import StemScherm from './stemmen/StemScherm.jsx';
-import { PAD as STEM_PAD } from './stemmen/stemmen.js';
+import { lazy, Suspense, useEffect, useState } from 'react';
+import Site from './site/Site.jsx';
 
+// De ledenomgeving laadt pas als je hem opent: de openbare site blijft licht.
+const Leden = lazy(() => import('./leden/Leden.jsx'));
+
+const LEDEN = '/leden';
+// Oude links (/stemmen uit de eerste versie, /bende uit de darts-app) komen ook bij de leden uit.
+const isLedenPad = (pad) => [LEDEN, '/stemmen', '/bende'].includes(pad);
 const huidigPad = () => window.location.pathname.replace(/\/+$/, '') || '/';
 
-/** Twee pagina's: de voorpagina en de stemming. Geen router nodig. */
 export default function App() {
   const [pad, setPad] = useState(huidigPad);
 
@@ -21,7 +24,12 @@ export default function App() {
     window.scrollTo(0, 0);
   };
 
-  // Oude links uit de darts-app (/bende) komen ook bij de stemming uit.
-  if (pad === STEM_PAD || pad === '/bende') return <StemScherm onTerug={() => ga('/')} />;
-  return <Home onStemmen={() => ga(STEM_PAD)} />;
+  if (isLedenPad(pad)) {
+    return (
+      <Suspense fallback={<div className="ld-laden">Even laden…</div>}>
+        <Leden onSite={() => ga('/')} />
+      </Suspense>
+    );
+  }
+  return <Site onLeden={() => ga(LEDEN)} />;
 }
