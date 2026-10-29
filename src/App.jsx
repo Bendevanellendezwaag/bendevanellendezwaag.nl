@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
-import Site from './site/Site.jsx';
+import Home from './home/Home.jsx';
 
 // De ledenomgeving laadt pas als je hem opent: de openbare site blijft licht.
 const Leden = lazy(() => import('./leden/Leden.jsx'));
@@ -31,5 +31,5 @@ export default function App() {
       </Suspense>
     );
   }
-  return <Site onLeden={() => ga(LEDEN)} />;
+  return <Home onLeden={() => ga(LEDEN)} />;
 }
