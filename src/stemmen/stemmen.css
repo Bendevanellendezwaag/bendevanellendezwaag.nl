@@ -1,0 +1,711 @@
+/* Bende van Ellende — stemming, eigen kleuren rond #1C60CB. */
+.bve {
+  --bve: #1c60cb;
+  --bve-diep: #0b2d66;
+  --bve-nacht: #071d45;
+  --bve-licht: #5b8fe0;
+  --bve-bleek: #dce8fa;
+  --bve-kaart: rgba(255, 255, 255, 0.1);
+  --bve-lijn: rgba(255, 255, 255, 0.18);
+  --bve-zacht: rgba(255, 255, 255, 0.72);
+
+  min-height: 100dvh;
+  background:
+    radial-gradient(120% 60% at 50% 0%, var(--bve) 0%, rgba(28, 96, 203, 0) 70%),
+    linear-gradient(180deg, #154fa9 0%, var(--bve-diep) 55%, var(--bve-nacht) 100%);
+  background-attachment: fixed;
+  color: #fff;
+  font-family: var(--body);
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px)
+    env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+}
+
+.bve button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.bve-kop {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 12px 16px 0;
+}
+
+.bve-terug {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--bve-lijn);
+  background: var(--bve-kaart);
+  font-size: 20px;
+}
+
+.bve-logo {
+  justify-self: center;
+  width: min(220px, 56vw);
+  height: auto;
+  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.25));
+}
+
+.bve-main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 8px 16px 40px;
+}
+
+.bve-titel {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(28px, 7vw, 40px);
+  line-height: 1.05;
+  letter-spacing: 0.01em;
+  margin: 16px 0 6px;
+  text-transform: uppercase;
+}
+
+.bve-zacht {
+  color: var(--bve-zacht);
+  margin: 0 0 14px;
+  line-height: 1.45;
+}
+
+.bve-klein {
+  font-size: 14px;
+  margin: 10px 0 0;
+}
+
+.bve-midden {
+  text-align: center;
+  margin-top: 40px;
+}
+
+.bve-fout {
+  background: rgba(255, 90, 90, 0.18);
+  border: 1px solid rgba(255, 120, 120, 0.5);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin: 12px 0;
+}
+
+.bve-kaart {
+  background: var(--bve-kaart);
+  border: 1px solid var(--bve-lijn);
+  border-radius: 20px;
+  padding: 16px;
+  margin: 14px 0;
+}
+
+.bve-sub {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 0 0 12px;
+}
+
+.bve-sub span {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--bve-zacht);
+}
+
+.bve-input {
+  width: 100%;
+  min-width: 0;
+  font: inherit;
+  font-size: 17px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--bve-lijn);
+  background: rgba(7, 29, 69, 0.45);
+  color: #fff;
+  outline: none;
+}
+
+.bve-input::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.bve-input:focus {
+  border-color: #fff;
+}
+
+.bve-knop {
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--bve-diep) !important;
+  font-weight: 800 !important;
+  padding: 14px 22px;
+  font-size: 16px;
+  white-space: nowrap;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.bve-knop:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.bve-linkje {
+  background: none;
+  border: 0;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  color: #fff;
+  margin-right: 16px;
+}
+
+.bve-naam {
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.bve-naam .bve-titel {
+  margin-top: 0;
+}
+
+.bve-naam label {
+  color: var(--bve-zacht);
+}
+
+.bve-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  margin-top: 14px;
+  border-radius: 999px;
+  background: rgba(7, 29, 69, 0.45);
+}
+
+.bve-tabs button {
+  border: 0;
+  background: none;
+  border-radius: 999px;
+  padding: 10px;
+  font-weight: 600;
+}
+
+.bve-tabs .is-aan {
+  background: #fff;
+  color: var(--bve-diep);
+}
+
+/* ---- lijsten ---- */
+
+.bve-lijst {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.bve-rij {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  padding: 10px 10px 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--bve-lijn);
+  background: rgba(255, 255, 255, 0.06);
+  min-height: 52px;
+}
+
+.bve-rij.is-binnen {
+  padding: 12px 14px;
+  animation: bve-in 0.35s ease-out;
+}
+
+.bve-rij.is-geplaatst {
+  background: #fff;
+  color: var(--bve-diep);
+  border-color: #fff;
+}
+
+.bve-rij.is-open:active {
+  transform: scale(0.98);
+}
+
+.bve-rij-tekst {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.bve-nr {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--bve);
+  color: #fff;
+  font-family: var(--display);
+  font-size: 17px;
+}
+
+.bve-nr.is-leeg {
+  background: none;
+  border: 1.5px dashed rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.bve-plus {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.bve-pijlen {
+  flex: none;
+  display: flex;
+  gap: 4px;
+}
+
+.bve-pijlen button {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 0;
+  background: var(--bve-bleek);
+  color: var(--bve-diep);
+  font-size: 13px;
+}
+
+.bve-rij.is-beheer .bve-pijlen button {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font-size: 15px;
+}
+
+.bve-pijlen button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.bve-onder {
+  position: sticky;
+  bottom: 0;
+  padding: 14px 0 calc(14px + env(safe-area-inset-bottom, 0px));
+  display: grid;
+  background: linear-gradient(180deg, rgba(7, 29, 69, 0) 0%, var(--bve-nacht) 45%);
+}
+
+.bve-klaar {
+  margin: 0;
+  text-align: center;
+  font-weight: 600;
+  padding: 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+/* ---- beheer ---- */
+
+.bve-fases {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.bve-fases button {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 12px 6px;
+  border-radius: 14px;
+  border: 1px solid var(--bve-lijn);
+  background: rgba(255, 255, 255, 0.06);
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.bve-fases button span {
+  font-family: var(--display);
+  font-size: 20px;
+  opacity: 0.6;
+}
+
+.bve-fases .is-aan {
+  background: #fff;
+  color: var(--bve-diep);
+  border-color: #fff;
+}
+
+.bve-fases .is-aan span {
+  opacity: 1;
+  color: var(--bve);
+}
+
+.bve-toevoegen {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.bve-namen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.bve-naamchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 6px 6px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  font-weight: 600;
+}
+
+.bve-naamchip button {
+  border: 0;
+  background: rgba(255, 255, 255, 0.16);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 11px;
+}
+
+.bve-wis {
+  display: inline-block;
+  margin-top: 14px;
+  color: var(--bve-zacht);
+  font-size: 14px;
+}
+
+.bve-delen {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.bve-delen .bve-sub {
+  margin-bottom: 4px;
+}
+
+.bve-qr {
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  width: 96px;
+  height: 96px;
+}
+
+.bve-qr img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.bve-link {
+  font-weight: 800;
+  font-size: 18px;
+  margin: 0 0 8px;
+  overflow-wrap: anywhere;
+}
+
+.bve-qr-groot {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 18px;
+  padding: 24px;
+  background: var(--bve);
+  text-align: center;
+}
+
+.bve-qr-logo {
+  width: min(320px, 60vw);
+}
+
+.bve-qr-code {
+  width: min(56vh, 80vw);
+  border-radius: 20px;
+  border: 12px solid #fff;
+  background: #fff;
+}
+
+.bve-qr-groot p {
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(24px, 5vw, 44px);
+}
+
+.bve-qr-groot span {
+  color: var(--bve-zacht);
+  font-size: 14px;
+}
+
+.bve-volgende {
+  width: 100%;
+  margin-top: 12px;
+  font-size: 17px;
+  padding: 16px 22px;
+}
+
+.bve-rij.is-deelnemer {
+  min-height: 48px;
+  padding: 6px 6px 6px 14px;
+}
+
+.bve-stip {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.bve-stip.is-online {
+  background: #4ade80;
+  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.25);
+}
+
+.bve-status {
+  flex: none;
+  font-size: 13px;
+  color: var(--bve-zacht);
+}
+
+.bve-status.is-gestemd {
+  color: #fff;
+  font-weight: 700;
+}
+
+.bve-qr-namen {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  max-width: 900px;
+}
+
+.bve-qr-namen strong {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 22px;
+  text-transform: uppercase;
+}
+
+.bve-qr-namen div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-height: 22vh;
+  overflow: hidden;
+}
+
+.bve-qr-namen span {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  animation: bve-in 0.35s ease-out;
+}
+
+/* ---- uitslag ---- */
+
+.bve-uitslag {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.bve-uit {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--bve-lijn);
+  animation: bve-in 0.35s ease-out both;
+}
+
+.bve-uit.is-top {
+  background: #fff;
+  color: var(--bve-diep);
+  border-color: #fff;
+}
+
+.bve-uit.is-1 {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.bve-uit.is-1 strong {
+  font-size: 19px;
+}
+
+.bve-uit-plek {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  font-family: var(--display);
+  font-size: 20px;
+}
+
+.bve-uit.is-top .bve-uit-plek {
+  background: var(--bve);
+  color: #fff;
+}
+
+.bve-uit-midden {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.bve-uit-midden strong {
+  overflow-wrap: anywhere;
+}
+
+.bve-balk {
+  height: 6px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.14);
+  overflow: hidden;
+}
+
+.bve-uit.is-top .bve-balk {
+  background: var(--bve-bleek);
+}
+
+.bve-balk span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--bve-licht);
+  transition: width 0.5s ease;
+}
+
+.bve-uit.is-top .bve-balk span {
+  background: var(--bve);
+}
+
+.bve-uit-info {
+  font-size: 13px;
+  opacity: 0.75;
+}
+
+.bve-uit-punten {
+  flex: none;
+  font-family: var(--display);
+  font-size: 26px;
+  text-align: right;
+}
+
+.bve-uit-punten small {
+  font-family: var(--body);
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.7;
+  margin-left: 2px;
+}
+
+/* ---- knop op het inlogscherm ---- */
+
+.bve-ingang {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: var(--radius, 18px);
+  background: linear-gradient(135deg, #1c60cb, #0b2d66);
+  color: #fff;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.bve-ingang img {
+  flex: none;
+  width: 72px;
+  height: auto;
+}
+
+.bve-ingang span {
+  flex: 1;
+  display: grid;
+  gap: 2px;
+}
+
+.bve-ingang small {
+  opacity: 0.75;
+}
+
+.bve-ingang .chevron {
+  flex: none;
+  font-size: 24px;
+}
+
+@keyframes bve-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@media (max-width: 420px) {
+  .bve-toevoegen {
+    flex-direction: column;
+  }
+
+  .bve-pijlen button {
+    width: 32px;
+  }
+}
+
+.bve-beheer-inlog {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  max-width: 320px;
+  margin: 40px auto 0;
+  opacity: 0.85;
+}
