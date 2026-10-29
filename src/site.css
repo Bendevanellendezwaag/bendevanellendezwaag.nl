@@ -1,10 +1,10 @@
-/* Gedeeld: lettertype, kleuren en basis. Kleuren uit het ontwerp (blauw verloop). */
+/* Gedeeld: lettertype, kleuren en basis. Kleuren uit het ontwerp (groen #171A15). */
 :root {
   --font: 'Lexend', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --hemel: #5083d2;
-  --blauw: #2f4fc0;
-  --diep: #13147e;
-  --nacht: #0b0b52;
+  --hemel: #171a15;
+  --blauw: #171a15;
+  --diep: #171a15;
+  --nacht: #171a15;
   --wit: #ffffff;
   --zacht: rgba(255, 255, 255, 0.74);
   --lijn: rgba(255, 255, 255, 0.2);
