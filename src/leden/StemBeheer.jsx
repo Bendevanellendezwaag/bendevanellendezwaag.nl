@@ -145,7 +145,7 @@ function RondeBeheer({ ronde, data, ververs, startOpen }) {
               {mee.length === 0 ? (
                 <p className="ld-zacht ld-klein">Zet eerst thema's door vanuit {RONDES[ronde.nr - 1].naam.toLowerCase()}.</p>
               ) : (
-                <UitwerkLijst themas={mee} ververs={ververs} />
+                <UitwerkLijst ronde={ronde.nr} themas={mee} ververs={ververs} />
               )}
               <label className="ld-veld">
                 <span>Uitleg voor de leden (optioneel)</span>
@@ -171,7 +171,17 @@ function RondeBeheer({ ronde, data, ververs, startOpen }) {
           )}
 
           {ronde.nr < 3 && ronde.status === 'gesloten' && uitslag && (
-            <Doorzetten ronde={ronde.nr} mee={mee} uitslag={uitslag} ververs={ververs} />
+            <Doorzetten
+              // Opnieuw beginnen zodra de doorgezette thema's elders wijzigen (knoppen in de lijst).
+              key={mee
+                .filter((t) => t.ronde > ronde.nr)
+                .map((t) => t.id)
+                .join()}
+              ronde={ronde.nr}
+              mee={mee}
+              uitslag={uitslag}
+              ververs={ververs}
+            />
           )}
         </div>
       )}
@@ -256,6 +266,15 @@ function SnelleThemas({ themas, ververs }) {
     ververs();
   }
 
+  // Met de hand door naar stemronde 1, of weer terughalen (ook als er niet gestemd is).
+  async function wisselDoor(t) {
+    const terug = t.ronde > 1;
+    const r = await api.themaOpslaan({ id: t.id, ronde: terug ? 1 : 2 });
+    if (r.error) setFout(r.error);
+    else meld(terug ? `${t.titel} teruggehaald` : `${t.titel} door naar stemronde 1`);
+    ververs();
+  }
+
   async function verwijder(t) {
     if (!window.confirm(`"${t.titel}" verwijderen?`)) return;
     const r = await api.themaVerwijder(t.id);
@@ -309,10 +328,20 @@ function SnelleThemas({ themas, ververs }) {
                 </form>
               ) : (
                 <>
-                  <span className="ld-rij-tekst">
-                    {t.titel}
-                    {t.ronde > 1 && <small>door naar {RONDES[t.ronde].naam.toLowerCase()}</small>}
-                  </span>
+                  <span className="ld-rij-tekst">{t.titel}</span>
+                  <button
+                    className={`ld-door-knop ${t.ronde > 1 ? 'is-door' : ''}`}
+                    onClick={() => wisselDoor(t)}
+                    title={t.ronde > 1 ? 'Terughalen uit de stemrondes' : 'Door naar stemronde 1'}
+                  >
+                    {t.ronde > 1 ? (
+                      <>
+                        <Icoon naam="vink" grootte={14} /> {RONDES[t.ronde].naam}
+                      </>
+                    ) : (
+                      'Doorzetten'
+                    )}
+                  </button>
                   <button className="ld-rondje" onClick={() => setBewerk({ id: t.id, titel: t.titel })} aria-label={`${t.titel} hernoemen`}>
                     <Icoon naam="pen" grootte={16} />
                   </button>
@@ -331,9 +360,26 @@ function SnelleThemas({ themas, ververs }) {
 
 // ---------------------------------------------------------------- stemrondes: thema's uitwerken
 
-function UitwerkLijst({ themas, ververs }) {
+function UitwerkLijst({ ronde, themas, ververs }) {
   const [bewerk, setBewerk] = useState(null);
   const klaar = themas.filter((t) => t.kort && t.fotos?.length).length;
+  const vorige = RONDES[ronde - 1].naam.toLowerCase();
+
+  // Uit deze ronde halen = terug naar de vorige ronde. Omschrijving en foto's blijven bewaard.
+  async function terug(t) {
+    const r = await api.themaOpslaan({ id: t.id, ronde: ronde - 1 });
+    if (r.error) meld(r.error, 'fout');
+    else meld(`${t.titel} terug naar ${vorige}`);
+    ververs();
+  }
+
+  async function allesTerug() {
+    if (!window.confirm(`Alle ${themas.length} thema's terugzetten naar ${vorige}?`)) return;
+    const r = await api.doorzetten(ronde - 1, []);
+    if (r.error) meld(r.error, 'fout');
+    else meld(`Alles terug naar ${vorige}`);
+    ververs();
+  }
 
   if (bewerk) {
     return (
@@ -357,7 +403,7 @@ function UitwerkLijst({ themas, ververs }) {
       </h3>
       <ul className="ld-lijst is-scheiding">
         {themas.map((t) => (
-          <li key={t.id}>
+          <li key={t.id} className="ld-uitwerk-rij">
             <button className="ld-rij is-beheer" onClick={() => setBewerk(t)}>
               {t.fotos?.[0] ? (
                 <img className="ld-mini" src={api.fotoUrl(t.fotos[0])} alt="" />
@@ -377,9 +423,20 @@ function UitwerkLijst({ themas, ververs }) {
                 <Icoon naam="pen" grootte={16} /> Uitwerken
               </span>
             </button>
+            <button
+              className="ld-rondje is-rood"
+              onClick={() => terug(t)}
+              aria-label={`${t.titel} uit deze ronde halen`}
+              title="Uit deze ronde halen"
+            >
+              <Icoon naam="kruis" grootte={16} />
+            </button>
           </li>
         ))}
       </ul>
+      <button className="ld-link is-klein is-rood" onClick={allesTerug}>
+        Alles terugzetten naar {vorige}
+      </button>
     </div>
   );
 }

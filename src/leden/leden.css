@@ -1921,3 +1921,51 @@
     margin-left: 0;
   }
 }
+
+/* ---------------------------------------------------------------- doorzetten en terughalen */
+
+.ld-door-knop {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--l-vlak);
+  color: var(--l-zacht) !important;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1.5px var(--l-lijn);
+}
+
+.ld-door-knop:hover {
+  color: var(--l-accent) !important;
+  box-shadow: inset 0 0 0 1.5px var(--l-accent);
+}
+
+.ld-door-knop.is-door {
+  background: #e5f6ec;
+  color: #146b3f !important;
+  box-shadow: none;
+}
+
+.ld-door-knop.is-door:hover {
+  background: #fdecee;
+  color: var(--l-rood) !important;
+}
+
+.ld-uitwerk-rij {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ld-uitwerk-rij .ld-rij {
+  flex: 1;
+  min-width: 0;
+}
+
+.ld-melding.is-fout {
+  background: var(--l-rood);
+}
