@@ -150,7 +150,7 @@ export default function Site({ onLeden }) {
 
       <footer className="bv-voet">
         <img src="/logo.png" alt="" />
-        <span>© {new Date().getFullYear()} Bende van Ellende · Zwaag</span>
+        <span>© {new Date().getFullYear()} Bende van Ellende · Carnaval in Zwaag</span>
         <a
           href="/leden"
           onClick={(e) => {
