@@ -78,7 +78,12 @@ export const themaOpslaan = ({ id, ...velden }) =>
       ? supabase.from('themas').update(velden).eq('id', id)
       : supabase.from('themas').insert(velden),
   );
+export const themasToevoegen = (titels) =>
+  doe(supabase.from('themas').insert(titels.map((titel) => ({ titel: titel.slice(0, 120) }))));
 export const themaVerwijder = (id) => doe(supabase.from('themas').delete().eq('id', id));
+
+// Alle stemmen van een ronde weg en de ronde terug naar 'gepland'.
+export const rondeWissen = (nr) => doe(supabase.rpc('ronde_wissen', { p_nr: nr }));
 
 export const rondeBijwerken = (nr, velden) =>
   doe(supabase.from('rondes').update({ ...velden, bijgewerkt_op: new Date().toISOString() }).eq('nr', nr));

@@ -115,15 +115,6 @@ function InfoKnop({ thema, onInfo }) {
   );
 }
 
-function Mini({ thema }) {
-  const foto = thema.fotos?.[0];
-  return foto ? (
-    <img className="ld-mini" src={api.fotoUrl(foto)} alt="" loading="lazy" />
-  ) : (
-    <span className="ld-mini is-leeg">{thema.titel.slice(0, 1)}</span>
-  );
-}
-
 function Verstuur({ klaar, zelfde, bezig, tekst, onKlik, melding }) {
   return (
     <div className="ld-onder">
@@ -143,7 +134,7 @@ function Verstuur({ klaar, zelfde, bezig, tekst, onKlik, melding }) {
 
 // ---------------------------------------------------------------- ronde 1: rangschikken
 
-function Ranken({ ronde, themas, opgeslagen, ververs, onInfo }) {
+function Ranken({ ronde, themas, opgeslagen, ververs }) {
   const [volgorde, setVolgorde] = useState(opgeslagen || []);
   const [bezig, setBezig] = useState(false);
   const [melding, setMelding] = useState(null);
@@ -192,9 +183,7 @@ function Ranken({ ronde, themas, opgeslagen, ververs, onInfo }) {
             {geplaatst.map((id, i) => (
               <li key={id} className="ld-rij is-gekozen">
                 <span className="ld-nr">{i + 1}</span>
-                <Mini thema={perId[id]} />
                 <span className="ld-rij-tekst">{perId[id].titel}</span>
-                <InfoKnop thema={perId[id]} onInfo={onInfo} />
                 <span className="ld-pijlen">
                   <button onClick={() => schuif(i, -1)} disabled={i === 0} aria-label="Hoger">
                     <Icoon naam="op" grootte={16} />
@@ -228,12 +217,7 @@ function Ranken({ ronde, themas, opgeslagen, ververs, onInfo }) {
                   onClick={() => setVolgorde([...geplaatst, t.id])}
                   onKeyDown={(e) => e.key === 'Enter' && setVolgorde([...geplaatst, t.id])}
                 >
-                  <Mini thema={t} />
-                  <span className="ld-rij-tekst">
-                    {t.titel}
-                    {t.kort && <small>{t.kort}</small>}
-                  </span>
-                  <InfoKnop thema={t} onInfo={onInfo} />
+                  <span className="ld-rij-tekst">{t.titel}</span>
                   <span className="ld-plus">
                     <Icoon naam="plus" grootte={18} />
                   </span>

@@ -203,6 +203,24 @@ begin
    where ronde >= p_nr;
 end $fn$;
 
+-- Ronde opnieuw: alle stemmen (en dus de uitslag) weg, terug naar 'gepland'.
+-- Welke thema's al doorgezet zijn blijft staan.
+create or replace function public.ronde_wissen(p_nr int)
+returns void
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $fn$
+begin
+  if not public.is_beheerder() then
+    raise exception 'Alleen de beheerder kan dit' using errcode = '42501';
+  end if;
+  delete from public.stemmen where ronde = p_nr;
+  update public.rondes
+     set status = 'gepland', uitslag_openbaar = false, bijgewerkt_op = now()
+   where nr = p_nr;
+end $fn$;
+
 -- ---------------------------------------------------------------- stemmen
 
 create table if not exists public.stemmen (
@@ -350,6 +368,7 @@ revoke all on function public.lid_status(uuid, text)        from public, anon;
 revoke all on function public.lid_rol(uuid, text)           from public, anon;
 revoke all on function public.mijn_naam(text)               from public, anon;
 revoke all on function public.ronde_doorzetten(int, uuid[]) from public, anon;
+revoke all on function public.ronde_wissen(int)            from public, anon;
 revoke all on function public.stem_uitbrengen(int, uuid[])  from public, anon;
 revoke all on function public.ronde_deelname()              from public, anon;
 revoke all on function public.uitslag(int)                  from public, anon;
@@ -358,6 +377,7 @@ grant execute on function public.lid_status(uuid, text)        to authenticated;
 grant execute on function public.lid_rol(uuid, text)           to authenticated;
 grant execute on function public.mijn_naam(text)               to authenticated;
 grant execute on function public.ronde_doorzetten(int, uuid[]) to authenticated;
+grant execute on function public.ronde_wissen(int)            to authenticated;
 grant execute on function public.stem_uitbrengen(int, uuid[])  to authenticated;
 grant execute on function public.ronde_deelname()              to authenticated;
 grant execute on function public.uitslag(int)                  to authenticated;

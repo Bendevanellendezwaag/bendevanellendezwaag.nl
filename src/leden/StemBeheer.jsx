@@ -6,36 +6,49 @@ import { Paginakop } from './onderdelen.jsx';
 import { RONDES, Uitslag } from './Stemming.jsx';
 
 const STATUS = { gepland: 'Gepland', open: 'Open', gesloten: 'Gesloten' };
-const DOOR = { 1: 5, 2: 3 }; // standaard voorselectie: top 5 na ronde 1, top 3 na ronde 2
+const DOOR = { 1: 5, 2: 3 }; // standaard voorselectie: top 5 na de vergadering, top 3 na stemronde 1
 
-/** Beheerder: rondes openen/sluiten, uitslagen bekijken, thema's doorzetten en beheren. */
+/**
+ * Beheerder, per ronde:
+ *  - eerste vergadering: snel titels invoeren (live bij een fysieke vergadering, geen uitleg nodig)
+ *  - stemrondes: de doorgezette thema's uitwerken met omschrijving en foto's
+ * Elke ronde kan open/dicht, gewist worden, en na afloop thema's doorzetten.
+ */
 export default function StemBeheer({ data, ververs }) {
+  const eersteNietKlaar = data.rondes.find((r) => r.status !== 'gesloten')?.nr ?? 3;
   return (
     <>
       <Paginakop titel="Beheer" />
-      <h2 className="ld-kopje">Rondes</h2>
       {data.rondes.map((r) => (
-        <RondeBeheer key={r.nr} ronde={r} data={data} ververs={ververs} />
+        <RondeBeheer
+          key={r.nr}
+          ronde={r}
+          data={data}
+          ververs={ververs}
+          startOpen={r.status === 'open' || (!data.rondes.some((x) => x.status === 'open') && r.nr === eersteNietKlaar)}
+        />
       ))}
-      <ThemaBeheer themas={data.themas} ververs={ververs} />
     </>
   );
 }
 
 // ---------------------------------------------------------------- rondes
 
-function RondeBeheer({ ronde, data, ververs }) {
+function RondeBeheer({ ronde, data, ververs, startOpen }) {
   const mee = data.themas.filter((t) => t.ronde >= ronde.nr);
   const andereOpen = data.rondes.find((r) => r.status === 'open' && r.nr !== ronde.nr);
   const gestemd = data.deelname?.per_ronde?.[ronde.nr] ?? 0;
   const [uitslag, setUitslag] = useState(null);
   const [tekst, setTekst] = useState(ronde.toelichting);
   const [fout, setFout] = useState(null);
-  const [uitgeklapt, setUitgeklapt] = useState(ronde.status === 'open');
+  const [uitgeklapt, setUitgeklapt] = useState(startOpen);
 
   // Uitslag live meeverversen zolang de ronde loopt of net klaar is.
   useEffect(() => {
-    if (ronde.status === 'gepland') return;
+    if (ronde.status === 'gepland' && gestemd === 0) {
+      setUitslag(null);
+      return undefined;
+    }
     let weg = false;
     api.uitslag(ronde.nr).then((r) => !weg && !r.error && setUitslag(r.data));
     return () => {
@@ -54,6 +67,16 @@ function RondeBeheer({ ronde, data, ververs }) {
   function openen() {
     if (andereOpen && !window.confirm(`${RONDES[andereOpen.nr].naam} staat nog open en wordt dan gesloten. Doorgaan?`)) return;
     doe(api.rondeOpenen(ronde.nr), `${RONDES[ronde.nr].naam} staat open voor de leden`);
+  }
+
+  function wissen() {
+    if (
+      !window.confirm(
+        `Alle stemmen en de uitslag van ${RONDES[ronde.nr].naam.toLowerCase()} wissen? De ronde gaat terug naar "gepland". Dit kan niet ongedaan worden.`,
+      )
+    )
+      return;
+    doe(api.rondeWissen(ronde.nr), `${RONDES[ronde.nr].naam} is gewist`);
   }
 
   return (
@@ -78,7 +101,10 @@ function RondeBeheer({ ronde, data, ververs }) {
 
           <div className="ld-rij-knoppen">
             {ronde.status === 'open' ? (
-              <button className="ld-knop is-klein" onClick={() => doe(api.rondeBijwerken(ronde.nr, { status: 'gesloten' }), `${RONDES[ronde.nr].naam} is gesloten`)}>
+              <button
+                className="ld-knop is-klein"
+                onClick={() => doe(api.rondeBijwerken(ronde.nr, { status: 'gesloten' }), `${RONDES[ronde.nr].naam} is gesloten`)}
+              >
                 Sluiten
               </button>
             ) : (
@@ -105,28 +131,42 @@ function RondeBeheer({ ronde, data, ververs }) {
                 <Icoon naam="slot" grootte={16} /> Uitslag alleen voor jou
               </span>
             )}
+            {(gestemd > 0 || ronde.status !== 'gepland') && (
+              <button className="ld-link is-klein is-rood ld-rechts" onClick={wissen}>
+                Stemmen en uitslag wissen
+              </button>
+            )}
           </div>
-          {mee.length === 0 && ronde.nr > 1 && (
-            <p className="ld-zacht ld-klein">Zet eerst thema's door vanuit {RONDES[ronde.nr - 1].naam.toLowerCase()}.</p>
+
+          {ronde.nr === 1 ? (
+            <SnelleThemas themas={data.themas} ververs={ververs} />
+          ) : (
+            <>
+              {mee.length === 0 ? (
+                <p className="ld-zacht ld-klein">Zet eerst thema's door vanuit {RONDES[ronde.nr - 1].naam.toLowerCase()}.</p>
+              ) : (
+                <UitwerkLijst themas={mee} ververs={ververs} />
+              )}
+              <label className="ld-veld">
+                <span>Uitleg voor de leden (optioneel)</span>
+                <textarea className="ld-input" rows={2} value={tekst} maxLength={4000} onChange={(e) => setTekst(e.target.value)} />
+              </label>
+              {tekst !== ronde.toelichting && (
+                <button
+                  className="ld-knop is-klein is-rand"
+                  onClick={() => doe(api.rondeBijwerken(ronde.nr, { toelichting: tekst }), 'Uitleg opgeslagen')}
+                >
+                  Uitleg opslaan
+                </button>
+              )}
+            </>
           )}
 
-          <label className="ld-veld">
-            <span>Uitleg voor de leden (optioneel)</span>
-            <textarea className="ld-input" rows={2} value={tekst} maxLength={4000} onChange={(e) => setTekst(e.target.value)} />
-          </label>
-          {tekst !== ronde.toelichting && (
-            <button className="ld-knop is-klein is-rand" onClick={() => doe(api.rondeBijwerken(ronde.nr, { toelichting: tekst }), 'Uitleg opgeslagen')}>
-              Uitleg opslaan
-            </button>
-          )}
-
-          {uitslag && (
+          {uitslag && gestemd > 0 && (
             <div className="ld-ronde-uitslag">
               <h3 className="ld-sub">Uitslag {ronde.status === 'open' && <span className="ld-live">live</span>}</h3>
               <Uitslag ronde={ronde.nr} uitslag={uitslag} />
-              {uitslag.stemmers?.length > 0 && (
-                <p className="ld-zacht ld-klein">Gestemd: {uitslag.stemmers.join(', ')}</p>
-              )}
+              {uitslag.stemmers?.length > 0 && <p className="ld-zacht ld-klein">Gestemd: {uitslag.stemmers.join(', ')}</p>}
             </div>
           )}
 
@@ -143,7 +183,7 @@ function Doorzetten({ ronde, mee, uitslag, ververs }) {
   const al = mee.filter((t) => t.ronde > ronde).map((t) => t.id);
   const top = uitslag.rijen.slice(0, DOOR[ronde]).map((r) => r.id);
   const [keuze, setKeuze] = useState(al.length ? al : top);
-  const [klaar, setKlaar] = useState(null);
+  const [fout, setFout] = useState(null);
   const volgorde = uitslag.rijen.map((r) => mee.find((t) => t.id === r.id)).filter(Boolean);
 
   return (
@@ -165,76 +205,182 @@ function Doorzetten({ ronde, mee, uitslag, ververs }) {
           </li>
         ))}
       </ul>
+      {fout && <p className="ld-fout">{fout}</p>}
       <button
         className="ld-knop is-klein"
         disabled={keuze.length === 0}
         onClick={async () => {
           const r = await api.doorzetten(ronde, keuze);
-          if (r.error) setKlaar(r.error);
-          else meld(`${keuze.length} thema's door naar ${RONDES[ronde + 1].naam.toLowerCase()}`);
+          if (r.error) setFout(r.error);
+          else meld(`${keuze.length} thema's door naar ${RONDES[ronde + 1].naam.toLowerCase()} — werk ze daar uit`);
           ververs();
         }}
       >
         Doorzetten
       </button>
-      {klaar && <p className="ld-klein">{klaar}</p>}
     </div>
   );
 }
 
-// ---------------------------------------------------------------- thema's
+// ---------------------------------------------------------------- eerste vergadering: alleen titels
 
-const LEEG = { titel: '', kort: '', toelichting: '', fotos: [] };
+function SnelleThemas({ themas, ververs }) {
+  const [invoer, setInvoer] = useState('');
+  const [bewerk, setBewerk] = useState(null); // { id, titel }
+  const [fout, setFout] = useState(null);
 
-function ThemaBeheer({ themas, ververs }) {
-  const [bewerk, setBewerk] = useState(null);
+  // Eén titel per regel: zo kun je ook een hele lijst in één keer plakken.
+  async function toevoegen(e) {
+    e.preventDefault();
+    const titels = invoer
+      .split('\n')
+      .map((t) => t.trim())
+      .filter(Boolean);
+    if (!titels.length) return;
+    const r = await api.themasToevoegen(titels);
+    if (r.error) setFout(r.error);
+    else {
+      setFout(null);
+      setInvoer('');
+      meld(titels.length === 1 ? 'Thema toegevoegd' : `${titels.length} thema's toegevoegd`);
+    }
+    ververs();
+  }
+
+  async function hernoem(e) {
+    e.preventDefault();
+    if (!bewerk.titel.trim()) return;
+    const r = await api.themaOpslaan({ id: bewerk.id, titel: bewerk.titel.trim() });
+    if (r.error) setFout(r.error);
+    setBewerk(null);
+    ververs();
+  }
+
+  async function verwijder(t) {
+    if (!window.confirm(`"${t.titel}" verwijderen?`)) return;
+    const r = await api.themaVerwijder(t.id);
+    if (r.error) setFout(r.error);
+    else {
+      for (const pad of t.fotos || []) await api.fotoVerwijder(pad);
+      meld('Thema verwijderd');
+    }
+    ververs();
+  }
 
   return (
-    <>
-      <h2 className="ld-kopje">
-        Thema's
-        {!bewerk && (
-          <button className="ld-knop is-klein" onClick={() => setBewerk(LEEG)}>
-            <Icoon naam="plus" grootte={16} /> Nieuw thema
-          </button>
-        )}
-      </h2>
-    <section className="ld-kaart">
-      {bewerk ? (
-        <ThemaForm
-          thema={bewerk}
-          klaar={() => {
-            setBewerk(null);
-            ververs();
+    <div className="ld-snel">
+      <h3 className="ld-sub">
+        Thema's <span>{themas.length}</span>
+      </h3>
+      <form className="ld-snel-invoer" onSubmit={toevoegen}>
+        <textarea
+          className="ld-input"
+          rows={Math.min(6, Math.max(1, invoer.split('\n').length))}
+          placeholder="Nieuw thema… (plak gerust een lijst, één per regel)"
+          value={invoer}
+          maxLength={5000}
+          onChange={(e) => setInvoer(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey && !invoer.includes('\n')) toevoegen(e);
           }}
         />
-      ) : (
-        <>
-          {themas.length === 0 && <p className="ld-zacht">Nog geen thema's.</p>}
-          <ul className="ld-lijst is-scheiding">
-            {themas.map((t) => (
-              <li key={t.id}>
-                <button className="ld-rij is-beheer" onClick={() => setBewerk(t)}>
-                  {t.fotos?.[0] ? (
-                    <img className="ld-mini" src={api.fotoUrl(t.fotos[0])} alt="" />
-                  ) : (
-                    <span className="ld-mini is-leeg">{t.titel.slice(0, 1)}</span>
-                  )}
+        <button className="ld-knop is-klein" type="submit" disabled={!invoer.trim()}>
+          <Icoon naam="plus" grootte={16} /> Toevoegen
+        </button>
+      </form>
+      {fout && <p className="ld-fout">{fout}</p>}
+      {themas.length > 0 && (
+        <ul className="ld-lijst is-scheiding">
+          {themas.map((t) => (
+            <li key={t.id} className="ld-snel-rij">
+              {bewerk?.id === t.id ? (
+                <form className="ld-snel-bewerk" onSubmit={hernoem}>
+                  <input
+                    className="ld-input"
+                    value={bewerk.titel}
+                    maxLength={120}
+                    autoFocus
+                    onChange={(e) => setBewerk({ ...bewerk, titel: e.target.value })}
+                    onKeyDown={(e) => e.key === 'Escape' && setBewerk(null)}
+                  />
+                  <button className="ld-knop is-klein" type="submit">
+                    Opslaan
+                  </button>
+                </form>
+              ) : (
+                <>
                   <span className="ld-rij-tekst">
                     {t.titel}
-                    <small>
-                      {t.fotos?.length || 0} foto's · {RONDES[t.ronde].naam}
-                    </small>
+                    {t.ronde > 1 && <small>door naar {RONDES[t.ronde].naam.toLowerCase()}</small>}
                   </span>
-                  <Icoon naam="pen" grootte={18} />
-                </button>
-              </li>
-            ))}
-          </ul>
-        </>
+                  <button className="ld-rondje" onClick={() => setBewerk({ id: t.id, titel: t.titel })} aria-label={`${t.titel} hernoemen`}>
+                    <Icoon naam="pen" grootte={16} />
+                  </button>
+                  <button className="ld-rondje is-rood" onClick={() => verwijder(t)} aria-label={`${t.titel} verwijderen`}>
+                    <Icoon naam="kruis" grootte={16} />
+                  </button>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
       )}
-    </section>
-    </>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------- stemrondes: thema's uitwerken
+
+function UitwerkLijst({ themas, ververs }) {
+  const [bewerk, setBewerk] = useState(null);
+  const klaar = themas.filter((t) => t.kort && t.fotos?.length).length;
+
+  if (bewerk) {
+    return (
+      <ThemaForm
+        thema={bewerk}
+        klaar={() => {
+          setBewerk(null);
+          ververs();
+        }}
+      />
+    );
+  }
+
+  return (
+    <div>
+      <h3 className="ld-sub">
+        Thema's uitwerken
+        <span>
+          {klaar} van {themas.length} compleet
+        </span>
+      </h3>
+      <ul className="ld-lijst is-scheiding">
+        {themas.map((t) => (
+          <li key={t.id}>
+            <button className="ld-rij is-beheer" onClick={() => setBewerk(t)}>
+              {t.fotos?.[0] ? (
+                <img className="ld-mini" src={api.fotoUrl(t.fotos[0])} alt="" />
+              ) : (
+                <span className="ld-mini is-leeg">{t.titel.slice(0, 1)}</span>
+              )}
+              <span className="ld-rij-tekst">
+                {t.titel}
+                <span className="ld-chips">
+                  <em className={t.kort ? 'is-goed' : ''}>{t.kort ? 'Omschrijving' : 'Geen omschrijving'}</em>
+                  <em className={t.fotos?.length ? 'is-goed' : ''}>
+                    {t.fotos?.length ? `${t.fotos.length} foto${t.fotos.length === 1 ? '' : "'s"}` : "Geen foto's"}
+                  </em>
+                </span>
+              </span>
+              <span className="ld-uitwerk-knop">
+                <Icoon naam="pen" grootte={16} /> Uitwerken
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -279,7 +425,7 @@ function ThemaForm({ thema, klaar }) {
     }
     // Weggehaalde foto's ook uit de opslag halen.
     for (const pad of (thema.fotos || []).filter((p) => !fotos.includes(p))) await api.fotoVerwijder(pad);
-    meld(thema.id ? 'Thema opgeslagen' : 'Thema toegevoegd');
+    meld('Thema opgeslagen');
     klaar();
   }
 
@@ -288,37 +434,36 @@ function ThemaForm({ thema, klaar }) {
     klaar();
   }
 
-  async function verwijder() {
-    if (!window.confirm(`"${thema.titel}" verwijderen? Stemmen op dit thema tellen dan niet meer mee.`)) return;
-    setBezig('Verwijderen…');
-    const r = await api.themaVerwijder(thema.id);
-    if (r.error) {
-      setBezig(null);
-      setFout(r.error);
-      return;
-    }
-    for (const pad of [...(thema.fotos || []), ...nieuw]) await api.fotoVerwijder(pad);
-    meld('Thema verwijderd');
-    klaar();
-  }
-
   return (
     <form className="ld-themaform" onSubmit={opslaan}>
+      <h3 className="ld-sub">
+        {thema.titel}
+        <button type="button" className="ld-link is-klein" onClick={annuleer} disabled={Boolean(bezig)}>
+          Terug
+        </button>
+      </h3>
       <label className="ld-veld">
         <span>Titel</span>
         <input className="ld-input" value={v.titel} maxLength={120} required onChange={(e) => setV({ ...v, titel: e.target.value })} />
       </label>
       <label className="ld-veld">
-        <span>Korte omschrijving (één zin, staat bij de stemming)</span>
-        <input className="ld-input" value={v.kort} maxLength={300} onChange={(e) => setV({ ...v, kort: e.target.value })} />
+        <span>Korte omschrijving</span>
+        <input
+          className="ld-input"
+          value={v.kort}
+          maxLength={300}
+          placeholder="Eén zin die bij de stemming staat"
+          onChange={(e) => setV({ ...v, kort: e.target.value })}
+        />
       </label>
       <label className="ld-veld">
-        <span>Toelichting (zo uitgebreid als je wilt; witregels blijven staan)</span>
+        <span>Toelichting</span>
         <textarea
           className="ld-input"
-          rows={8}
+          rows={7}
           value={v.toelichting}
           maxLength={20000}
+          placeholder="Het idee uitgewerkt: wagen, kostuums, muziek…"
           onChange={(e) => setV({ ...v, toelichting: e.target.value })}
         />
       </label>
@@ -331,13 +476,13 @@ function ThemaForm({ thema, klaar }) {
               <img src={api.fotoUrl(p)} alt={`Foto ${i + 1}`} />
               <span>
                 <button type="button" onClick={() => schuif(i, -1)} disabled={i === 0} aria-label="Naar voren">
-                  ◀
+                  <Icoon naam="links" grootte={14} />
                 </button>
                 <button type="button" onClick={() => setFotos(fotos.filter((x) => x !== p))} aria-label="Foto weghalen">
-                  ✕
+                  <Icoon naam="kruis" grootte={14} />
                 </button>
                 <button type="button" onClick={() => schuif(i, 1)} disabled={i === fotos.length - 1} aria-label="Naar achteren">
-                  ▶
+                  <Icoon naam="rechts" grootte={14} />
                 </button>
               </span>
             </figure>
@@ -352,7 +497,7 @@ function ThemaForm({ thema, klaar }) {
                 e.target.value = '';
               }}
             />
-            + Foto's
+            <Icoon naam="foto" /> Foto's
           </label>
         </div>
       </div>
@@ -367,11 +512,6 @@ function ThemaForm({ thema, klaar }) {
         <button className="ld-knop is-klein is-rand" type="button" onClick={annuleer} disabled={Boolean(bezig)}>
           Annuleren
         </button>
-        {thema.id && (
-          <button className="ld-link is-rood" type="button" onClick={verwijder} disabled={Boolean(bezig)}>
-            Thema verwijderen
-          </button>
-        )}
       </div>
     </form>
   );

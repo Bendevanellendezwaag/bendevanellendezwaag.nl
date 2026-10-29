@@ -1819,3 +1819,105 @@
     padding: 20px 20px 32px;
   }
 }
+
+/* ---------------------------------------------------------------- beheer per ronde */
+
+.ld-rechts {
+  margin-left: auto;
+}
+
+.ld-rondje.is-rood:hover {
+  background: #fdecee;
+  color: var(--l-rood) !important;
+}
+
+.ld-snel {
+  display: grid;
+  gap: 10px;
+}
+
+.ld-snel .ld-sub {
+  margin: 0;
+}
+
+.ld-snel-invoer {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.ld-snel-invoer .ld-input {
+  flex: 1;
+  resize: none;
+  padding: 11px 14px;
+}
+
+.ld-snel-invoer .ld-knop {
+  flex: none;
+  padding: 12px 16px;
+}
+
+.ld-snel-rij {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 2px 8px 4px;
+}
+
+.ld-snel-bewerk {
+  flex: 1;
+  display: flex;
+  gap: 8px;
+}
+
+.ld-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.ld-chips em {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #fff4cc;
+  color: #7a5b00;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+}
+
+.ld-chips em.is-goed {
+  background: #e5f6ec;
+  color: #146b3f;
+}
+
+.ld-uitwerk-knop {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--l-accent-licht);
+  color: var(--l-accent);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.ld-fotoknop {
+  align-content: center;
+  gap: 4px;
+}
+
+@media (max-width: 520px) {
+  .ld-uitwerk-knop {
+    padding: 8px;
+    font-size: 0;
+    gap: 0;
+  }
+
+  .ld-rechts {
+    margin-left: 0;
+  }
+}

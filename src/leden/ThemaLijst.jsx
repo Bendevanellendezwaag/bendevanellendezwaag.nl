@@ -4,14 +4,17 @@ import Icoon from './iconen.jsx';
 import { Leeg, Paginakop } from './onderdelen.jsx';
 
 /** Alle thema's als kaarten; tik er een aan voor de volledige toelichting. */
-export default function ThemaLijst({ themas }) {
+export default function ThemaLijst({ themas: alle }) {
   const [open, setOpen] = useState(null);
+  // Bij de eerste vergadering zijn het nog losse titels; uitgewerkt worden alleen
+  // de thema's die doorgaan naar de stemrondes.
+  const themas = alle.filter((t) => t.ronde >= 2);
 
   return (
     <>
-      <Paginakop titel="Thema's" sub={themas.length ? `${themas.length} ideeën voor de nieuwe wagen` : undefined} />
+      <Paginakop titel="Thema's" sub={themas.length ? `${themas.length} thema's in de stemrondes` : undefined} />
       {themas.length === 0 ? (
-        <Leeg titel="Nog geen thema's" />
+        <Leeg titel="Nog geen thema's">Na de eerste vergadering staan hier de thema's die doorgaan.</Leeg>
       ) : (
         <div className="ld-themas">
           {themas.map((t) => (
