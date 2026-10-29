@@ -1,20 +1,23 @@
-/* Ledenomgeving: strakke app — blauwe zijbalk, lichte werkruimte, witte kaarten. */
+/* Ledenomgeving: zelfde huisstijl als de homepagina — blauwe zijbalk, lichtblauwe knoppen,
+   Unbounded voor koppen en knoppen, Inter voor tekst, lichte werkruimte met witte kaarten. */
 .ld-app,
 .ld-login {
-  --l-bg: #f1f6ff;
+  --l-bg: var(--ijs);
   --l-kaart: #ffffff;
-  --l-tekst: #0d1b45;
-  --l-zacht: #5b6b94;
-  --l-lijn: #dde6fa;
-  --l-vlak: #f6f9ff;
-  --l-accent: #2563ff;
-  --l-accent-licht: #dcebff;
-  --l-geel: #ffd23f;
+  --l-tekst: var(--blauw-nacht);
+  --l-zacht: #5a6a99;
+  --l-lijn: #dbe6fb;
+  --l-vlak: #f5f9ff;
+  --l-accent: var(--blauw);
+  --l-accent-licht: #e3efff;
+  --l-uitgelicht: var(--lichtblauw); /* vlakken die extra aandacht krijgen */
+  --l-geel: var(--blauw); /* oude naam: randen en balken die opvallen */
   --l-rood: #d93b4b;
   --l-groen: #1f9d5c;
-  --l-schaduw: 0 1px 2px rgba(13, 27, 69, 0.04), 0 4px 16px rgba(13, 27, 69, 0.06);
+  --l-schaduw: 0 1px 2px rgba(11, 31, 102, 0.04), 0 10px 30px -12px rgba(11, 31, 102, 0.12);
+  --l-rond: 24px;
   color: var(--l-tekst);
-  font-family: var(--font);
+  font-family: var(--font-tekst);
 }
 
 .ld-app button,
@@ -44,14 +47,16 @@
   display: flex;
   flex-direction: column;
   gap: 28px;
-  padding: 24px 16px 16px;
-  background: linear-gradient(180deg, var(--hemel) 0%, var(--blauw) 40%, var(--diep) 100%);
+  padding: 28px 16px 16px;
+  background:
+    radial-gradient(120% 50% at 50% 0%, rgba(255, 255, 255, 0.14), transparent 70%),
+    var(--blauw);
   color: var(--wit);
 }
 
 .ld-zij-logo img {
   display: block;
-  width: 128px;
+  width: 116px;
   margin: 0 auto;
 }
 
@@ -65,11 +70,11 @@
   align-items: center;
   gap: 12px;
   width: 100%;
-  padding: 11px 14px;
+  padding: 12px 16px;
   border: 0;
-  border-radius: 12px;
+  border-radius: 999px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.82) !important;
+  color: rgba(255, 255, 255, 0.85) !important;
   font-size: 15px;
   font-weight: 500;
   text-align: left;
@@ -81,8 +86,9 @@
 }
 
 .ld-nav-knop.is-aan {
-  background: var(--wit);
-  color: var(--diep) !important;
+  background: var(--lichtblauw);
+  color: var(--blauw) !important;
+  font-weight: 600;
 }
 
 .ld-nav-knop span {
@@ -94,8 +100,8 @@
   height: 22px;
   padding: 0 7px;
   border-radius: 11px;
-  background: var(--l-geel, #ffd23f);
-  color: #0d1b45;
+  background: var(--wit);
+  color: var(--blauw);
   font-size: 12px;
   font-style: normal;
   font-weight: 700;
@@ -129,8 +135,8 @@
   width: 100%;
   padding: 8px;
   border: 0;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
   color: var(--wit) !important;
   text-align: left;
 }
@@ -227,10 +233,11 @@
   padding: 8px 14px;
   border: 0;
   border-radius: 999px;
-  background: var(--l-geel);
-  color: var(--l-tekst) !important;
+  background: var(--l-uitgelicht);
+  color: var(--blauw) !important;
+  font-family: var(--font-kop);
   font-weight: 600;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 /* ---------------------------------------------------------------- basis */
@@ -245,9 +252,10 @@
 
 .ld-paginakop h1 {
   margin: 0;
-  font-size: clamp(28px, 4vw, 38px);
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  font-family: var(--font-kop);
+  font-size: clamp(26px, 3.6vw, 36px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
   line-height: 1.1;
 }
 
@@ -263,10 +271,11 @@
   justify-content: space-between;
   gap: 12px;
   margin: 32px 0 12px;
-  font-size: 13px;
-  font-weight: 600;
+  font-family: var(--font-kop);
+  font-size: 11px;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.16em;
   color: var(--l-zacht);
 }
 
@@ -307,7 +316,7 @@
 .ld-kaart {
   margin: 0 0 16px;
   padding: 20px;
-  border-radius: 18px;
+  border-radius: var(--l-rond);
   background: var(--l-kaart);
   box-shadow: var(--l-schaduw);
 }
@@ -327,13 +336,15 @@
   gap: 6px;
   justify-items: center;
   padding: 56px 24px;
-  border-radius: 18px;
+  border-radius: var(--l-rond);
   border: 2px dashed var(--l-lijn);
   text-align: center;
 }
 
 .ld-leeg strong {
-  font-size: 18px;
+  font-family: var(--font-kop);
+  font-size: 17px;
+  font-weight: 600;
 }
 
 .ld-leeg span {
@@ -364,20 +375,24 @@
   justify-content: center;
   gap: 8px;
   width: 100%;
-  padding: 15px 22px;
+  padding: 16px 24px;
   border: 0;
-  border-radius: 14px;
+  border-radius: 999px;
   background: var(--lichtblauw);
   color: var(--blauw) !important;
-  font-size: 16px;
+  font-family: var(--font-kop);
+  font-size: 14px;
   font-weight: 600;
+  letter-spacing: 0.01em;
   transition:
-    transform 0.1s,
-    background 0.15s;
+    transform 0.15s,
+    background 0.15s,
+    box-shadow 0.25s;
 }
 
 .ld-knop:hover:not(:disabled) {
-  background: #a3cfff;
+  background: var(--lichtblauw-hover);
+  box-shadow: 0 10px 24px -12px rgba(11, 31, 102, 0.45);
 }
 
 .ld-knop:active:not(:disabled) {
@@ -390,9 +405,8 @@
 
 .ld-knop.is-klein {
   width: auto;
-  padding: 10px 16px;
-  border-radius: 12px;
-  font-size: 14px;
+  padding: 10px 18px;
+  font-size: 12px;
 }
 
 .ld-knop.is-rand {
@@ -431,8 +445,8 @@
   margin-left: 8px;
   padding: 2px 8px;
   border-radius: 999px;
-  background: #fff4cc;
-  color: #7a5b00;
+  background: var(--l-accent-licht);
+  color: var(--blauw);
   font-size: 11px;
   font-style: normal;
   font-weight: 600;
@@ -451,7 +465,7 @@
 
 .ld-skelet span {
   height: 72px;
-  border-radius: 18px;
+  border-radius: var(--l-rond);
   background: linear-gradient(90deg, #e8effc 0%, #f6f9ff 50%, #e8effc 100%) 0 0 / 200% 100%;
   animation: ld-skelet 1.2s linear infinite;
 }
@@ -492,8 +506,8 @@
 .ld-input {
   width: 100%;
   min-width: 0;
-  padding: 13px 14px;
-  border-radius: 12px;
+  padding: 13px 16px;
+  border-radius: 14px;
   border: 1.5px solid var(--l-lijn);
   background: var(--l-kaart);
   color: var(--l-tekst) !important;
@@ -518,7 +532,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   padding: 4px;
-  border-radius: 14px;
+  border-radius: 999px;
   background: var(--l-vlak);
   box-shadow: inset 0 0 0 1px var(--l-lijn);
 }
@@ -526,7 +540,7 @@
 .ld-segment button {
   padding: 10px;
   border: 0;
-  border-radius: 10px;
+  border-radius: 999px;
   background: transparent;
   font-size: 14px;
   font-weight: 500;
@@ -668,8 +682,8 @@
 }
 
 .ld-rij.is-gekozen:first-child .ld-nr {
-  background: var(--l-geel);
-  color: var(--l-tekst);
+  background: var(--l-uitgelicht);
+  color: var(--blauw);
 }
 
 .ld-mini {
@@ -865,7 +879,7 @@
   align-items: center;
   gap: 14px;
   padding: 10px;
-  border-radius: 18px;
+  border-radius: var(--l-rond);
   background: var(--l-kaart);
   box-shadow:
     inset 0 0 0 2px transparent,
@@ -975,7 +989,7 @@
 }
 
 .ld-uitslag li.is-1 {
-  background: #fff8db;
+  background: var(--l-accent-licht);
 }
 
 .ld-uit-plek {
@@ -988,7 +1002,7 @@
 }
 
 .ld-uitslag li.is-1 .ld-uit-plek {
-  color: #b58900;
+  color: var(--blauw);
 }
 
 .ld-uit-midden {
@@ -1073,7 +1087,7 @@
   align-content: start;
   padding: 0;
   border: 0;
-  border-radius: 18px;
+  border-radius: var(--l-rond);
   background: var(--l-kaart);
   box-shadow: var(--l-schaduw);
   overflow: hidden;
@@ -1122,8 +1136,8 @@
 
 .ld-themakaart-foto em {
   left: 10px;
-  background: var(--l-geel);
-  color: var(--l-tekst);
+  background: var(--l-uitgelicht);
+  color: var(--blauw);
 }
 
 .ld-themakaart-foto i {
@@ -1156,8 +1170,8 @@
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgba(8, 17, 47, 0.6);
-  backdrop-filter: blur(6px);
+  background: rgba(8, 26, 90, 0.55);
+  backdrop-filter: blur(10px);
   animation: ld-in 0.18s ease;
 }
 
@@ -1172,10 +1186,10 @@
   width: min(760px, 100%);
   max-height: calc(100dvh - 48px);
   overflow-y: auto;
-  border-radius: 24px;
+  border-radius: 32px;
   background: var(--l-kaart);
   color: var(--l-tekst);
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 40px 100px -30px rgba(8, 26, 90, 0.6);
   animation: ld-op 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
@@ -1265,9 +1279,10 @@
 .ld-detail-tekst h2 {
   margin: 0 0 8px;
   padding-right: 40px;
-  font-size: 28px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-family: var(--font-kop);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
 }
 
 .ld-detail-kort {
@@ -1376,8 +1391,8 @@
 }
 
 .ld-ronde.is-open .ld-ronde-nr {
-  background: var(--l-geel);
-  color: var(--l-tekst);
+  background: var(--blauw);
+  color: var(--wit);
 }
 
 .ld-ronde-naam {
@@ -1528,8 +1543,8 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 18px;
-  border-radius: 14px;
+  padding: 14px 20px;
+  border-radius: 999px;
   background: var(--l-tekst);
   color: var(--wit);
   font-size: 15px;
@@ -1539,7 +1554,7 @@
 }
 
 .ld-melding svg {
-  color: #7be3a4;
+  color: var(--lichtblauw);
 }
 
 /* ---------------------------------------------------------------- inlogpagina */
@@ -1559,7 +1574,10 @@
   align-items: center;
   padding: 40px;
   overflow: hidden;
-  background: linear-gradient(180deg, var(--hemel) 0%, var(--blauw) 45%, var(--diep) 100%);
+  background:
+    radial-gradient(70% 55% at 50% 60%, rgba(184, 220, 255, 0.35), transparent 70%),
+    radial-gradient(120% 60% at 50% 0%, rgba(255, 255, 255, 0.14), transparent 70%),
+    var(--blauw);
   color: var(--wit);
 }
 
@@ -1572,11 +1590,15 @@
   gap: 6px;
   padding: 8px 14px 8px 10px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.1);
   color: var(--wit);
   text-decoration: none;
-  font-size: 14px;
+  font-family: var(--font-kop);
+  font-size: 11px;
   font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .ld-login-terug:hover {
@@ -1584,9 +1606,8 @@
 }
 
 .ld-login-logo {
-  width: 180px;
+  width: 170px;
   margin-top: 24px;
-  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.18));
 }
 
 .ld-login-wagen {
@@ -1607,10 +1628,11 @@
 }
 
 .ld-login-titel {
-  margin: 0 0 4px;
-  font-size: 32px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  margin: 0 0 6px;
+  font-family: var(--font-kop);
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
 }
 
 .ld-login-melding {
@@ -1643,7 +1665,7 @@
     align-items: center;
     justify-content: space-between;
     padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 10px;
-    background: linear-gradient(180deg, var(--hemel), var(--blauw));
+    background: var(--blauw);
   }
 
   .ld-top-logo {
@@ -1763,7 +1785,7 @@
   }
 
   .ld-login-titel {
-    font-size: 28px;
+    font-size: 26px;
   }
 }
 
@@ -1880,8 +1902,8 @@
 .ld-chips em {
   padding: 2px 8px;
   border-radius: 999px;
-  background: #fff4cc;
-  color: #7a5b00;
+  background: var(--l-accent-licht);
+  color: var(--blauw);
   font-size: 12px;
   font-style: normal;
   font-weight: 500;
@@ -1968,4 +1990,80 @@
 
 .ld-melding.is-fout {
   background: var(--l-rood);
+}
+
+/* ---------------------------------------------------------------- huisstijl-details */
+
+/* De wagen op het inlogscherm zweeft rustig op en neer. */
+@keyframes bv-zweef {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1deg);
+  }
+  50% {
+    transform: translateY(-14px) rotate(1deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ld-login-wagen {
+    animation: none;
+  }
+}
+
+/* Kleine koppen en titels in Unbounded, net als op de homepagina. */
+.ld-sub,
+.ld-keuze-tekst strong,
+.ld-themakaart-tekst strong,
+.ld-ronde-naam strong {
+  font-family: var(--font-kop);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.ld-sub {
+  font-size: 15px;
+}
+
+.ld-keuze-tekst strong,
+.ld-themakaart-tekst strong {
+  font-size: 15px;
+}
+
+.ld-ronde-naam strong {
+  font-size: 15px;
+}
+
+.ld-status,
+.ld-door-knop,
+.ld-uitwerk-knop {
+  font-family: var(--font-kop);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+
+.ld-nr,
+.ld-ronde-nr,
+.ld-uit-plek,
+.ld-avatar,
+.ld-uit-punten {
+  font-family: var(--font-kop);
+}
+
+.ld-ronde-nr {
+  border-radius: 50%;
+}
+
+.ld-uitwerk-knop {
+  border-radius: 999px;
+}
+
+.ld-zij-nav .ld-nav-knop.is-aan .ld-teller {
+  background: var(--blauw);
+  color: var(--wit);
+}
+
+.ld-onderbalk .ld-teller {
+  background: var(--blauw);
+  color: var(--wit);
 }

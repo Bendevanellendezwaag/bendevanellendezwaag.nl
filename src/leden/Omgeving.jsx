@@ -109,7 +109,7 @@ export default function Omgeving({ profiel, onSite, onProfiel }) {
             onSite();
           }}
         >
-          <img src="/logo.png" alt="Bende van Ellende – naar de website" />
+          <img src="/logo.svg" alt="Bende van Ellende – naar de website" />
         </a>
         <nav className="ld-zij-nav" aria-label="Ledenomgeving">
           {navKnoppen}
@@ -118,7 +118,7 @@ export default function Omgeving({ profiel, onSite, onProfiel }) {
       </aside>
 
       <header className="ld-top">
-        <img src="/logo.png" alt="Bende van Ellende" className="ld-top-logo" />
+        <img src="/logo.svg" alt="Bende van Ellende" className="ld-top-logo" />
         <Account profiel={profiel} onProfiel={onProfiel} onSite={onSite} alsLid={echteBeheerder ? [alsLid, setAlsLid] : null} compact />
       </header>
 
