@@ -48,7 +48,12 @@ export default function Omgeving({ profiel, onSite, onProfiel }) {
     });
     if (echteBeheerder) {
       const l = await api.alleLeden();
-      if (!l.error) setWachtend(l.data.filter((x) => x.status === 'wacht').length);
+      if (!l.error) {
+        setWachtend(l.data.filter((x) => x.status === 'wacht').length);
+        // Voor "nog niet gestemd" in het stembeheer.
+        const leden = l.data.filter((x) => x.status === 'goedgekeurd');
+        setData((d) => d && { ...d, leden });
+      }
     }
   }, [profiel.id, echteBeheerder]);
 

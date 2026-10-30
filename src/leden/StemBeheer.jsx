@@ -166,7 +166,7 @@ function RondeBeheer({ ronde, data, ververs, startOpen }) {
             <div className="ld-ronde-uitslag">
               <h3 className="ld-sub">Uitslag {ronde.status === 'open' && <span className="ld-live">live</span>}</h3>
               <Uitslag ronde={ronde.nr} uitslag={uitslag} />
-              {uitslag.stemmers?.length > 0 && <p className="ld-zacht ld-klein">Gestemd: {uitslag.stemmers.join(', ')}</p>}
+              <WieStemdeWat ronde={ronde.nr} perLid={uitslag.per_lid || []} leden={data.leden} />
             </div>
           )}
 
@@ -186,6 +186,39 @@ function RondeBeheer({ ronde, data, ververs, startOpen }) {
         </div>
       )}
     </section>
+  );
+}
+
+// Per lid wie er gestemd heeft en waarop (alleen de beheerder krijgt dit van de database).
+function WieStemdeWat({ ronde, perLid, leden }) {
+  const gestemd = new Set(perLid.map((s) => s.naam));
+  const nogNiet = (leden || []).map((l) => l.naam).filter((n) => !gestemd.has(n));
+  const tijd = (op) =>
+    new Date(op).toLocaleString('nl-NL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  return (
+    <div className="ld-wiewat">
+      <h3 className="ld-sub">
+        Wie stemde wat <span>{perLid.length} gestemd</span>
+      </h3>
+      {perLid.length === 0 ? (
+        <p className="ld-zacht ld-klein">Nog niemand gestemd.</p>
+      ) : (
+        <ul className="ld-lijst">
+          {perLid.map((s) => (
+            <li key={s.naam} className="ld-wiewat-rij">
+              <strong>{s.naam}</strong>
+              <span className="ld-wiewat-keuze">
+                {ronde === 1 ? s.keuze.map((k, i) => `${i + 1}. ${k}`).join('  ·  ') : s.keuze.join(', ')}
+              </span>
+              <small className="ld-zacht">{tijd(s.op)}</small>
+            </li>
+          ))}
+        </ul>
+      )}
+      {nogNiet.length > 0 && (
+        <p className="ld-zacht ld-klein">Nog niet gestemd: {nogNiet.join(', ')}</p>
+      )}
+    </div>
   );
 }
 

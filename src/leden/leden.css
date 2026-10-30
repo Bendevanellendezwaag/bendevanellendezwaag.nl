@@ -3816,3 +3816,42 @@ body.fa-open {
   font-weight: 500;
   color: var(--l-zacht);
 }
+
+/* ---------------------------------------------------------------- wie stemde wat (beheer) */
+
+.ld-wiewat {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.ld-wiewat-rij {
+  display: grid;
+  grid-template-columns: minmax(90px, 160px) 1fr auto;
+  align-items: baseline;
+  gap: 4px 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--l-vlak);
+  font-size: 15px;
+}
+
+.ld-wiewat-keuze {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ld-wiewat-rij small {
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  .ld-wiewat-rij {
+    grid-template-columns: 1fr auto;
+  }
+  .ld-wiewat-keuze {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}

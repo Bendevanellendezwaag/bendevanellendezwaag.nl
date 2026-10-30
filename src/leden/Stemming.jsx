@@ -31,7 +31,9 @@ export default function Stemming({ data, ververs }) {
     hoofd = (
       <>
         <RondeKop ronde={open} deelname={data.deelname} />
-        {mee.length === 0 ? (
+        {props.opgeslagen ? (
+          <AlGestemd ronde={open.nr} keuze={props.opgeslagen} themas={data.themas} />
+        ) : mee.length === 0 ? (
           <Leeg>Nog geen thema's in deze ronde.</Leeg>
         ) : open.nr === 1 ? (
           <Ranken key={open.nr} {...props} />
@@ -115,27 +117,47 @@ function InfoKnop({ thema, onInfo }) {
   );
 }
 
-function Verstuur({ klaar, zelfde, bezig, tekst, onKlik, melding }) {
+// Je stemt één keer per ronde; daarna ligt je stem vast en zie je alleen nog wat je koos.
+function AlGestemd({ ronde, keuze, themas }) {
+  const perId = Object.fromEntries(themas.map((t) => [t.id, t]));
+  const Lijst = ronde === 1 ? 'ol' : 'ul';
+  return (
+    <section className="ld-kaart is-plat">
+      <p className="ld-binnen">
+        <Icoon naam="vink" grootte={18} /> Je stem is binnen
+      </p>
+      <p className="ld-zacht ld-klein">Je kunt maar één keer stemmen per ronde. Je stem kan niet meer gewijzigd worden.</p>
+      <h2 className="ld-sub">{ronde === 1 ? 'Jouw volgorde' : keuze.length === 1 ? 'Jouw keuze' : 'Jouw keuzes'}</h2>
+      <Lijst className="ld-lijst">
+        {keuze.map((id, i) => (
+          <li key={id} className="ld-rij is-gekozen">
+            {ronde === 1 && <span className="ld-nr">{i + 1}</span>}
+            <span className="ld-rij-tekst">{perId[id]?.titel || '(thema verwijderd)'}</span>
+          </li>
+        ))}
+      </Lijst>
+    </section>
+  );
+}
+
+const DEFINITIEF = 'Weet je het zeker? Je kunt maar één keer stemmen: daarna kun je je stem niet meer wijzigen.';
+
+function Verstuur({ klaar, bezig, tekst, onKlik, melding }) {
   return (
     <div className="ld-onder">
       {melding && <p className="ld-fout">{melding}</p>}
-      {zelfde ? (
-        <p className="ld-binnen">
-          <Icoon naam="vink" grootte={18} /> Je stem is binnen
-        </p>
-      ) : (
-        <button className="ld-knop" onClick={onKlik} disabled={!klaar || bezig}>
-          {bezig ? 'Versturen…' : tekst}
-        </button>
-      )}
+      <button className="ld-knop" onClick={onKlik} disabled={!klaar || bezig}>
+        {bezig ? 'Versturen…' : tekst}
+      </button>
+      <p className="ld-zacht ld-klein">Je stem is definitief: je kunt hem na versturen niet meer wijzigen.</p>
     </div>
   );
 }
 
 // ---------------------------------------------------------------- ronde 1: rangschikken
 
-function Ranken({ ronde, themas, opgeslagen, ververs }) {
-  const [volgorde, setVolgorde] = useState(opgeslagen || []);
+function Ranken({ ronde, themas, ververs }) {
+  const [volgorde, setVolgorde] = useState([]);
   const [bezig, setBezig] = useState(false);
   const [melding, setMelding] = useState(null);
 
@@ -145,7 +167,6 @@ function Ranken({ ronde, themas, opgeslagen, ververs }) {
   const geplaatst = volgorde.filter((id) => ids.has(id));
   const open = themas.filter((t) => !geplaatst.includes(t.id));
   const compleet = open.length === 0 && geplaatst.length > 0;
-  const zelfde = compleet && JSON.stringify(opgeslagen) === JSON.stringify(geplaatst);
 
   function schuif(i, r) {
     const j = i + r;
@@ -156,13 +177,14 @@ function Ranken({ ronde, themas, opgeslagen, ververs }) {
   }
 
   async function verstuur() {
+    if (!window.confirm(DEFINITIEF)) return;
     setBezig(true);
     setMelding(null);
     const r = await api.stem(ronde, geplaatst);
     setBezig(false);
     if (r.error) setMelding(r.error);
     else {
-      meld('Je volgorde is opgeslagen');
+      meld('Je volgorde is verstuurd');
       ververs();
     }
   }
@@ -230,11 +252,10 @@ function Ranken({ ronde, themas, opgeslagen, ververs }) {
 
       <Verstuur
         klaar={compleet}
-        zelfde={zelfde}
         bezig={bezig}
         melding={melding}
         onKlik={verstuur}
-        tekst={compleet ? (opgeslagen ? 'Wijziging opslaan' : 'Volgorde versturen') : `Nog ${open.length} te plaatsen`}
+        tekst={compleet ? 'Volgorde versturen' : `Nog ${open.length} te plaatsen`}
       />
     </>
   );
@@ -242,14 +263,12 @@ function Ranken({ ronde, themas, opgeslagen, ververs }) {
 
 // ---------------------------------------------------------------- ronde 2 en 3: kiezen
 
-function Kiezen({ ronde, themas, opgeslagen, ververs, onInfo, max }) {
-  const [keuze, setKeuze] = useState(opgeslagen || []);
+function Kiezen({ ronde, themas, ververs, onInfo, max }) {
+  const [keuze, setKeuze] = useState([]);
   const [bezig, setBezig] = useState(false);
   const [melding, setMelding] = useState(null);
 
   const geldig = keuze.filter((id) => themas.some((t) => t.id === id));
-  const zelfde =
-    opgeslagen && geldig.length > 0 && [...opgeslagen].sort().join() === [...geldig].sort().join();
 
   function wissel(id) {
     if (max === 1) return setKeuze([id]);
@@ -258,13 +277,14 @@ function Kiezen({ ronde, themas, opgeslagen, ververs, onInfo, max }) {
   }
 
   async function verstuur() {
+    if (!window.confirm(DEFINITIEF)) return;
     setBezig(true);
     setMelding(null);
     const r = await api.stem(ronde, geldig);
     setBezig(false);
     if (r.error) setMelding(r.error);
     else {
-      meld('Je stem is opgeslagen');
+      meld('Je stem is verstuurd');
       ververs();
     }
   }
@@ -311,19 +331,10 @@ function Kiezen({ ronde, themas, opgeslagen, ververs, onInfo, max }) {
       </div>
       <Verstuur
         klaar={geldig.length > 0}
-        zelfde={zelfde}
         bezig={bezig}
         melding={melding}
         onKlik={verstuur}
-        tekst={
-          geldig.length === 0
-            ? max === 1
-              ? 'Kies een thema'
-              : 'Kies minstens één thema'
-            : opgeslagen
-              ? 'Wijziging opslaan'
-              : 'Stem versturen'
-        }
+        tekst={geldig.length === 0 ? (max === 1 ? 'Kies een thema' : 'Kies minstens één thema') : 'Stem versturen'}
       />
     </>
   );

@@ -18,8 +18,10 @@
 --    Een thema doet mee aan ronde r als themas.ronde >= r.
 --
 --  Beveiliging: RLS op alles. Stemmen kan alleen via stem_uitbrengen(), die
---  controleert of de ronde open is en of de keuze klopt. Wat iemand gestemd
---  heeft ziet alleen hijzelf en de beheerder.
+--  controleert of de ronde open is en of de keuze klopt. Elk account stemt
+--  één keer per ronde; daarna ligt de stem vast (niet wijzigen, niet opnieuw).
+--  Alleen de beheerder kan een hele ronde wissen. Wat iemand gestemd heeft
+--  ziet alleen hijzelf en de beheerder (die ziet per lid wie wat koos).
 -- ============================================================
 
 -- ---------------------------------------------------------------- leden
@@ -271,10 +273,31 @@ begin
     raise exception 'Kies precies één thema' using errcode = '22023';
   end if;
 
+  -- Eén stem per account per ronde, en die ligt daarna vast.
+  if exists (select 1 from public.stemmen where lid = auth.uid() and ronde = p_ronde) then
+    raise exception 'Je hebt al gestemd in deze ronde. Je stem kan niet meer gewijzigd worden.' using errcode = '23505';
+  end if;
   insert into public.stemmen (lid, ronde, keuze, bijgewerkt_op)
-  values (auth.uid(), p_ronde, to_jsonb(p_keuze), now())
-  on conflict (lid, ronde) do update set keuze = excluded.keuze, bijgewerkt_op = now();
+  values (auth.uid(), p_ronde, to_jsonb(p_keuze), now());
+exception
+  when unique_violation then
+    -- twee keer tegelijk op versturen gedrukt
+    raise exception 'Je hebt al gestemd in deze ronde. Je stem kan niet meer gewijzigd worden.' using errcode = '23505';
 end $fn$;
+
+-- Ook buiten de functie om kan een stem niet veranderen: alleen het wissen van
+-- een hele ronde door de beheerder haalt stemmen weg.
+create or replace function public.stem_vast()
+returns trigger
+language plpgsql
+as $fn$
+begin
+  raise exception 'Een uitgebrachte stem kan niet gewijzigd worden' using errcode = '42501';
+end $fn$;
+
+drop trigger if exists stemmen_vast on public.stemmen;
+create trigger stemmen_vast before update on public.stemmen
+  for each row execute function public.stem_vast();
 
 -- Hoeveel leden er per ronde gestemd hebben (voor iedereen in de ledenomgeving).
 create or replace function public.ronde_deelname()
@@ -319,6 +342,18 @@ begin
     'aantal_stemmen', (select count(*) from public.stemmen where ronde = p_ronde),
     'stemmers', case when v_beheerder then coalesce((
        select jsonb_agg(l.naam order by l.naam)
+       from public.stemmen s join public.leden l on l.id = s.lid
+       where s.ronde = p_ronde), '[]'::jsonb) end,
+    -- Per lid wat er gekozen is (thema-titels, in volgorde), alleen voor de beheerder.
+    'per_lid', case when v_beheerder then coalesce((
+       select jsonb_agg(jsonb_build_object(
+                'naam', l.naam,
+                'op', s.bijgewerkt_op,
+                'keuze', coalesce((
+                   select jsonb_agg(coalesce(t.titel, '(verwijderd thema)') order by e.nr)
+                   from jsonb_array_elements_text(s.keuze) with ordinality as e(id, nr)
+                   left join public.themas t on t.id::text = e.id), '[]'::jsonb))
+              order by l.naam)
        from public.stemmen s join public.leden l on l.id = s.lid
        where s.ronde = p_ronde), '[]'::jsonb) end,
     'rijen', coalesce((
@@ -372,6 +407,7 @@ revoke all on function public.ronde_wissen(int)            from public, anon;
 revoke all on function public.stem_uitbrengen(int, uuid[])  from public, anon;
 revoke all on function public.ronde_deelname()              from public, anon;
 revoke all on function public.uitslag(int)                  from public, anon;
+revoke all on function public.stem_vast()                   from public, anon, authenticated;
 
 grant execute on function public.lid_status(uuid, text)        to authenticated;
 grant execute on function public.lid_rol(uuid, text)           to authenticated;
