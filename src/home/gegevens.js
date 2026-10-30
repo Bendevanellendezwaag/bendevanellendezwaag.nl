@@ -8,6 +8,8 @@
 
 // Nieuwste eerst. De tijdlijn loopt van het oudste jaar tot het nieuwste.
 // foto:  hoofdfoto (zet bestanden in public/wagens/, liefst als .webp). Leeg = nette placeholder.
+// uitsnede: optioneel, welk deel van de foto in beeld blijft als hij bijgesneden wordt,
+//        bijvoorbeeld '50% 10%' (midden, bijna bovenaan). Standaard het midden.
 // plek:  eindklassering in de optocht (getal). Laat weg als er geen is; dan verdwijnt de sticker.
 //        Een 1e, 2e of 3e plek telt vanzelf mee bij 'Podiumplekken' onder Over de Bende.
 // tekst: optioneel stukje tekst onder de titel (staat nu bij geen enkele wagen).
@@ -16,7 +18,8 @@ export const wagens = [
   {
     jaar: 2026,
     titel: 'Woningnood in Zwaag',
-    foto: '/wagens/2026-woningnood-in-zwaag.webp',
+    foto: '/wagens/2026-woningnood-in-zwaag-v2.webp',
+    uitsnede: '50% 8%', // helm van de bouwvakker in beeld houden
     plek: 4,
     fotos: { wagen: [], bouw: [] },
   },
@@ -48,13 +51,25 @@ export const wagens = [
     plek: 6,
     fotos: { wagen: [], bouw: [] },
   },
-  // PLACEHOLDER: eerdere jaren
-  ...[2021, 2020, 2019].map((jaar) => ({
+  // PLACEHOLDER: nog in te vullen
+  ...[2021, 2020].map((jaar) => ({
     jaar,
     titel: `Wagen ${jaar}`,
     foto: '',
     fotos: { wagen: [], bouw: [] },
   })),
+  {
+    jaar: 2019,
+    titel: 'Piratenboot',
+    foto: '/wagens/2019-piratenboot.webp',
+    fotos: { wagen: [], bouw: [] },
+  },
+  {
+    jaar: 2018,
+    titel: 'Non-actief met carnaval',
+    foto: '/wagens/2018-non-actief-met-carnaval.webp',
+    fotos: { wagen: [], bouw: [] },
+  },
 ];
 
 /* ------------------------------------------------------------------ over de bende */

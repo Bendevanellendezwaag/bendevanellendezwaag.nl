@@ -9,7 +9,13 @@ const STREEPJES_PER_JAAR = 12; // één streepje per maand
 
 function WagenFoto({ wagen, jaar }) {
   if (wagen?.foto) {
-    return <img src={wagen.foto} alt={`Carnavalswagen ${jaar}: ${wagen.titel}`} />;
+    return (
+      <img
+        src={wagen.foto}
+        alt={`Carnavalswagen ${jaar}: ${wagen.titel}`}
+        style={wagen.uitsnede ? { objectPosition: wagen.uitsnede } : undefined}
+      />
+    );
   }
   return (
     <div className="bv-foto-leeg">
