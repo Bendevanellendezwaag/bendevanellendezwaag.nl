@@ -20,8 +20,40 @@ export const wagens = [
     plek: 4,
     fotos: { wagen: [], bouw: [] },
   },
+  {
+    jaar: 2025,
+    titel: 'Kriebelbeestjes', // PLACEHOLDER: echte naam van de wagen
+    tekst: 'Een kleurrijke tuin vol vrolijke beestjes: krekel, libelle en neushoornkever. Goed voor een 4e plek.',
+    foto: '/wagens/2025-kriebelbeestjes.jpg',
+    plek: 4,
+    fotos: { wagen: [], bouw: [] },
+  },
+  {
+    jaar: 2024,
+    titel: 'Henrikus rock(e)t man!',
+    tekst: 'Een sterrenshow met een rockster achter de piano en een astronaut op zijn raket. Opnieuw een 4e plek.',
+    foto: '/wagens/2024-henrikus-rocket-man.jpg',
+    plek: 4,
+    fotos: { wagen: [], bouw: [] },
+  },
+  {
+    jaar: 2023,
+    titel: 'Poseidon', // PLACEHOLDER: echte naam van de wagen
+    tekst: 'Poseidon op zijn tempel, met een octopus en een reuzenschildpad die door de straten zwom. We werden 5e.',
+    foto: '/wagens/2023-poseidon.jpg',
+    plek: 5,
+    fotos: { wagen: [], bouw: [] },
+  },
+  {
+    jaar: 2022,
+    titel: 'Carnaval in Tirol, gooi de bierpullen maar',
+    tekst: 'Een Tiroler skihut met bratwurst, bierpullen en een skiër op het dak. Goed voor een 6e plek.',
+    foto: '/wagens/2022-carnaval-in-tirol.jpg',
+    plek: 6,
+    fotos: { wagen: [], bouw: [] },
+  },
   // PLACEHOLDER: eerdere jaren
-  ...[2025, 2024, 2023, 2022, 2021, 2020, 2019].map((jaar) => ({
+  ...[2021, 2020, 2019].map((jaar) => ({
     jaar,
     titel: `Wagen ${jaar}`,
     tekst: 'De naam, het verhaal en de foto’s van deze wagen volgen binnenkort.',
