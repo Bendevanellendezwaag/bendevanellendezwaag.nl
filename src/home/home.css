@@ -1227,8 +1227,8 @@ html.bv-geen-scroll {
 
 .bv-over {
   display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  gap: clamp(36px, 7vw, 120px);
+  grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
+  gap: clamp(36px, 6vw, 96px);
   align-items: start;
   margin-top: clamp(48px, 8vh, 96px);
 }
@@ -1239,8 +1239,9 @@ html.bv-geen-scroll {
   top: 120px;
 }
 
+/* Liggend (3:2), zoals de groepsfoto: dan valt er niemand aan de zijkant weg. */
 .bv-over-foto-binnen {
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 3 / 2;
   border-radius: var(--rond);
   overflow: hidden;
   transform: translateY(calc((var(--p) - 0.5) * -80px)) rotate(calc(-4deg + var(--p) * 5deg));
@@ -1844,7 +1845,6 @@ a.bv-sponsor:hover img {
   .bv-over-foto {
     position: relative;
     top: 0;
-    max-width: 420px;
   }
 
   .bv-teller {

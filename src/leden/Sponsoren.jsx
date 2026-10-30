@@ -5,7 +5,7 @@ import { meld } from './melding.js';
 import { Leeg, Paginakop } from './onderdelen.jsx';
 import Factuur from './Factuur.jsx';
 
-const BEELD_KEY = 'bve-sponsorweergave';
+const BEELD_KEY = 'bve-sponsorweergave-v2'; // nieuwe sleutel: iedereen begint weer op de tabel
 const SECTIE_KEY = 'bve-sponsorsectie';
 const SECTIES = {
   zakelijk: { label: 'Bedrijven', enkel: 'bedrijf', nieuw: 'Nieuw bedrijf' },
@@ -335,7 +335,7 @@ function Gereedschap({ zoek, setZoek, filter, setFilter, filters, sorteer, setSo
       </label>
       {setBeeld && (
         <div className="ld-segment ld-sp-beeld" role="tablist" aria-label="Weergave">
-          {[['tegels', 'Tegels'], ['tabel', 'Tabel']].map(([k, v]) => (
+          {[['tabel', 'Tabel'], ['tegels', 'Tegels']].map(([k, v]) => (
             <button key={k} role="tab" aria-selected={beeld === k} className={beeld === k ? 'is-aan' : ''} onClick={() => setBeeld(k)}>
               {v}
             </button>
@@ -372,7 +372,7 @@ function SponsorSectie({ soort, sponsoren, bijdrage, jaren, gekozen, vorigJaar, 
   const [zoek, setZoek] = useState('');
   const [filter, setFilter] = useState('alle');
   const [sorteer, setSorteer] = useState('hoog');
-  const [gekozenBeeld, setBeeldState] = useState(() => onthouden(BEELD_KEY, 'tegels'));
+  const [gekozenBeeld, setBeeldState] = useState(() => onthouden(BEELD_KEY, 'tabel'));
   const beeld = useSmal() ? 'tegels' : gekozenBeeld;
   const setBeeld = (b) => {
     setBeeldState(b);
@@ -437,56 +437,15 @@ function SponsorSectie({ soort, sponsoren, bijdrage, jaren, gekozen, vorigJaar, 
           ))}
         </ul>
       ) : (
-        <div className="ld-sp-scroll">
-          <table className="ld-sp-tabel">
-            <thead>
-              <tr>
-                <th>{zakelijk ? 'Bedrijf' : 'Naam'}</th>
-                {jaren.map((j) => (
-                  <th key={j} className={`is-getal ${j === gekozen ? 'is-gekozen' : ''}`}>{j}</th>
-                ))}
-                <th>Status {gekozen}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {lijst.map((s) => (
-                <tr key={s.id}>
-                  <th>
-                    <button className="ld-sp-naam" onClick={() => onOpen(s.id)}>
-                      {s.naam}
-                      <small>{[s.plaats, s.contact_via && `via ${s.contact_via}`].filter(Boolean).join(' · ') || ' '}</small>
-                    </button>
-                  </th>
-                  {jaren.map((j) =>
-                    j === gekozen ? (
-                      <td key={j} className="is-getal is-gekozen">
-                        <WaardeInvoer b={bijdrage[s.id]?.[j]} label={`${s.naam} ${j}`} opslaan={(v) => slaBijdrageOp(s.id, j, leesWaarde(v))} />
-                      </td>
-                    ) : (
-                      <td key={j} className="is-getal">
-                        <Waarde b={bijdrage[s.id]?.[j]} />
-                      </td>
-                    ),
-                  )}
-                  <td>
-                    <Status b={bijdrage[s.id]?.[gekozen]} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr>
-                <th>Totaal ({lijst.length})</th>
-                {jaren.map((j) => (
-                  <td key={j} className={`is-getal ${j === gekozen ? 'is-gekozen' : ''}`}>
-                    {euro(lijst.reduce((x, s) => x + (Number(bijdrage[s.id]?.[j]?.bedrag) || 0), 0))}
-                  </td>
-                ))}
-                <td />
-              </tr>
-            </tfoot>
-          </table>
-        </div>
+        <SponsorTabel
+          lijst={lijst}
+          zakelijk={zakelijk}
+          bijdrage={bijdrage}
+          jaren={jaren}
+          gekozen={gekozen}
+          slaBijdrageOp={slaBijdrageOp}
+          onOpen={onOpen}
+        />
       )}
       {beeld === 'tegels' && lijst.length > 0 && (
         <p className="ld-sp-somregel">
@@ -766,6 +725,157 @@ function Waarde({ b }) {
 }
 
 // Bedrag of natura direct in de tabel invullen; opslaan bij verlaten van het veld.
+// Het overzicht zoals de Excel: bijdragen per jaar en daarnaast de status van het gekozen jaar,
+// alles direct aan te vinken of in te vullen.
+const VINKEN_VOOR = [
+  ['contact', 'Benaderd', 'Al contact gehad'],
+  ['reactie', 'Reactie', 'Al reactie gekregen'],
+];
+const VINKEN_NA = [
+  ['ontvangen', 'Betaald', 'Geld ontvangen'],
+  ['uitnodiging', 'Uitgen.', 'Uitnodiging sponsoravond verstuurd'],
+];
+
+function SponsorTabel({ lijst, zakelijk, bijdrage, jaren, gekozen, slaBijdrageOp, onOpen }) {
+  const b = (s) => bijdrage[s.id]?.[gekozen];
+  const zet = (s, velden) => slaBijdrageOp(s.id, gekozen, velden);
+  const telAan = (k) => lijst.filter((s) => b(s)?.[k]).length;
+  const vinkCel = (s, [k, kop]) => (
+    <td key={k} className="is-vink is-st">
+      <Vink aan={!!b(s)?.[k]} label={`${kop} ${s.naam}`} onWissel={() => zet(s, { [k]: !b(s)?.[k] })} />
+    </td>
+  );
+  return (
+    <div className="ld-sp-scroll">
+      <table className="ld-sp-tabel is-excel">
+        <thead>
+          <tr className="ld-sp-groepkop">
+            <th colSpan={zakelijk ? 3 : 2} />
+            <th colSpan={jaren.length} className="is-getal">Bijdrage per jaar</th>
+            <th colSpan={VINKEN_VOOR.length + VINKEN_NA.length + (zakelijk ? 2 : 1)} className="is-status">
+              Status {gekozen}
+            </th>
+          </tr>
+          <tr>
+            <th>{zakelijk ? 'Bedrijf' : 'Naam'}</th>
+            <th>Via</th>
+            {zakelijk && <th>E-mail</th>}
+            {jaren.map((j) => (
+              <th key={j} className={`is-getal ${j === gekozen ? 'is-gekozen' : ''}`}>{j}</th>
+            ))}
+            {VINKEN_VOOR.map(([k, kop, uitleg]) => (
+              <th key={k} className="is-vink is-status" title={uitleg}>{kop}</th>
+            ))}
+            <th className="is-status">Betaling</th>
+            {zakelijk && <th className="is-status">Factuur</th>}
+            {VINKEN_NA.map(([k, kop, uitleg]) => (
+              <th key={k} className="is-vink is-status" title={uitleg}>{kop}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {lijst.map((s) => (
+            <tr key={s.id} className={b(s)?.ontvangen ? 'is-betaald' : ''}>
+              <th>
+                <button className="ld-sp-naam" onClick={() => onOpen(s.id)}>
+                  {s.naam}
+                  {s.plaats && <small>{s.plaats}</small>}
+                </button>
+              </th>
+              <td className="ld-sp-zacht">{s.contact_via || ''}</td>
+              {zakelijk && (
+                <td className="ld-sp-mail" title={s.email || ''}>
+                  {s.email || ''}
+                </td>
+              )}
+              {jaren.map((j) =>
+                j === gekozen ? (
+                  <td key={j} className="is-getal is-gekozen">
+                    <WaardeInvoer b={bijdrage[s.id]?.[j]} label={`${s.naam} ${j}`} opslaan={(v) => slaBijdrageOp(s.id, j, leesWaarde(v))} />
+                  </td>
+                ) : (
+                  <td key={j} className="is-getal">
+                    <Waarde b={bijdrage[s.id]?.[j]} />
+                  </td>
+                ),
+              )}
+              {VINKEN_VOOR.map((v) => vinkCel(s, v))}
+              <td className="is-st">
+                <select
+                  className="ld-sp-celkeuze"
+                  value={b(s)?.betaalwijze || ''}
+                  aria-label={`Betaling ${s.naam}`}
+                  onChange={(e) => zet(s, { betaalwijze: e.target.value || null })}
+                >
+                  <option value="">—</option>
+                  {Object.entries(BETAALWIJZE).map(([k, v]) => (
+                    <option key={k} value={k}>{v}</option>
+                  ))}
+                </select>
+              </td>
+              {zakelijk && (
+                <td className="is-st">
+                  <TekstCel
+                    waarde={b(s)?.factuurnr || ''}
+                    label={`Factuurnummer ${s.naam}`}
+                    opslaan={(v) => zet(s, { factuurnr: v || null, ...(v && !b(s)?.betaalwijze ? { betaalwijze: 'factuur' } : {}) })}
+                  />
+                </td>
+              )}
+              {VINKEN_NA.map((v) => vinkCel(s, v))}
+            </tr>
+          ))}
+        </tbody>
+        <tfoot>
+          <tr>
+            <th>Totaal ({lijst.length})</th>
+            <td />
+            {zakelijk && <td />}
+            {jaren.map((j) => (
+              <td key={j} className={`is-getal ${j === gekozen ? 'is-gekozen' : ''}`}>
+                {euro(lijst.reduce((x, s) => x + (Number(bijdrage[s.id]?.[j]?.bedrag) || 0), 0))}
+              </td>
+            ))}
+            {VINKEN_VOOR.map(([k]) => (
+              <td key={k} className="is-vink is-st">{telAan(k)}</td>
+            ))}
+            <td className="is-st" />
+            {zakelijk && <td className="is-st" />}
+            {VINKEN_NA.map(([k]) => (
+              <td key={k} className="is-vink is-st">{telAan(k)}</td>
+            ))}
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  );
+}
+
+function Vink({ aan, label, onWissel }) {
+  return (
+    <button className={`ld-sp-vink ${aan ? 'is-aan' : ''}`} onClick={onWissel} aria-pressed={aan} aria-label={label}>
+      {aan && <Icoon naam="vink" grootte={14} />}
+    </button>
+  );
+}
+
+// Losse tekst in een cel (factuurnummer); opslaan bij verlaten van het veld.
+function TekstCel({ waarde, label, opslaan }) {
+  const [tekst, setTekst] = useState(waarde);
+  useEffect(() => setTekst(waarde), [waarde]);
+  return (
+    <input
+      className="ld-sp-cel is-tekst"
+      value={tekst}
+      placeholder="—"
+      aria-label={label}
+      onChange={(e) => setTekst(e.target.value)}
+      onBlur={() => tekst.trim() !== waarde && opslaan(tekst.trim())}
+      onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+    />
+  );
+}
+
 function WaardeInvoer({ b, label, opslaan }) {
   const begin = toonWaarde(b);
   const [waarde, setWaarde] = useState(begin);

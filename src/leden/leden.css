@@ -3692,3 +3692,120 @@ body.fa-open {
     align-items: stretch;
   }
 }
+
+/* ---------------------------------------------------------------- sponsoring: tabel zoals de Excel */
+
+.ld-inhoud.is-breed {
+  max-width: 1480px;
+}
+
+.ld-sp-tabel.is-excel {
+  font-size: 13.5px;
+}
+
+.ld-sp-tabel.is-excel th,
+.ld-sp-tabel.is-excel td {
+  padding: 6px 8px;
+}
+
+.ld-sp-tabel.is-excel tbody th {
+  min-width: 200px;
+}
+
+.ld-sp-groepkop th {
+  padding-bottom: 2px !important;
+  border-bottom: 0 !important;
+  font-size: 11px !important;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ld-sp-groepkop th.is-getal {
+  text-align: center !important;
+}
+
+.ld-sp-tabel.is-excel .is-status {
+  background: var(--licht, var(--l-vlak));
+}
+
+.ld-sp-tabel.is-excel thead .is-status {
+  color: var(--kleur, var(--l-accent));
+}
+
+/* Eerste statuskolom krijgt een scheidingslijn, zodat jaren en status los van elkaar staan. */
+.ld-sp-tabel.is-excel .is-gekozen + .is-vink {
+  border-left: 2px solid var(--l-lijn);
+}
+
+.ld-sp-tabel.is-excel td.is-st {
+  background: color-mix(in srgb, var(--licht, var(--l-vlak)) 45%, transparent);
+}
+
+.ld-sp-tabel.is-excel .is-vink {
+  width: 64px;
+  text-align: center;
+}
+
+.ld-sp-zacht {
+  color: var(--l-zacht);
+}
+
+.ld-sp-mail {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--l-zacht);
+  font-size: 12.5px;
+}
+
+.ld-sp-tabel.is-excel tr.is-betaald > th:first-child {
+  box-shadow: inset 3px 0 0 var(--c-inleg);
+}
+
+.ld-sp-vink {
+  width: 24px;
+  height: 24px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: 1.5px solid #c3d0ec;
+  border-radius: 7px;
+  background: var(--l-kaart);
+  color: #fff !important;
+  vertical-align: middle;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
+}
+
+.ld-sp-vink:hover {
+  border-color: var(--kleur, var(--l-accent));
+}
+
+.ld-sp-vink.is-aan {
+  border-color: var(--c-inleg);
+  background: var(--c-inleg);
+}
+
+.ld-sp-celkeuze {
+  width: 96px;
+  padding: 5px 6px;
+  border: 1.5px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--l-tekst);
+  font: inherit;
+  cursor: pointer;
+  outline: none;
+}
+
+.ld-sp-celkeuze:hover,
+.ld-sp-celkeuze:focus {
+  border-color: var(--l-lijn);
+  background: var(--l-kaart);
+}
+
+.ld-sp-cel.is-tekst {
+  width: 72px;
+  text-align: left;
+}

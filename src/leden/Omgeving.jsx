@@ -124,7 +124,8 @@ export default function Omgeving({ profiel, onSite, onProfiel }) {
         <Account profiel={profiel} onProfiel={onProfiel} onSite={onSite} alsLid={echteBeheerder ? [alsLid, setAlsLid] : null} compact />
       </header>
 
-      <main className="ld-inhoud">
+      {/* Sponsoring is een groot overzicht: dat krijgt de volle breedte. */}
+      <main className={`ld-inhoud ${actief === 'sponsoren' ? 'is-breed' : ''}`}>
         {alsLid && (
           <div className="ld-alslid">
             <span>Je bekijkt de ledenversie</span>

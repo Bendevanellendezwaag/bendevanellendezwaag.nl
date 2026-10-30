@@ -70,7 +70,7 @@ export const deBende = {
     'Wij zijn de Bende van Ellende. Van de eerste ideeën bedenken in de kroeg tot de laatste lik verf in de schuur: alles bedenken, lassen, schroeven, piepschuimen en schilderen we zelf.',
     'Wekenlang bouwen we avond aan avond aan één doel. En als de wagen dan eindelijk door de straten van Zwaag rolt, vieren we dat samen met iedereen die langs de kant staat.',
   ],
-  foto: '', // PLACEHOLDER: groepsfoto, bijvoorbeeld '/bende/groep.jpg'
+  foto: '/bende/groep.jpg',
   // Getallen naast de tekst. Laat 'waarde' leeg om een getal te verbergen.
   // Het aantal wagens telt de site zelf uit de lijst hierboven.
   feiten: [
