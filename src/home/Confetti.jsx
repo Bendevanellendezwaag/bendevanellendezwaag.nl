@@ -3,7 +3,7 @@ import { minderBeweging } from './hulp.js';
 
 /*
  * Confetti bij elke klik: een knal vanaf de muis, dwarrelend naar beneden,
- * en onderaan het scherm hoopt het op tot een berg.
+ * en onderaan het scherm hoopt het op tot een berg die daarna langzaam weer verdwijnt.
  * Alles gebeurt op één canvas over de pagina heen; klikken gaan er gewoon doorheen.
  */
 
@@ -13,6 +13,8 @@ const ZWAARTEKRACHT = 0.32;
 const MAX_VAL = 4.2;
 const KOLOM = 4; // breedte van één kolom in de berg (px)
 const MAX_BERG = 0.24; // de berg wordt maximaal zo hoog (deel van de schermhoogte)
+const BLIJFT_LIGGEN = 3500; // zo lang (ms) blijft de berg na het laatste snippertje liggen
+const VERVAAGT_IN = 5000; // daarna vervaagt hij in zoveel ms
 
 const willekeurig = (min, max) => min + Math.random() * (max - min);
 
@@ -74,6 +76,8 @@ export default function Confetti() {
     let hoogte = 0;
     let bergHoogte = 0; // hoogte van het berg-canvas; de berg ligt altijd tegen de onderkant van het scherm
     let frame = 0;
+    let laatsteLanding = 0; // tijdstip waarop het laatste snippertje op de berg viel
+    let bergZicht = 1; // 1 = volledig zichtbaar, 0 = weg
     let vorige = 0;
 
     const maat = () => {
@@ -103,7 +107,21 @@ export default function Confetti() {
     };
 
     // Een snipper komt tot rust: op de berg tekenen en de berg rond die plek iets ophogen.
+    // Nieuwe confetti op een half vervaagde berg: eerst de vervaging vastleggen, dan weer vol zichtbaar.
+    const vervagingVastleggen = () => {
+      if (bergZicht >= 1) return;
+      bctx.save();
+      bctx.setTransform(1, 0, 0, 1, 0, 0);
+      bctx.globalCompositeOperation = 'destination-out';
+      bctx.globalAlpha = 1 - bergZicht;
+      bctx.fillRect(0, 0, berg.width, berg.height);
+      bctx.restore();
+      bergZicht = 1;
+    };
+
     const landen = (s, k) => {
+      vervagingVastleggen();
+      laatsteLanding = performance.now();
       // Op het berg-canvas rekenen we vanaf de onderkant.
       s.y = bergHoogte - hoogtes[k] - (s.rond ? s.b / 3.2 : s.h / 2);
       s.hoek = willekeurig(-0.5, 0.5);
@@ -120,7 +138,11 @@ export default function Confetti() {
 
     const teken = () => {
       ctx.clearRect(0, 0, breedte, hoogte);
-      ctx.drawImage(berg, 0, hoogte - bergHoogte, breedte, bergHoogte);
+      if (bergZicht > 0) {
+        ctx.globalAlpha = bergZicht;
+        ctx.drawImage(berg, 0, hoogte - bergHoogte, breedte, bergHoogte);
+        ctx.globalAlpha = 1;
+      }
       for (const s of snippers) tekenSnipper(ctx, s);
     };
 
@@ -154,7 +176,23 @@ export default function Confetti() {
       });
 
       teken();
-      if (snippers.length) frame = requestAnimationFrame(stap);
+      // Langzaam laten verdwijnen: eerst even blijven liggen, dan vervagen en de berg weer laten zakken.
+      const heeftBerg = laatsteLanding > 0;
+      if (heeftBerg) {
+        const stil = tijd - laatsteLanding - BLIJFT_LIGGEN;
+        if (stil > 0) {
+          bergZicht = Math.max(0, 1 - stil / VERVAAGT_IN);
+          if (bergZicht === 0) {
+            bctx.clearRect(0, 0, breedte, bergHoogte);
+            hoogtes.fill(0);
+            bergZicht = 1;
+            laatsteLanding = 0;
+            teken(); // het scherm meteen leeg tekenen
+          }
+        }
+      }
+
+      if (snippers.length || laatsteLanding > 0) frame = requestAnimationFrame(stap);
       else {
         frame = 0;
         vorige = 0;
