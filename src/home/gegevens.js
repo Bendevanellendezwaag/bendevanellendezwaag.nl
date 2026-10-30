@@ -92,27 +92,30 @@ export const agenda = [
 /* ------------------------------------------------------------------ sponsors */
 
 // Zelfde volgorde als op het sponsordoek 2026. Logo's staan in public/sponsors/ (doorzichtig PNG).
-// hoofd:  de grote naam bovenaan (onze bouwplaats).
-// groot:  de grote tegels; overig: de kleinere tegels.
+// bouwplaats: krijgt een eigen blok bovenaan, zonder hen geen wagen.
+// niveau 'hoofd': de drie grote tegels met het label Hoofdsponsor; de rest schuift voorbij in twee rijen.
 // donker: logo met lichte letters, krijgt een donkere tegel.
 // url:    link naar de website van de sponsor (optioneel).
-export const hoofdsponsor = { naam: 'Familie Van der Laan', tekst: 'Hoofdsponsor · onze bouwplaats' };
+export const bouwplaats = {
+  naam: 'Familie Van der Laan',
+  tekst: 'Bij hen bouwen we elk jaar onze wagen. Zonder hun schuur, hun hulp en hun geduld komen we niet verder. Enorm bedankt!',
+};
 
 const logo = (bestand, naam, extra = {}) => ({ naam, logo: `/sponsors/${bestand}.png`, url: '', ...extra });
 
 export const sponsors = [
-  logo('de-witte-valk', 'Partycentrum De Witte Valk', { niveau: 'groot' }),
-  logo('mookys-belettering', 'Mooky’s Belettering', { niveau: 'groot' }),
-  logo('ep-beerepoot', 'EP Beerepoot', { niveau: 'groot' }),
-  logo('hekoned', 'HekoNed Engineering', { niveau: 'groot' }),
-  logo('happy-cooker', 'De Happy Cooker', { niveau: 'groot' }),
-  logo('giling', 'Giling Custom Made Products', { niveau: 'groot' }),
-  logo('schipper', 'Schipper administratie & advies', { niveau: 'groot' }),
-  logo('van-der-laan', 'Van der Laan', { niveau: 'groot' }),
-  logo('1671', '1671 Finance & Organize', { niveau: 'groot' }),
-  logo('ccg-raamdecoratie', 'CCG Raamdecoratie', { niveau: 'groot' }),
-  logo('peerdeman', 'Bouwbedrijf C. Peerdeman & Zonen', { niveau: 'groot' }),
-  logo('bob-mens', 'Aannemersbedrijf Bob Mens', { niveau: 'groot' }),
+  logo('de-witte-valk', 'Partycentrum De Witte Valk', { niveau: 'hoofd' }),
+  logo('mookys-belettering', 'Mooky’s Belettering', { niveau: 'hoofd' }),
+  logo('ep-beerepoot', 'EP Beerepoot', { niveau: 'hoofd' }),
+  logo('hekoned', 'HekoNed Engineering'),
+  logo('happy-cooker', 'De Happy Cooker'),
+  logo('giling', 'Giling Custom Made Products'),
+  logo('schipper', 'Schipper administratie & advies'),
+  logo('van-der-laan', 'Van der Laan'),
+  logo('1671', '1671 Finance & Organize'),
+  logo('ccg-raamdecoratie', 'CCG Raamdecoratie'),
+  logo('peerdeman', 'Bouwbedrijf C. Peerdeman & Zonen'),
+  logo('bob-mens', 'Aannemersbedrijf Bob Mens'),
   logo('autobedrijf-avenhorn', 'Autobedrijf Avenhorn'),
   logo('ks-verlichting', 'KS Verlichting'),
   logo('more', 'More verbouwing'),
@@ -135,11 +138,6 @@ export const sponsors = [
   logo('slaapkenner-theo-bot', 'Slaapkenner Theo Bot', { donker: true }),
 ];
 
-// Families en vrienden die ons steunen (van het sponsordoek).
-export const vrienden = [
-  'Lindeboom', 'Gitzels', 'Kroon', 'Besseling', 'Koelemeijer', 'Karsten', 'Boer', 'Coffeng', 'Te Nuijl', 'Kranenburg', 'Cardol',
-  'Dekker', 'Slippens', 'Jong', 'Jos & Sylvia', 'Timmer', 'Biesterveld', 'Grooteman', 'Heijst', 'Smit', 'Mast', 'Koster', 'Knol',
-];
 
 // Waar de knop ‘Word ook sponsor’ naartoe gaat, bijvoorbeeld 'mailto:...'. Leeg = naar ons Instagram-profiel.
 export const sponsorWorden = '';

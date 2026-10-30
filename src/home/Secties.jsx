@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { aftellen, agenda, deBende, hoofdsponsor, instagram, paginas, sponsors, sponsorWorden, vrienden, wagens } from './gegevens.js';
+import { aftellen, agenda, bouwplaats, deBende, instagram, paginas, sponsors, sponsorWorden, wagens } from './gegevens.js';
 import { datumDelen, scrolNaar, useNu, woorden } from './hulp.js';
 import Icoon from './iconen.jsx';
 import { Logo } from './Logo.jsx';
@@ -165,27 +165,70 @@ export function Agenda() {
 
 /* ------------------------------------------------------------------ sponsors */
 
-function SponsorTegel({ s }) {
-  const inhoud = s.logo ? <img src={s.logo} alt={s.naam} loading="lazy" /> : <span>{s.naam}</span>;
+function SponsorTegel({ s, verborgen }) {
+  const inhoud = s.logo ? <img src={s.logo} alt={verborgen ? '' : s.naam} loading="lazy" /> : <span>{s.naam}</span>;
   const klas = `bv-sponsor ${s.donker ? 'is-donker' : ''}`;
   if (s.url) {
     return (
-      <a className={klas} href={s.url} target="_blank" rel="noopener noreferrer" title={s.naam}>
+      <a className={klas} href={s.url} target="_blank" rel="noopener noreferrer" tabIndex={verborgen ? -1 : undefined}>
         {inhoud}
       </a>
     );
   }
+  return <div className={klas}>{inhoud}</div>;
+}
+
+/** Een rij sponsors die eindeloos voorbij schuift. Twee kopieën achter elkaar maken de lus naadloos. */
+function SponsorRij({ lijst, omgekeerd }) {
   return (
-    <div className={klas} title={s.naam}>
-      {inhoud}
+    <div className={`bv-rij ${omgekeerd ? 'is-omgekeerd' : ''}`} style={{ '--duur': `${Math.max(30, lijst.length * 5)}s` }}>
+      <div className="bv-rij-spoor">
+        {[0, 1].map((kopie) => (
+          <ul key={kopie} aria-hidden={kopie === 1 || undefined}>
+            {lijst.map((s, i) => (
+              <li key={`${s.naam}${i}`}>
+                <SponsorTegel s={s} verborgen={kopie === 1} />
+              </li>
+            ))}
+          </ul>
+        ))}
+      </div>
     </div>
   );
 }
 
-/** Zoals het sponsordoek: de hoofdsponsor groot, dan grote tegels, dan de rest, en de families en vrienden. */
+const LINT = 'Onze bouwplaats ✦ Zonder hen geen wagen ✦ Dank jullie wel ✦ ';
+
+/** De bouwplaats krijgt een eigen plek: een bord met afzetlint, want zonder hen komen we niet verder. */
+function Bouwplaats() {
+  return (
+    <div className="bv-bouwplaats bv-onthul">
+      <div className="bv-lint" aria-hidden="true">
+        <span>{LINT.repeat(6)}</span>
+      </div>
+      <div className="bv-bouwplaats-bord">
+        <svg className="bv-bouwplaats-icoon" viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M8 30 32 10l24 20" />
+          <path d="M14 26v28h36V26" />
+          <path d="M26 54V38h12v16" />
+          <path d="M44 8h6v12" />
+        </svg>
+        <p className="bv-bouwplaats-label">Onze bouwplaats</p>
+        <strong>{bouwplaats.naam}</strong>
+        <p className="bv-bouwplaats-tekst">{bouwplaats.tekst}</p>
+      </div>
+      <div className="bv-lint is-onder" aria-hidden="true">
+        <span>{LINT.repeat(6)}</span>
+      </div>
+    </div>
+  );
+}
+
 export function Sponsors() {
-  const groot = sponsors.filter((s) => s.niveau === 'groot');
-  const overig = sponsors.filter((s) => s.niveau !== 'groot');
+  const hoofd = sponsors.filter((s) => s.niveau === 'hoofd');
+  const overig = sponsors.filter((s) => s.niveau !== 'hoofd');
+  const helft = Math.ceil(overig.length / 2);
+  const rijen = overig.length > 8 ? [overig.slice(0, helft), overig.slice(helft)] : [overig];
   const doel = sponsorWorden || instagram.url;
 
   return (
@@ -197,47 +240,32 @@ export function Sponsors() {
         </h2>
         <p className="bv-sectie-intro bv-onthul">Zonder hen rijdt er geen wagen door Zwaag. Dank jullie wel!</p>
 
-        {hoofdsponsor && (
-          <div className="bv-hoofdsponsor bv-onthul">
-            <span>{hoofdsponsor.tekst}</span>
-            <strong>{hoofdsponsor.naam}</strong>
-          </div>
-        )}
+        {bouwplaats && <Bouwplaats />}
 
-        {groot.length > 0 && (
-          <ul className="bv-sponsorgrid is-groot" aria-label="Sponsors">
-            {groot.map((s, i) => (
-              <li key={s.naam} className="bv-onthul" style={{ '--i': i % 4 }}>
+        {hoofd.length > 0 && (
+          <ul className="bv-hoofdsponsors" data-scroll="in">
+            {hoofd.map((s, i) => (
+              <li key={`${s.naam}${i}`} style={{ '--i': i }}>
                 <SponsorTegel s={s} />
+                <span className="bv-hoofd-label">Hoofdsponsor</span>
               </li>
             ))}
           </ul>
         )}
+      </div>
 
-        {overig.length > 0 && (
-          <ul className="bv-sponsorgrid" aria-label="Meer sponsors">
-            {overig.map((s, i) => (
-              <li key={s.naam} className="bv-onthul" style={{ '--i': i % 5 }}>
-                <SponsorTegel s={s} />
-              </li>
-            ))}
-          </ul>
-        )}
+      {overig.length > 0 && (
+        <div className="bv-rijen" aria-label="Sponsors">
+          {rijen.map((rij, i) => (
+            <SponsorRij key={i} lijst={rij} omgekeerd={i % 2 === 1} />
+          ))}
+        </div>
+      )}
 
-        {vrienden.length > 0 && (
-          <div className="bv-vrienden bv-onthul">
-            <h3>Families en vrienden</h3>
-            <ul>
-              {vrienden.map((v) => (
-                <li key={v}>{v}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-
+      <div className="bv-kader">
         <div className="bv-sponsor-actie bv-onthul">
           <div>
-            <strong>Wil jij hier ook aan bijdragen?</strong>
+            <strong>Ook jouw naam op de wagen?</strong>
             <p>We zoeken altijd bedrijven die ons een warm hart toedragen.</p>
           </div>
           <a
