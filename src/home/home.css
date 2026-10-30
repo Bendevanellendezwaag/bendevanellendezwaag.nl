@@ -381,13 +381,11 @@ html.bv-laden * {
 /* De laadbalk bij de cursor. */
 .bv-lading {
   position: fixed;
-  top: -28px;
+  top: -22px;
   left: 0;
   z-index: 95;
   display: grid;
-  justify-items: center;
-  gap: 7px;
-  padding: 10px 12px 12px;
+  padding: 8px;
   border-radius: 18px;
   background: rgba(11, 31, 102, 0.82);
   backdrop-filter: blur(8px);
@@ -406,14 +404,6 @@ html.bv-laden * {
   scale: 1;
 }
 
-.bv-lading-tekst {
-  font-family: var(--font-kop);
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--wit);
-}
 
 .bv-lading-balk {
   position: relative;

@@ -20,6 +20,7 @@ const VERVAAGT_IN = 3500; // daarna vervaagt hij in zoveel ms
 const LADEN_NA = 1500; // na zoveel ms ingedrukt houden verschijnt de laadbalk
 const VOL_NA = 4000; // na zoveel ms is de laadbalk vol
 const MAX_EXTRA = 560; // zoveel extra snippers bij een volle lading
+const MIN_VLUCHT = 55; // een snipper kan pas blijven liggen na zoveel beelden (~0,9 s) in de lucht
 
 const willekeurig = (min, max) => min + Math.random() * (max - min);
 
@@ -46,6 +47,7 @@ function maakSnipper(x, y, extra = 1, rondom = 0) {
     flipSnel: willekeurig(0.08, 0.22),
     wiebel: willekeurig(0, Math.PI * 2),
     vervaag: 1,
+    vlucht: 0, // hoe lang de snipper al vliegt (in beelden)
   };
 }
 
@@ -211,12 +213,20 @@ export default function Confetti() {
         s.y += s.vy * dt;
         s.hoek += s.draai * dt;
         s.flip += s.flipSnel * dt;
+        s.vlucht += dt;
 
         if (s.x < -20 || s.x > breedte + 20) return false;
         if (s.vy <= 0) return true;
 
         const { k, y } = vloer(s.x);
         if (s.y < y) return true;
+        // Te vroeg op de grond (omlaag geknald): eerst nog even opstuiteren, pas daarna ophopen.
+        if (s.vlucht < MIN_VLUCHT) {
+          s.y = y - 1;
+          s.vy = -willekeurig(3, 7.5);
+          s.vx += willekeurig(-2.5, 2.5);
+          return true;
+        }
         if (hoogtes[k] < maxBerg) {
           landen(s, k);
           return false;
@@ -259,7 +269,6 @@ export default function Confetti() {
     // ---- ingedrukt houden: laden
     const balk = lading.current;
     const vulling = balk.querySelector('i');
-    const tekst = balk.querySelector('.bv-lading-tekst');
     let houd = null; // { id, x, y, start, actief, c }
     let laadFrame = 0;
     let negeerKlik = false;
@@ -290,10 +299,7 @@ export default function Confetti() {
         const draai = willekeurig(-1, 1) * c * 7;
         balk.style.transform = `translate(${houd.x + dx}px, ${houd.y + dy}px) translate(-50%, -100%) rotate(${draai}deg)`;
         vulling.style.transform = `scaleX(${c})`;
-        if (c >= 1 && !balk.classList.contains('is-vol')) {
-          balk.classList.add('is-vol');
-          tekst.textContent = 'Loslaten!';
-        }
+        if (c >= 1) balk.classList.add('is-vol');
         // Bij een bijna volle lading trilt het scherm al een beetje mee.
         if (!trilFrame) zetTril(Math.max(0, c - 0.6) * 5 + (c >= 1 ? 1.5 : 0));
       }
@@ -304,7 +310,6 @@ export default function Confetti() {
       if (!e.isPrimary || (e.pointerType === 'mouse' && e.button !== 0)) return;
       stopLaden();
       houd = { id: e.pointerId, x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, start: performance.now(), actief: false, c: 0 };
-      tekst.textContent = 'Laden';
       vulling.style.transform = 'scaleX(0)';
       document.documentElement.classList.add('bv-laden');
       laadFrame = requestAnimationFrame(laadLus);
@@ -378,7 +383,6 @@ export default function Confetti() {
     <>
       <canvas ref={doek} className="bv-confetti" aria-hidden="true" />
       <div ref={lading} className="bv-lading" aria-hidden="true">
-        <span className="bv-lading-tekst">Laden</span>
         <span className="bv-lading-balk">
           <i />
         </span>
