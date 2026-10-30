@@ -933,11 +933,139 @@ html.bv-geen-scroll {
   gap: 12px;
 }
 
-.bv-album-raster img {
+.bv-album-raster.is-een {
+  grid-template-columns: 1fr;
+}
+
+/* Elke foto is een knop: klik om hem groot te bekijken. */
+.bv-album-foto {
+  position: relative;
+  display: block;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  cursor: zoom-in;
+}
+
+.bv-album-foto img {
+  display: block;
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
-  border-radius: 16px;
+  transition: transform 0.6s var(--zacht-uit);
+}
+
+.bv-album-raster.is-een .bv-album-foto img {
+  aspect-ratio: 16 / 10;
+}
+
+.bv-album-foto:hover img,
+.bv-album-foto:focus-visible img {
+  transform: scale(1.04);
+}
+
+.bv-album-vergroot {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--blauw);
+  opacity: 0;
+  transform: scale(0.8);
+  transition:
+    opacity 0.25s,
+    transform 0.35s var(--vering);
+}
+
+.bv-album-foto:hover .bv-album-vergroot,
+.bv-album-foto:focus-visible .bv-album-vergroot {
+  opacity: 1;
+  transform: none;
+}
+
+/* Een foto groot: schermvullend, met bladeren. */
+.bv-groot {
+  position: fixed;
+  inset: 0;
+  z-index: 85;
+  display: grid;
+  place-items: center;
+  padding: clamp(56px, 7vw, 96px) clamp(12px, 7vw, 112px);
+  background: rgba(6, 14, 48, 0.94);
+  cursor: zoom-out;
+  touch-action: pan-y;
+  animation: bv-vervaag 0.25s ease both;
+}
+
+.bv-groot img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 14px;
+  box-shadow: 0 40px 100px -30px rgba(0, 0, 0, 0.7);
+  cursor: default;
+  user-select: none;
+  -webkit-user-drag: none;
+  animation: bv-groot-in 0.4s var(--zacht-uit) both;
+}
+
+@keyframes bv-groot-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+.bv-groot .bv-rondknop {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--wit);
+}
+
+.bv-groot-sluit {
+  top: clamp(12px, 2vw, 24px);
+  right: clamp(12px, 2vw, 24px);
+}
+
+.bv-groot-pijl {
+  top: 50%;
+  translate: 0 -50%;
+}
+
+.bv-groot-pijl.is-links {
+  left: clamp(8px, 2vw, 28px);
+}
+
+.bv-groot-pijl.is-rechts {
+  right: clamp(8px, 2vw, 28px);
+}
+
+.bv-groot-teller {
+  position: absolute;
+  bottom: clamp(16px, 2.4vw, 28px);
+  left: 50%;
+  translate: -50% 0;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  font-family: var(--font-kop);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}
+
+@media (max-width: 640px) {
+  .bv-groot-pijl {
+    top: auto;
+    bottom: 14px;
+    translate: none;
+  }
 }
 
 .bv-album-leeg {
@@ -1056,14 +1184,19 @@ html.bv-geen-scroll {
   position: relative;
   padding: calc(var(--kop-hoogte) + 4px) 0 calc(var(--laag) + clamp(28px, 4vh, 48px));
   scroll-margin-top: 0;
-  isolation: isolate;
+}
+
+/* Inhoud boven de stippen; geen eigen stapellaag op .bv-hero, anders valt het fotoalbum onder de kopbalk. */
+.bv-hero > .bv-kader {
+  position: relative;
+  z-index: 1;
 }
 
 /* Interactief stippenraster achter het podium (zie Stippen.jsx). */
 .bv-stippen {
   position: absolute;
   inset: 0;
-  z-index: -1;
+  z-index: 0;
   width: 100%;
   height: 100%;
   pointer-events: none;

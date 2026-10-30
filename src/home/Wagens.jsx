@@ -200,10 +200,93 @@ function Tijdlijn({ jaren, actief, onKies }) {
   );
 }
 
-/** Fotoalbum per wagen: de wagen zelf en het bouwproces. */
+/** Een foto groot bekijken, met bladeren (pijltjes, toetsen of vegen). */
+function Groot({ fotos, start, titel, onSluit }) {
+  const [i, setI] = useState(start);
+  const veeg = useRef(null);
+  const meer = fotos.length > 1;
+  const vorige = useCallback(() => setI((n) => (n - 1 + fotos.length) % fotos.length), [fotos.length]);
+  const volgende = useCallback(() => setI((n) => (n + 1) % fotos.length), [fotos.length]);
+
+  useEffect(() => {
+    const toets = (e) => {
+      if (e.key === 'Escape') {
+        e.stopImmediatePropagation();
+        onSluit();
+      } else if (e.key === 'ArrowLeft' && meer) vorige();
+      else if (e.key === 'ArrowRight' && meer) volgende();
+    };
+    // Eerder dan het album luisteren, zodat Escape alleen de grote foto sluit.
+    window.addEventListener('keydown', toets, true);
+    return () => window.removeEventListener('keydown', toets, true);
+  }, [meer, vorige, volgende, onSluit]);
+
+  return (
+    <div
+      className="bv-groot"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${titel}, foto ${i + 1} van ${fotos.length}`}
+      onClick={(e) => {
+        e.stopPropagation();
+        onSluit();
+      }}
+      onPointerDown={(e) => (veeg.current = e.clientX)}
+      onPointerUp={(e) => {
+        if (veeg.current == null || !meer) return;
+        const dx = e.clientX - veeg.current;
+        veeg.current = null;
+        if (Math.abs(dx) > 50) (dx > 0 ? vorige : volgende)();
+      }}
+    >
+      <img key={fotos[i]} src={fotos[i]} alt={`${titel}, foto ${i + 1}`} onClick={(e) => e.stopPropagation()} />
+      <button className="bv-rondknop bv-groot-sluit" onClick={onSluit} aria-label="Sluiten" autoFocus>
+        <Icoon naam="sluit" grootte={18} />
+      </button>
+      {meer && (
+        <>
+          <button
+            className="bv-rondknop bv-groot-pijl is-links"
+            onClick={(e) => {
+              e.stopPropagation();
+              vorige();
+            }}
+            aria-label="Vorige foto"
+          >
+            <Icoon naam="pijlLinks" grootte={20} />
+          </button>
+          <button
+            className="bv-rondknop bv-groot-pijl is-rechts"
+            onClick={(e) => {
+              e.stopPropagation();
+              volgende();
+            }}
+            aria-label="Volgende foto"
+          >
+            <Icoon naam="pijl" grootte={20} />
+          </button>
+          <span className="bv-groot-teller">
+            {i + 1} / {fotos.length}
+          </span>
+        </>
+      )}
+    </div>
+  );
+}
+
+/** Fotoalbum per wagen: de wagen zelf (met de foto uit de tijdlijn voorop) en het bouwproces. */
 function Album({ wagen, onSluit }) {
   const [tab, setTab] = useState('wagen');
-  const fotos = wagen.fotos?.[tab] || [];
+  const [groot, setGroot] = useState(null);
+  const lijsten = useMemo(
+    () => ({
+      wagen: [...new Set([wagen.foto, ...(wagen.fotos?.wagen || [])].filter(Boolean))],
+      bouw: wagen.fotos?.bouw || [],
+    }),
+    [wagen],
+  );
+  const fotos = lijsten[tab];
+  const naam = tab === 'wagen' ? `Wagen ${wagen.jaar}` : `Bouwproces ${wagen.jaar}`;
   const sluitKnop = useRef(null);
 
   useEffect(() => {
@@ -240,9 +323,14 @@ function Album({ wagen, onSluit }) {
           ))}
         </div>
         {fotos.length ? (
-          <div className="bv-album-raster">
+          <div className={`bv-album-raster ${fotos.length === 1 ? 'is-een' : ''}`}>
             {fotos.map((src, n) => (
-              <img key={src} src={src} alt={`${tab === 'wagen' ? 'Wagen' : 'Bouwproces'} ${wagen.jaar}, foto ${n + 1}`} loading="lazy" />
+              <button key={src} className="bv-album-foto" onClick={() => setGroot(n)} aria-label={`${naam}, foto ${n + 1} groot bekijken`}>
+                <img src={src} alt="" loading="lazy" />
+                <span className="bv-album-vergroot" aria-hidden="true">
+                  <Icoon naam="pijlSchuin" grootte={18} />
+                </span>
+              </button>
             ))}
           </div>
         ) : (
@@ -252,6 +340,7 @@ function Album({ wagen, onSluit }) {
           </div>
         )}
       </div>
+      {groot !== null && <Groot fotos={fotos} start={groot} titel={naam} onSluit={() => setGroot(null)} />}
     </div>
   );
 }
