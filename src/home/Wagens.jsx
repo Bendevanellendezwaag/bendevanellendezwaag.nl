@@ -292,7 +292,7 @@ export default function Wagens() {
       </div>
 
       <div className="bv-kader bv-hero-onder" key={`o${actief}`}>
-        <p className="bv-hero-intro">{wagen ? wagen.tekst : 'In dit jaar hebben we geen wagen gebouwd.'}</p>
+        {(!wagen || wagen.tekst) && <p className="bv-hero-intro">{wagen ? wagen.tekst : 'In dit jaar hebben we geen wagen gebouwd.'}</p>}
         {wagen && (
           <button className="bv-knop is-groot" onClick={() => setAlbum(true)}>
             Bekijk de foto's <Icoon naam="pijl" grootte={18} />

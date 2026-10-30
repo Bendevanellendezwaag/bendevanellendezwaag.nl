@@ -23,7 +23,6 @@ export const wagens = [
   {
     jaar: 2025,
     titel: 'Los in ons insectenbos',
-    tekst: 'Een kleurrijke tuin vol vrolijke beestjes: krekel, libelle en neushoornkever. Goed voor een 4e plek.',
     foto: '/wagens/2025-los-in-ons-insectenbos.jpg',
     plek: 4,
     fotos: { wagen: [], bouw: [] },
@@ -31,7 +30,6 @@ export const wagens = [
   {
     jaar: 2024,
     titel: 'Prins Drikus rock(e)t man!',
-    tekst: 'Een sterrenshow met een rockster achter de piano en een astronaut op zijn raket. Opnieuw een 4e plek.',
     foto: '/wagens/2024-prins-drikus-rocket-man.jpg',
     plek: 4,
     fotos: { wagen: [], bouw: [] },
@@ -39,7 +37,6 @@ export const wagens = [
   {
     jaar: 2023,
     titel: 'Wie weet waar Atlantis',
-    tekst: 'Poseidon op zijn tempel, met een octopus en een reuzenschildpad die door de straten zwom. We werden 5e.',
     foto: '/wagens/2023-wie-weet-waar-atlantis.jpg',
     plek: 5,
     fotos: { wagen: [], bouw: [] },
@@ -47,7 +44,6 @@ export const wagens = [
   {
     jaar: 2022,
     titel: 'Gooi die bierpullen maar vol',
-    tekst: 'Een Tiroler skihut met bratwurst, bierpullen en een skiër op het dak. Goed voor een 6e plek.',
     foto: '/wagens/2022-gooi-die-bierpullen-maar-vol.jpg',
     plek: 6,
     fotos: { wagen: [], bouw: [] },
