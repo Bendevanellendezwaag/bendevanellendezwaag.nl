@@ -2053,3 +2053,484 @@
   background: var(--blauw);
   color: var(--wit);
 }
+
+/* ---------------------------------------------------------------- sponsoren */
+
+.ld-sp-jaren {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.ld-sp-jaar {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-rows: auto 120px auto;
+  justify-items: center;
+  gap: 8px;
+  padding: 12px 8px 10px;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+  transition: background 0.15s;
+}
+
+.ld-sp-jaar:hover {
+  background: var(--l-vlak);
+}
+
+.ld-sp-jaar.is-aan {
+  background: var(--l-accent-licht);
+}
+
+.ld-sp-jaar strong {
+  font-family: var(--font-kop);
+  font-size: 15px;
+}
+
+.ld-sp-bedrag {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--l-zacht);
+  white-space: nowrap;
+}
+
+.ld-sp-jaar.is-aan .ld-sp-bedrag {
+  color: var(--l-tekst);
+}
+
+.ld-sp-staaf {
+  width: min(56px, 70%);
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-start;
+  gap: 2px;
+  border-bottom: 2px solid var(--l-lijn);
+}
+
+.ld-sp-staaf i {
+  display: block;
+  border-radius: 6px;
+  transition: height 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.ld-sp-jaar.is-nieuw {
+  flex: 0 0 56px;
+  grid-template-rows: 1fr;
+  align-items: center;
+  color: var(--l-zacht) !important;
+  border: 1.5px dashed var(--l-lijn);
+}
+
+.ld-sp-staaf .is-zakelijk,
+.ld-sp-legenda .is-zakelijk {
+  background: var(--blauw);
+}
+
+.ld-sp-staaf .is-familie,
+.ld-sp-legenda .is-familie {
+  background: #6f9cf5;
+}
+
+.ld-sp-staaf .is-inleg,
+.ld-sp-legenda .is-inleg {
+  background: #c7d8fb;
+}
+
+.ld-sp-legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--l-zacht);
+}
+
+.ld-sp-legenda i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 6px;
+  border-radius: 3px;
+}
+
+.ld-sp-tegels {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.ld-sp-tegel {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  padding: 16px 18px;
+  border-radius: 20px;
+  background: var(--l-kaart);
+  box-shadow: var(--l-schaduw);
+}
+
+.ld-sp-tegel > span {
+  font-size: 13px;
+  color: var(--l-zacht);
+}
+
+.ld-sp-tegel strong,
+.ld-sp-inleg {
+  font-family: var(--font-kop);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.ld-sp-tegel.is-sterk {
+  background: var(--blauw);
+  color: var(--wit);
+}
+
+.ld-sp-tegel.is-sterk > span {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.ld-sp-tegel small {
+  font-size: 12px;
+  color: var(--l-zacht);
+  font-weight: 500;
+}
+
+.ld-sp-tegel small.is-op {
+  color: var(--l-groen);
+}
+
+.ld-sp-tegel small.is-neer {
+  color: var(--l-rood);
+}
+
+.ld-sp-inleg {
+  width: 100%;
+  padding: 0 0 2px;
+  border: 0;
+  border-bottom: 1.5px dashed var(--l-lijn);
+  background: none;
+  color: var(--l-tekst);
+  outline: none;
+}
+
+.ld-sp-inleg:focus {
+  border-bottom-color: var(--l-accent);
+}
+
+.ld-sp-extra {
+  margin: 0 4px 16px;
+  font-size: 13px;
+  color: var(--l-zacht);
+}
+
+.ld-sp-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.ld-sp-filters .ld-input {
+  padding: 11px 14px;
+  font-size: 15px;
+}
+
+.ld-sp-scroll {
+  overflow-x: auto;
+  margin: 0 -20px;
+  padding: 0 20px;
+}
+
+.ld-sp-tabel {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ld-sp-tabel th,
+.ld-sp-tabel td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--l-lijn);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.ld-sp-tabel thead th {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--l-zacht);
+  border-bottom-width: 1.5px;
+}
+
+.ld-sp-tabel tbody th {
+  font-weight: inherit;
+  white-space: normal;
+  min-width: 180px;
+}
+
+.ld-sp-tabel .is-getal {
+  text-align: right;
+}
+
+.ld-sp-tabel .is-gekozen {
+  background: var(--l-vlak);
+}
+
+.ld-sp-tabel thead .is-gekozen {
+  color: var(--l-accent);
+}
+
+.ld-sp-tabel tfoot th,
+.ld-sp-tabel tfoot td {
+  border-bottom: 0;
+  font-weight: 700;
+}
+
+.ld-sp-tabel tbody tr:hover > * {
+  background: var(--l-vlak);
+}
+
+.ld-sp-tabel tbody tr:hover > .is-gekozen {
+  background: var(--l-accent-licht);
+}
+
+.ld-sp-naam {
+  display: grid;
+  gap: 1px;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.ld-sp-naam:hover {
+  color: var(--l-accent) !important;
+}
+
+.ld-sp-naam small {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--l-zacht);
+}
+
+.ld-sp-natura {
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 500;
+  color: #8a5a00;
+}
+
+.ld-sp-cel {
+  width: 96px;
+  padding: 6px 8px;
+  border: 1.5px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--l-tekst);
+  font: inherit;
+  text-align: right;
+  outline: none;
+}
+
+.ld-sp-cel:hover {
+  border-color: var(--l-lijn);
+  background: var(--l-kaart);
+}
+
+.ld-sp-cel:focus {
+  border-color: var(--l-accent);
+  background: var(--l-kaart);
+}
+
+.ld-sp-cel.is-natura {
+  color: #8a5a00;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.ld-sp-status {
+  margin: 0;
+  flex-wrap: nowrap;
+}
+
+.ld-chips em.is-open {
+  background: #fff1d6;
+  color: #8a5a00;
+}
+
+.ld-chips em.is-grijs {
+  background: var(--l-vlak);
+  color: var(--l-zacht);
+}
+
+.ld-sp-blad {
+  width: min(680px, 100%);
+}
+
+.ld-sp-titel {
+  margin: 0 48px 20px 0;
+  font-family: var(--font-kop);
+  font-size: 24px;
+  letter-spacing: -0.02em;
+}
+
+.ld-sp-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.ld-sp-form .is-breed {
+  grid-column: 1 / -1;
+}
+
+.ld-sp-form .ld-input {
+  padding: 11px 14px;
+  font-size: 15px;
+}
+
+.ld-sp-factuur summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--l-accent);
+}
+
+.ld-sp-factuur[open] summary {
+  margin-bottom: 14px;
+}
+
+.ld-sp-kop {
+  margin-top: 28px;
+}
+
+.ld-sp-jaarregel {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: 10px 12px;
+  padding: 14px 0;
+}
+
+.ld-sp-jaarregel > strong {
+  padding-top: 32px;
+  font-family: var(--font-kop);
+}
+
+.ld-sp-jaarvelden {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1fr;
+  gap: 10px;
+}
+
+.ld-sp-jaarvelden .ld-veld > span {
+  font-size: 12px;
+  color: var(--l-zacht);
+}
+
+.ld-sp-jaarvelden .ld-input {
+  padding: 9px 12px;
+  font-size: 14px;
+}
+
+.ld-sp-vinkjes {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+}
+
+.ld-schakel.is-klein {
+  gap: 6px;
+  font-size: 13px;
+}
+
+.ld-schakel.is-klein input {
+  width: 16px;
+  height: 16px;
+}
+
+.ld-sp-weg {
+  margin-top: 16px;
+}
+
+@media (max-width: 860px) {
+  .ld-sp-tegels {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .ld-sp-jaren {
+    gap: 4px;
+  }
+
+  .ld-sp-jaar {
+    grid-template-rows: auto 90px auto;
+    padding: 10px 2px 8px;
+  }
+
+  .ld-sp-bedrag {
+    font-size: 11px;
+  }
+
+  .ld-sp-jaar.is-nieuw {
+    flex-basis: 36px;
+  }
+
+  .ld-sp-tegel strong,
+  .ld-sp-inleg {
+    font-size: 18px;
+  }
+
+  .ld-sp-filters {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .ld-sp-filters input {
+    grid-column: 1 / -1;
+  }
+
+  .ld-sp-tabel tbody th {
+    min-width: 140px;
+  }
+
+  .ld-sp-form,
+  .ld-sp-jaarvelden {
+    grid-template-columns: 1fr;
+  }
+
+  .ld-sp-jaarregel {
+    grid-template-columns: 1fr;
+  }
+
+  .ld-sp-jaarregel > strong {
+    padding-top: 0;
+  }
+
+  .ld-sp-vinkjes {
+    grid-column: 1;
+  }
+}
+
+.ld-sp-sorteer {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit !important;
+}
+
+.ld-sp-sorteer:hover {
+  color: var(--l-accent) !important;
+}

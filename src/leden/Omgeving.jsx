@@ -6,6 +6,7 @@ import Stemming from './Stemming.jsx';
 import ThemaLijst from './ThemaLijst.jsx';
 import LedenBeheer from './LedenBeheer.jsx';
 import StemBeheer from './StemBeheer.jsx';
+import Sponsoren from './Sponsoren.jsx';
 
 const TAB_KEY = 'bve-tab';
 
@@ -70,6 +71,7 @@ export default function Omgeving({ profiel, onSite, onProfiel }) {
       ? [
           { id: 'stembeheer', label: 'Beheer', icoon: 'beheer' },
           { id: 'leden', label: 'Leden', icoon: 'leden', teller: wachtend },
+          { id: 'sponsoren', label: 'Sponsoren', icoon: 'sponsor' },
         ]
       : []),
   ];
@@ -134,6 +136,7 @@ export default function Omgeving({ profiel, onSite, onProfiel }) {
         {data && actief === 'stemming' && <Stemming data={data} ververs={ververs} />}
         {data && actief === 'themas' && <ThemaLijst themas={data.themas} />}
         {data && actief === 'stembeheer' && <StemBeheer data={data} ververs={ververs} />}
+        {actief === 'sponsoren' && <Sponsoren />}
         {actief === 'leden' && <LedenBeheer mijnId={profiel.id} onWijziging={ververs} />}
       </main>
 

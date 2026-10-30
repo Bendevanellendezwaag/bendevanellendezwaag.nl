@@ -128,3 +128,24 @@ export async function fotoUploaden(bestand) {
 }
 
 export const fotoVerwijder = (pad) => doe(supabase.storage.from(BUCKET).remove([pad]));
+
+// ---------------------------------------------------------------- sponsoren (alleen beheerder)
+
+export const sponsoren = () => doe(supabase.from('sponsoren').select('*').order('naam'));
+export const sponsorbijdragen = () => doe(supabase.from('sponsorbijdragen').select('*'));
+export const sponsorjaren = () => doe(supabase.from('sponsorjaren').select('*').order('jaar'));
+
+export const sponsorOpslaan = ({ id, ...velden }) =>
+  doe(
+    id
+      ? supabase.from('sponsoren').update(velden).eq('id', id).select().single()
+      : supabase.from('sponsoren').insert(velden).select().single(),
+  );
+export const sponsorVerwijder = (id) => doe(supabase.from('sponsoren').delete().eq('id', id));
+
+// Eén bijdrage per sponsor per jaar: bestaat hij al, dan wordt hij bijgewerkt.
+export const bijdrageOpslaan = (velden) =>
+  doe(supabase.from('sponsorbijdragen').upsert(velden, { onConflict: 'sponsor,jaar' }).select().single());
+
+export const jaarToevoegen = (jaar) => doe(supabase.from('sponsorjaren').insert({ jaar }));
+export const jaarBijwerken = (jaar, velden) => doe(supabase.from('sponsorjaren').update(velden).eq('jaar', jaar));

@@ -16,6 +16,7 @@ const PADEN = {
   foto: 'M4 5h16v14H4zM4 15l4-4 4 4 3-3 5 5M15 9h.01',
   links: 'M15 18l-6-6 6-6',
   rechts: 'M9 6l6 6-6 6',
+  sponsor: 'M17 6.5A6 6 0 1 0 17 17.5M4 10h9M4 14h9',
   pen: 'M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z',
 };
 
