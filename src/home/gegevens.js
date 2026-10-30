@@ -9,13 +9,13 @@
 // Nieuwste eerst. De tijdlijn loopt van het oudste jaar tot het nieuwste.
 // foto:  hoofdfoto (zet bestanden in public/wagens/, liefst als .webp). Leeg = nette placeholder.
 // plek:  eindklassering in de optocht (getal). Laat weg als er geen is; dan verdwijnt de sticker.
+//        Een 1e, 2e of 3e plek telt vanzelf mee bij 'Podiumplekken' onder Over de Bende.
+// tekst: optioneel stukje tekst onder de titel (staat nu bij geen enkele wagen).
 // fotos: { wagen: [...], bouw: [...] } voor het fotoalbum achter de knop.
 export const wagens = [
   {
     jaar: 2026,
     titel: 'Woningnood in Zwaag',
-    tekst:
-      'We waren klaar met de woningnood, dus zijn we zelf maar huizen gaan bouwen. We behaalden dit jaar een mooie 4e plek.',
     foto: '/wagens/2026-woningnood-in-zwaag.webp',
     plek: 4,
     fotos: { wagen: [], bouw: [] },
@@ -52,7 +52,6 @@ export const wagens = [
   ...[2021, 2020, 2019].map((jaar) => ({
     jaar,
     titel: `Wagen ${jaar}`,
-    tekst: 'De naam, het verhaal en de foto’s van deze wagen volgen binnenkort.',
     foto: '',
     fotos: { wagen: [], bouw: [] },
   })),

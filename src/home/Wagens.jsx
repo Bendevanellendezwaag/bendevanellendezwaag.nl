@@ -290,9 +290,7 @@ export default function Wagens() {
                   </span>
                 ))}
               </h1>
-              {(!wagen || wagen.tekst) && (
-                <p className="bv-hero-intro">{wagen ? wagen.tekst : 'In dit jaar hebben we geen wagen gebouwd.'}</p>
-              )}
+              {wagen?.tekst && <p className="bv-hero-intro">{wagen.tekst}</p>}
             </div>
             {wagen && (
               <button className="bv-knop is-groot" onClick={() => setAlbum(true)}>

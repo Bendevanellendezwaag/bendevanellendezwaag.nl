@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useLayoutEffect, useMemo, useRef } from 'react';
 import { aftellen, agenda, bouwplaats, deBende, instagram, paginas, sponsors, sponsorWorden, wagens } from './gegevens.js';
 import { datumDelen, scrolNaar, useNu, woorden } from './hulp.js';
 import Icoon from './iconen.jsx';
@@ -9,6 +9,8 @@ import { Logo } from './Logo.jsx';
 export function OverDeBende() {
   const feiten = [
     { waarde: String(wagens.length), label: wagens.length === 1 ? 'Wagen gebouwd' : 'Wagens gebouwd' },
+    // Telt vanzelf mee zodra een wagen een 1e, 2e of 3e plek heeft.
+    { waarde: String(wagens.filter((w) => w.plek >= 1 && w.plek <= 3).length), label: 'Podiumplekken' },
     ...deBende.feiten.filter((f) => f.waarde),
   ];
   // Alle woorden van beide alinea's krijgen een volgnummer, zodat ze tijdens het scrollen één voor één oplichten.
@@ -69,6 +71,35 @@ export function OverDeBende() {
 
 /* ------------------------------------------------------------------ aftellen */
 
+/**
+ * Maakt de cijfers van de aftelklok precies zo groot dat ze in hun tegel passen,
+ * met welk lettertype of schermformaat dan ook. Alle tegels krijgen dezelfde grootte.
+ */
+function usePassend(tekens) {
+  const ref = useRef(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+    const pas = () => {
+      el.style.setProperty('--schaal', '1');
+      let schaal = 1;
+      el.querySelectorAll('.bv-teller-tegel').forEach((tegel) => {
+        const cijfer = tegel.querySelector('.bv-cijfer');
+        const stijl = getComputedStyle(tegel);
+        const ruimte = tegel.clientWidth - parseFloat(stijl.paddingLeft) - parseFloat(stijl.paddingRight);
+        if (cijfer.offsetWidth > 0) schaal = Math.min(schaal, ruimte / cijfer.offsetWidth);
+      });
+      el.style.setProperty('--schaal', String(Math.max(0.3, schaal * 0.98)));
+    };
+    pas();
+    const ro = new ResizeObserver(pas);
+    ro.observe(el);
+    document.fonts?.ready.then(pas);
+    return () => ro.disconnect();
+  }, [tekens]);
+  return ref;
+}
+
 function Cijfer({ waarde }) {
   const tekst = String(waarde).padStart(2, '0');
   // Elk cijfer schuift omhoog weg zodra het verandert.
@@ -95,6 +126,8 @@ export function Agenda() {
     ['Minuten', Math.floor(over / 60000) % 60],
     ['Seconden', Math.floor(over / 1000) % 60],
   ];
+  const tekens = Math.max(...delen.map(([, w]) => String(w).padStart(2, '0').length));
+  const teller = usePassend(tekens);
   const komend = agenda
     .filter((a) => new Date(`${a.datum}T23:59:59`).getTime() >= nu)
     .sort((a, b) => a.datum.localeCompare(b.datum));
@@ -119,7 +152,12 @@ export function Agenda() {
         {voorbij ? (
           <p className="bv-teller-feest bv-onthul">Alaaf! {aftellen.titel} is begonnen.</p>
         ) : (
-          <div className="bv-teller" role="timer" aria-label={`Nog ${delen[0][1]} dagen tot ${aftellen.titel}`} data-scroll="in">
+          <div
+            ref={teller}
+            className="bv-teller bv-onthul"
+            role="timer"
+            aria-label={`Nog ${delen[0][1]} dagen tot ${aftellen.titel}`}
+          >
             {delen.map(([label, waarde], i) => (
               <div className="bv-teller-tegel" key={label} style={{ '--i': i }} aria-hidden="true">
                 <Cijfer waarde={waarde} />

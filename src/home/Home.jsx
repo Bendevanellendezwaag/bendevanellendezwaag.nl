@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import Confetti from './Confetti.jsx';
 import Kop from './Kop.jsx';
 import { Intro } from './Logo.jsx';
 import { Agenda, Instagram, OverDeBende, Sponsors, Voet } from './Secties.jsx';
@@ -47,6 +48,7 @@ export default function Home({ onLeden }) {
         <Instagram />
       </main>
       <Voet onLeden={onLeden} />
+      <Confetti />
     </div>
   );
 }

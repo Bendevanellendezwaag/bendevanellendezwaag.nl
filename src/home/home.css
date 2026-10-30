@@ -109,14 +109,6 @@ html.bv-geen-scroll {
   color: var(--accent);
 }
 
-.bv-label::before {
-  content: '';
-  width: 22px;
-  height: 2px;
-  border-radius: 2px;
-  background: currentColor;
-}
-
 /* ---------------------------------------------------------------- knoppen */
 
 .bv-knop {
@@ -369,6 +361,16 @@ html.bv-geen-scroll {
 .bv-onthul.is-zichtbaar {
   opacity: 1;
   transform: none;
+}
+
+/* Confetti bij elke klik (zie Confetti.jsx): over alles heen, maar klikken gaan erdoorheen. */
+.bv-confetti {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
 
 /* ---------------------------------------------------------------- kopbalk */
@@ -1376,32 +1378,53 @@ html.bv-geen-scroll {
   margin-top: clamp(40px, 7vh, 72px);
 }
 
+/* De tegels vallen één voor één op hun plek; de cijfers passen altijd netjes in hun tegel (zie usePassend). */
+.bv-teller.bv-onthul {
+  opacity: 1;
+  transform: none;
+}
+
 .bv-teller-tegel {
   display: grid;
-  gap: 14px;
-  padding: clamp(18px, 2.6vw, 36px) clamp(16px, 2.2vw, 32px);
+  align-content: space-between;
+  gap: clamp(14px, 2vw, 24px);
+  min-width: 0;
+  overflow: hidden;
+  padding: clamp(20px, 2.6vw, 36px) clamp(18px, 2.4vw, 34px);
   border-radius: var(--rond);
   background: var(--blauw);
   color: var(--wit);
-  transform: translateY(calc((1 - var(--p)) * (80px + var(--i) * 50px)))
-    rotate(calc((1 - var(--p)) * (var(--i) - 1.5) * 5deg));
-  opacity: calc(0.3 + var(--p) * 0.7);
+  box-shadow: 0 30px 50px -34px rgba(11, 31, 102, 0.7);
+  opacity: 0;
+  transform: translateY(48px) scale(0.96);
+  transition:
+    opacity 0.7s var(--zacht-uit),
+    transform 0.9s var(--vering);
+  transition-delay: calc(var(--i) * 90ms);
+}
+
+.bv-teller.is-zichtbaar .bv-teller-tegel {
+  opacity: 1;
+  transform: none;
 }
 
 .bv-cijfer {
-  display: flex;
+  display: inline-flex;
+  justify-self: start;
   font-family: var(--font-kop);
-  font-size: clamp(2.6rem, 8.4vw, 8.8rem);
+  font-size: calc(clamp(2.6rem, 7.6vw, 8.4rem) * var(--schaal, 1));
   font-weight: 800;
   line-height: 1;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .bv-cijfer-vak {
   display: inline-block;
   overflow: hidden;
-  height: 1em;
+  height: 1.05em;
+  padding-top: 0.05em;
 }
 
 .bv-cijfer-vak > span {
