@@ -206,16 +206,23 @@ function Bouwplaats() {
       <div className="bv-lint" aria-hidden="true">
         <span>{LINT.repeat(6)}</span>
       </div>
-      <div className="bv-bouwplaats-bord">
-        <svg className="bv-bouwplaats-icoon" viewBox="0 0 64 64" aria-hidden="true">
-          <path d="M8 30 32 10l24 20" />
-          <path d="M14 26v28h36V26" />
-          <path d="M26 54V38h12v16" />
-          <path d="M44 8h6v12" />
-        </svg>
-        <p className="bv-bouwplaats-label">Onze bouwplaats</p>
-        <strong>{bouwplaats.naam}</strong>
-        <p className="bv-bouwplaats-tekst">{bouwplaats.tekst}</p>
+      <div className={`bv-bouwplaats-bord ${bouwplaats.foto ? 'met-foto' : ''}`}>
+        {bouwplaats.foto && (
+          <figure className="bv-bouwplaats-foto">
+            <img src={bouwplaats.foto} alt={`De bouwplaats bij ${bouwplaats.naam}`} loading="lazy" />
+          </figure>
+        )}
+        <div className="bv-bouwplaats-inhoud">
+          <svg className="bv-bouwplaats-icoon" viewBox="0 0 64 64" aria-hidden="true">
+            <path d="M8 30 32 10l24 20" />
+            <path d="M14 26v28h36V26" />
+            <path d="M26 54V38h12v16" />
+            <path d="M44 8h6v12" />
+          </svg>
+          <p className="bv-bouwplaats-label">Onze bouwplaats</p>
+          <strong>{bouwplaats.naam}</strong>
+          <p className="bv-bouwplaats-tekst">{bouwplaats.tekst}</p>
+        </div>
       </div>
       <div className="bv-lint is-onder" aria-hidden="true">
         <span>{LINT.repeat(6)}</span>

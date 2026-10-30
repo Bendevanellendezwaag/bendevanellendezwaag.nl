@@ -98,6 +98,7 @@ export const agenda = [
 // url:    link naar de website van de sponsor (optioneel).
 export const bouwplaats = {
   naam: 'Familie Van der Laan',
+  foto: '/bende/bouwplaats.webp', // leeg = alleen tekst
   tekst: 'Bij hen bouwen we elk jaar onze wagen. Zonder hun schuur, hun hulp en hun geduld komen we niet verder. Enorm bedankt!',
 };
 

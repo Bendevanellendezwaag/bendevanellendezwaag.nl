@@ -1576,6 +1576,99 @@ html.bv-geen-scroll {
   color: #44507a;
 }
 
+/* Met foto: foto links (vastgeplakt met plakband), tekst rechts; op de telefoon onder elkaar. */
+.bv-bouwplaats-bord.met-foto {
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  align-items: center;
+  justify-items: stretch;
+  gap: clamp(28px, 4vw, 56px);
+  padding: clamp(56px, 6vw, 80px) clamp(24px, 4vw, 56px);
+  text-align: left;
+}
+
+.bv-bouwplaats-inhoud {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+}
+
+.bv-bouwplaats-bord.met-foto .bv-bouwplaats-inhoud {
+  justify-items: start;
+}
+
+.bv-bouwplaats-bord.met-foto strong {
+  font-size: clamp(2rem, 4.2vw, 3.6rem);
+}
+
+.bv-bouwplaats-foto {
+  position: relative;
+  margin: 0;
+  padding: 10px;
+  border-radius: 6px;
+  background: var(--wit);
+  box-shadow: 0 24px 50px -24px rgba(11, 31, 102, 0.55);
+  transform: rotate(-1.6deg);
+  transition: transform 0.5s var(--vering);
+}
+
+.bv-bouwplaats-foto:hover {
+  transform: rotate(0deg) scale(1.01);
+}
+
+.bv-bouwplaats-foto img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border-radius: 2px;
+}
+
+/* Twee stukjes plakband op de hoeken. */
+.bv-bouwplaats-foto::before,
+.bv-bouwplaats-foto::after {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  width: 92px;
+  height: 26px;
+  background: rgba(255, 210, 63, 0.82);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.bv-bouwplaats-foto::before {
+  top: -10px;
+  left: -22px;
+  transform: rotate(-32deg);
+}
+
+.bv-bouwplaats-foto::after {
+  right: -22px;
+  bottom: -10px;
+  transform: rotate(-32deg);
+}
+
+@media (max-width: 760px) {
+  .bv-bouwplaats-bord.met-foto {
+    grid-template-columns: 1fr;
+    padding: 52px 18px 40px;
+    text-align: center;
+  }
+
+  .bv-bouwplaats-bord.met-foto .bv-bouwplaats-inhoud {
+    justify-items: center;
+  }
+
+  .bv-bouwplaats-foto {
+    padding: 7px;
+  }
+
+  .bv-bouwplaats-foto::before,
+  .bv-bouwplaats-foto::after {
+    width: 64px;
+    height: 20px;
+  }
+}
+
 /* Drie hoofdsponsors: grote witte tegels die gespreid binnenkomen. */
 .bv-hoofdsponsors {
   --p: 0;
