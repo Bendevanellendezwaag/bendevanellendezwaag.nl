@@ -235,7 +235,7 @@ export function Sponsors() {
       <div className="bv-kader">
         <div className="bv-sponsor-actie bv-onthul">
           <div>
-            <strong>Ook jouw naam op de wagen?</strong>
+            <strong>Wil jij hier ook aan bijdragen?</strong>
             <p>We zoeken altijd bedrijven die ons een warm hart toedragen.</p>
           </div>
           <a
