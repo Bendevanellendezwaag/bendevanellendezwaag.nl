@@ -1474,144 +1474,168 @@ html.bv-geen-scroll {
 
 /* ---------------------------------------------------------------- sponsors */
 
-.bv-hoofdsponsors {
-  --p: 0;
+/* De hoofdsponsor: één brede witte balk, net als bovenaan het sponsordoek. */
+.bv-hoofdsponsor {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px;
+  justify-items: center;
+  gap: 10px;
   margin: clamp(40px, 7vh, 72px) 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.bv-hoofdsponsors li {
-  position: relative;
-  transform: translateY(calc((1 - var(--p)) * (60px + var(--i) * 40px)));
-}
-
-.bv-hoofdsponsors .bv-sponsor {
-  aspect-ratio: 16 / 10;
+  padding: clamp(28px, 4vw, 44px) 24px;
+  border-radius: 28px;
   background: var(--wit);
   color: var(--blauw-nacht);
-  box-shadow: none;
+  text-align: center;
 }
 
-.bv-hoofdsponsors .bv-sponsor span {
-  font-size: 1rem;
-  font-weight: 700;
-}
-
-.bv-hoofdsponsors img {
-  max-height: 96px;
-  filter: none;
-  opacity: 1;
-}
-
-.bv-hoofd-label {
-  position: absolute;
-  top: 14px;
-  left: 14px;
-  padding: 6px 12px;
+.bv-hoofdsponsor span {
+  padding: 6px 14px;
   border-radius: 999px;
   background: var(--lichtblauw);
   color: var(--blauw);
   font-family: var(--font-kop);
-  font-size: 0.6rem;
+  font-size: 0.62rem;
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
+.bv-hoofdsponsor strong {
+  font-family: var(--font-kop);
+  font-size: clamp(1.7rem, 4.6vw, 3.4rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+/* Logo's op witte tegels in hun eigen kleuren: groot (4 naast elkaar) en kleiner (5–6 naast elkaar). */
+.bv-sponsorgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bv-sponsorgrid.is-groot {
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.bv-sponsorgrid li {
+  transition-delay: calc(var(--i) * 60ms);
+}
+
 .bv-sponsor {
   display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
   place-items: center;
+  overflow: hidden;
   height: 100%;
-  padding: 20px;
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.06);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
-  color: rgba(255, 255, 255, 0.8);
+  aspect-ratio: 16 / 9;
+  padding: 14px 18px;
+  border-radius: 18px;
+  background: var(--wit);
+  color: var(--blauw-nacht);
   text-align: center;
   text-decoration: none;
+  box-shadow: 0 10px 30px -18px rgba(0, 0, 0, 0.6);
   transition:
-    background 0.3s,
-    transform 0.45s var(--vering);
+    transform 0.45s var(--vering),
+    box-shadow 0.3s;
+}
+
+.bv-sponsorgrid.is-groot .bv-sponsor {
+  padding: 22px 26px;
+  border-radius: 22px;
+}
+
+.bv-sponsor.is-donker {
+  background: #111318;
+  color: var(--wit);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+    0 10px 30px -18px rgba(0, 0, 0, 0.6);
 }
 
 a.bv-sponsor:hover,
 div.bv-sponsor:hover {
-  transform: translateY(-4px);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.7);
 }
 
 .bv-sponsor span {
   font-family: var(--font-kop);
-  font-size: 0.8rem;
-  font-weight: 500;
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 .bv-sponsor img {
-  max-width: 100%;
-  max-height: 60px;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
-  filter: grayscale(1) brightness(10);
-  opacity: 0.85;
-  transition:
-    filter 0.3s,
-    opacity 0.3s;
 }
 
-a.bv-sponsor:hover img {
-  filter: none;
-  opacity: 1;
+/* Families en vrienden: namen als rij, zoals onderaan het doek. */
+.bv-vrienden {
+  margin-top: clamp(40px, 7vh, 64px);
+  text-align: center;
 }
 
-/* Rijen die eindeloos voorbij schuiven; stil zodra je eroverheen gaat. */
-.bv-rijen {
-  display: grid;
-  gap: 12px;
-  margin: 16px 0 0;
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+.bv-vrienden h3 {
+  margin: 0 0 16px;
+  font-family: var(--font-kop);
+  font-size: clamp(1.2rem, 2.6vw, 1.8rem);
+  font-weight: 700;
+  color: var(--wit);
 }
 
-.bv-rij {
-  overflow: hidden;
-}
-
-.bv-rij-spoor {
+.bv-vrienden ul {
   display: flex;
-  width: max-content;
-  animation: bv-rij var(--duur) linear infinite;
-}
-
-.bv-rij.is-omgekeerd .bv-rij-spoor {
-  animation-direction: reverse;
-}
-
-.bv-rij:hover .bv-rij-spoor {
-  animation-play-state: paused;
-}
-
-.bv-rij ul {
-  display: flex;
-  gap: 12px;
-  margin: 0;
-  padding: 0 12px 0 0;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 0;
   list-style: none;
 }
 
-.bv-rij li {
-  width: clamp(150px, 16vw, 230px);
-  aspect-ratio: 16 / 9;
+.bv-vrienden li {
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.92rem;
+  font-weight: 500;
 }
 
-.bv-rij .bv-sponsor:hover {
-  background: rgba(255, 255, 255, 0.12);
-}
+@media (max-width: 560px) {
+  .bv-sponsorgrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
 
-@keyframes bv-rij {
-  to {
-    transform: translateX(-50%);
+  .bv-sponsorgrid.is-groot {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .bv-sponsor {
+    padding: 8px 10px;
+    border-radius: 12px;
+  }
+
+  .bv-sponsorgrid.is-groot .bv-sponsor {
+    padding: 12px 14px;
+    border-radius: 16px;
+  }
+
+  .bv-vrienden li {
+    padding: 5px 11px;
+    font-size: 0.82rem;
   }
 }
 
@@ -1921,10 +1945,6 @@ a.bv-sponsor:hover img {
     grid-column: 2;
   }
 
-  .bv-hoofdsponsors .bv-sponsor {
-    aspect-ratio: 5 / 2;
-  }
-
   /* Posts naast elkaar om doorheen te vegen. */
   .bv-posts {
     display: flex;
@@ -1973,7 +1993,6 @@ a.bv-sponsor:hover img {
     transition-duration: 0.01ms !important;
   }
 
-  .bv-rij-spoor,
   .bv-sticker svg {
     animation: none !important;
   }

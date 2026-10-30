@@ -22,33 +22,33 @@ export const wagens = [
   },
   {
     jaar: 2025,
-    titel: 'Kriebelbeestjes', // PLACEHOLDER: echte naam van de wagen
+    titel: 'Los in ons insectenbos',
     tekst: 'Een kleurrijke tuin vol vrolijke beestjes: krekel, libelle en neushoornkever. Goed voor een 4e plek.',
-    foto: '/wagens/2025-kriebelbeestjes.jpg',
+    foto: '/wagens/2025-los-in-ons-insectenbos.jpg',
     plek: 4,
     fotos: { wagen: [], bouw: [] },
   },
   {
     jaar: 2024,
-    titel: 'Henrikus rock(e)t man!',
+    titel: 'Prins Drikus rock(e)t man!',
     tekst: 'Een sterrenshow met een rockster achter de piano en een astronaut op zijn raket. Opnieuw een 4e plek.',
-    foto: '/wagens/2024-henrikus-rocket-man.jpg',
+    foto: '/wagens/2024-prins-drikus-rocket-man.jpg',
     plek: 4,
     fotos: { wagen: [], bouw: [] },
   },
   {
     jaar: 2023,
-    titel: 'Poseidon', // PLACEHOLDER: echte naam van de wagen
+    titel: 'Wie weet waar Atlantis',
     tekst: 'Poseidon op zijn tempel, met een octopus en een reuzenschildpad die door de straten zwom. We werden 5e.',
-    foto: '/wagens/2023-poseidon.jpg',
+    foto: '/wagens/2023-wie-weet-waar-atlantis.jpg',
     plek: 5,
     fotos: { wagen: [], bouw: [] },
   },
   {
     jaar: 2022,
-    titel: 'Carnaval in Tirol, gooi de bierpullen maar',
+    titel: 'Gooi die bierpullen maar vol',
     tekst: 'Een Tiroler skihut met bratwurst, bierpullen en een skiër op het dak. Goed voor een 6e plek.',
-    foto: '/wagens/2022-carnaval-in-tirol.jpg',
+    foto: '/wagens/2022-gooi-die-bierpullen-maar-vol.jpg',
     plek: 6,
     fotos: { wagen: [], bouw: [] },
   },
@@ -95,12 +95,54 @@ export const agenda = [
 
 /* ------------------------------------------------------------------ sponsors */
 
-// niveau: 'hoofd' (grote tegels bovenaan) of 'sponsor'.
-// logo: pad naar een (liefst witte of transparante) afbeelding in public/sponsors/. Zonder logo toont de site de naam.
-// PLACEHOLDERS: vervang door de echte sponsors.
+// Zelfde volgorde als op het sponsordoek 2026. Logo's staan in public/sponsors/ (doorzichtig PNG).
+// hoofd:  de grote naam bovenaan (onze bouwplaats).
+// groot:  de grote tegels; overig: de kleinere tegels.
+// donker: logo met lichte letters, krijgt een donkere tegel.
+// url:    link naar de website van de sponsor (optioneel).
+export const hoofdsponsor = { naam: 'Familie Van der Laan', tekst: 'Hoofdsponsor · onze bouwplaats' };
+
+const logo = (bestand, naam, extra = {}) => ({ naam, logo: `/sponsors/${bestand}.png`, url: '', ...extra });
+
 export const sponsors = [
-  ...Array.from({ length: 3 }, (_, i) => ({ naam: `Hoofdsponsor ${i + 1}`, niveau: 'hoofd', logo: '', url: '' })),
-  ...Array.from({ length: 21 }, (_, i) => ({ naam: `Sponsor ${i + 1}`, niveau: 'sponsor', logo: '', url: '' })),
+  logo('de-witte-valk', 'Partycentrum De Witte Valk', { niveau: 'groot' }),
+  logo('mookys-belettering', 'Mooky’s Belettering', { niveau: 'groot' }),
+  logo('ep-beerepoot', 'EP Beerepoot', { niveau: 'groot' }),
+  logo('hekoned', 'HekoNed Engineering', { niveau: 'groot' }),
+  logo('happy-cooker', 'De Happy Cooker', { niveau: 'groot' }),
+  logo('giling', 'Giling Custom Made Products', { niveau: 'groot' }),
+  logo('schipper', 'Schipper administratie & advies', { niveau: 'groot' }),
+  logo('van-der-laan', 'Van der Laan', { niveau: 'groot' }),
+  logo('1671', '1671 Finance & Organize', { niveau: 'groot' }),
+  logo('ccg-raamdecoratie', 'CCG Raamdecoratie', { niveau: 'groot' }),
+  logo('peerdeman', 'Bouwbedrijf C. Peerdeman & Zonen', { niveau: 'groot' }),
+  logo('bob-mens', 'Aannemersbedrijf Bob Mens', { niveau: 'groot' }),
+  logo('autobedrijf-avenhorn', 'Autobedrijf Avenhorn'),
+  logo('ks-verlichting', 'KS Verlichting'),
+  logo('more', 'More verbouwing'),
+  logo('brasserie-doude-veiling', 'Brasserie d’Oude Veiling'),
+  logo('veldboer-eenhoorn', 'Veldboer Eenhoorn'),
+  logo('karo', 'KaRo'),
+  logo('auxilium', 'Auxilium Hoorn'),
+  logo('dj-longbow', 'DJ Longbow'),
+  logo('rene-kramer', 'René Kramer schilderwerken'),
+  logo('johan-rood', 'Johan Rood Project- en Woningstoffering'),
+  logo('karsten-tenten', 'Karsten Tenten'),
+  logo('mini-snackbar', 'Mini Snackbar'),
+  logo('van-engen', 'Kraanverhuur R. van Engen'),
+  logo('stabo', 'Stabo'),
+  logo('erik-snip', 'Rijschool Erik Snip'),
+  logo('hans-bakker', 'Hans Bakker TMT Werken'),
+  logo('kapsalon-marly', 'Kapsalon Marly', { donker: true }),
+  logo('swagerman', 'Swagerman slapen & wonen', { donker: true }),
+  logo('anita-coffeng', 'Anita Coffeng Haarmode', { donker: true }),
+  logo('slaapkenner-theo-bot', 'Slaapkenner Theo Bot', { donker: true }),
+];
+
+// Families en vrienden die ons steunen (van het sponsordoek).
+export const vrienden = [
+  'Lindeboom', 'Gitzels', 'Kroon', 'Besseling', 'Koelemeijer', 'Karsten', 'Boer', 'Coffeng', 'Te Nuijl', 'Kranenburg', 'Cardol',
+  'Dekker', 'Slippens', 'Jong', 'Jos & Sylvia', 'Timmer', 'Biesterveld', 'Grooteman', 'Heijst', 'Smit', 'Mast', 'Koster', 'Knol',
 ];
 
 // Waar de knop ‘Word ook sponsor’ naartoe gaat, bijvoorbeeld 'mailto:...'. Leeg = naar ons Instagram-profiel.
