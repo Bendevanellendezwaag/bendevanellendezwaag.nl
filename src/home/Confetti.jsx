@@ -13,8 +13,8 @@ const ZWAARTEKRACHT = 0.32;
 const MAX_VAL = 4.2;
 const KOLOM = 4; // breedte van één kolom in de berg (px)
 const MAX_BERG = 0.24; // de berg wordt maximaal zo hoog (deel van de schermhoogte)
-const BLIJFT_LIGGEN = 3500; // zo lang (ms) blijft de berg na het laatste snippertje liggen
-const VERVAAGT_IN = 5000; // daarna vervaagt hij in zoveel ms
+const BLIJFT_LIGGEN = 500; // zo lang (ms) blijft de berg na het laatste snippertje liggen
+const VERVAAGT_IN = 3500; // daarna vervaagt hij in zoveel ms
 
 const willekeurig = (min, max) => min + Math.random() * (max - min);
 
