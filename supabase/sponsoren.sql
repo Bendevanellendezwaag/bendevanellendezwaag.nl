@@ -77,3 +77,41 @@ revoke all on public.sponsoren, public.sponsorjaren, public.sponsorbijdragen fro
 
 insert into public.sponsorjaren (jaar) values (2024), (2025), (2026), (2027)
 on conflict (jaar) do nothing;
+
+-- ---------------------------------------------------------------- facturen (30-10-2026)
+
+-- Officiële naam op de factuur (bijv. 'HekoNed Engineering B.V.'); leeg = gewone naam.
+alter table public.sponsoren add column if not exists factuurnaam text;
+alter table public.sponsorbijdragen add column if not exists factuurdatum date;
+
+-- Vaste teksten en bankgegevens van de factuur: één rij.
+create table if not exists public.factuurinstellingen (
+  id               int primary key default 1 check (id = 1),
+  iban             text,
+  tnv              text,
+  email            text,
+  intro            text,
+  omschrijving     text,
+  slot             text,
+  afbeelding       text,   -- pad in de bucket themafotos, of een url
+  afbeelding_tekst text,
+  volg             text
+);
+alter table public.factuurinstellingen enable row level security;
+
+drop policy if exists "factuurinstellingen beheer" on public.factuurinstellingen;
+create policy "factuurinstellingen beheer" on public.factuurinstellingen
+  for all to authenticated
+  using (public.is_beheerder()) with check (public.is_beheerder());
+
+revoke all on public.factuurinstellingen from anon;
+
+insert into public.factuurinstellingen (id, intro, omschrijving, slot, afbeelding_tekst, volg)
+values (
+  1,
+  'Uw bijdrage is enorm waardevol voor ons, wij zetten dit jaar weer alles op alles om u te verbazen. Tot ziens bij de sponsoravond of de optocht!',
+  'Gelieve factuurnummer en bedrijfsnaam vermelden in de omschrijving',
+  'Bedankt voor uw bijdrage namens de hele groep',
+  'Bouwtekening carnaval {jaar}',
+  'Blijf op de hoogte van het bouwproces via onze Instagram en Facebook!')
+on conflict (id) do nothing;

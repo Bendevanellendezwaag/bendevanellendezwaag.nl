@@ -149,3 +149,7 @@ export const bijdrageOpslaan = (velden) =>
 
 export const jaarToevoegen = (jaar) => doe(supabase.from('sponsorjaren').insert({ jaar }));
 export const jaarBijwerken = (jaar, velden) => doe(supabase.from('sponsorjaren').update(velden).eq('jaar', jaar));
+
+export const factuurinstellingen = () => doe(supabase.from('factuurinstellingen').select('*').eq('id', 1).maybeSingle());
+export const factuurinstellingenOpslaan = (velden) =>
+  doe(supabase.from('factuurinstellingen').upsert({ ...velden, id: 1 }).select().single());

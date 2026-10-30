@@ -3,7 +3,9 @@ import * as api from './api.js';
 import Icoon from './iconen.jsx';
 import { meld } from './melding.js';
 import { Leeg, Paginakop } from './onderdelen.jsx';
+import Factuur from './Factuur.jsx';
 
+const BEELD_KEY = 'bve-sponsorweergave';
 const SOORTEN = { zakelijk: 'Zakelijk', familie: 'Familie & vrienden' };
 const BENADERING = { fysiek: 'Langs geweest', mail: 'Mail', app: 'App' };
 const BETAALWIJZE = { factuur: 'Factuur', tikkie: 'Tikkie', contant: 'Contant' };
@@ -36,6 +38,22 @@ export default function Sponsoren() {
   const [zoek, setZoek] = useState('');
   const [open, setOpen] = useState(null); // sponsor-id, of 'nieuw'
   const [sorteer, setSorteer] = useState(null); // null = op naam, anders een jaar (hoogste bedrag eerst)
+  const [factuur, setFactuur] = useState(null); // { sponsor, jaar } of { jaar } voor het lege sjabloon
+  const [beeld, setBeeld] = useState(() => {
+    try {
+      return localStorage.getItem(BEELD_KEY) || 'tegels';
+    } catch {
+      return 'tegels';
+    }
+  });
+  const kiesBeeld = (b) => {
+    setBeeld(b);
+    try {
+      localStorage.setItem(BEELD_KEY, b);
+    } catch {
+      /* niet onthouden */
+    }
+  };
 
   const laad = useCallback(async () => {
     const [s, b, j] = await Promise.all([api.sponsoren(), api.sponsorbijdragen(), api.sponsorjaren()]);
@@ -79,7 +97,7 @@ export default function Sponsoren() {
   const vorigJaar = jaren[jaren.indexOf(gekozen) - 1];
   const lijst = data.sponsoren.filter((s) => {
     if (soort !== 'alle' && s.soort !== soort) return false;
-    if (zoek && !`${s.naam} ${s.contact_via || ''} ${s.email || ''}`.toLowerCase().includes(zoek.toLowerCase())) return false;
+    if (zoek && !`${s.naam} ${s.factuurnaam || ''} ${s.contactpersoon || ''} ${s.plaats || ''} ${s.contact_via || ''} ${s.email || ''}`.toLowerCase().includes(zoek.toLowerCase())) return false;
     const nu = bijdrage[s.id]?.[gekozen];
     if (weergave === 'mee') return doetMee(nu);
     if (weergave === 'geen') return nu?.bedrag === 0 && !nu.natura;
@@ -104,6 +122,13 @@ export default function Sponsoren() {
     return r;
   }
 
+  // Factuurnummers per carnavalsjaar: 2026 -> 2601, 2602, ...
+  function volgendNummer(j) {
+    const voor = String(j).slice(2);
+    const nrs = data.bijdragen.map((b) => b.factuurnr).filter((n) => /^\d{4}$/.test(n || '') && n.startsWith(voor));
+    return nrs.length ? String(Math.max(...nrs.map(Number)) + 1) : `${voor}01`;
+  }
+
   async function nieuwJaar() {
     const j = (jaren[jaren.length - 1] || new Date().getFullYear()) + 1;
     if (!window.confirm(`Carnavalsjaar ${j} toevoegen?`)) return;
@@ -125,9 +150,14 @@ export default function Sponsoren() {
   return (
     <>
       <Paginakop titel="Sponsoren" sub={`${t.aantal} sponsoren in ${gekozen} · ${euro(t.zakelijk + t.familie)}`}>
-        <button className="ld-knop is-klein" onClick={() => setOpen('nieuw')}>
-          <Icoon naam="plus" grootte={16} /> Sponsor
-        </button>
+        <span className="ld-sp-kopknoppen">
+          <button className="ld-knop is-klein is-rand" onClick={() => setFactuur({ jaar: gekozen })}>
+            <Icoon naam="factuur" grootte={16} /> Factuursjabloon
+          </button>
+          <button className="ld-knop is-klein" onClick={() => setOpen('nieuw')}>
+            <Icoon naam="plus" grootte={16} /> Nieuwe sponsor
+          </button>
+        </span>
       </Paginakop>
       {fout && <p className="ld-fout">{fout}</p>}
 
@@ -184,7 +214,14 @@ export default function Sponsoren() {
 
       <section className="ld-kaart">
         <div className="ld-sp-filters">
-          <input className="ld-input" type="search" placeholder="Zoek op naam, contact of e-mail" value={zoek} onChange={(e) => setZoek(e.target.value)} />
+          <div className="ld-segment ld-sp-beeld" role="tablist" aria-label="Weergave">
+            {[['tegels', 'Tegels'], ['tabel', 'Tabel']].map(([k, v]) => (
+              <button key={k} role="tab" aria-selected={beeld === k} className={beeld === k ? 'is-aan' : ''} onClick={() => kiesBeeld(k)}>
+                {v}
+              </button>
+            ))}
+          </div>
+          <input className="ld-input" type="search" placeholder="Zoek op naam, contactpersoon, plaats…" value={zoek} onChange={(e) => setZoek(e.target.value)} />
           <select className="ld-input" value={soort} onChange={(e) => setSoort(e.target.value)} aria-label="Soort">
             <option value="alle">Iedereen</option>
             {Object.entries(SOORTEN).map(([k, v]) => (
@@ -198,7 +235,19 @@ export default function Sponsoren() {
           </select>
         </div>
 
-        {lijst.length === 0 ? (
+        {beeld === 'tegels' ? (
+          <ul className="ld-sp-kaarten">
+            {lijst.map((s) => (
+              <SponsorTegel key={s.id} sponsor={s} bijdragen={bijdrage[s.id] || {}} jaren={jaren} gekozen={gekozen} onOpen={() => setOpen(s.id)} />
+            ))}
+            <li>
+              <button className="ld-sp-kaartje is-nieuw" onClick={() => setOpen('nieuw')}>
+                <Icoon naam="plus" grootte={28} />
+                Nieuwe sponsor
+              </button>
+            </li>
+          </ul>
+        ) : lijst.length === 0 ? (
           <Leeg titel="Geen sponsoren gevonden" />
         ) : (
           <div className="ld-sp-scroll">
@@ -271,6 +320,7 @@ export default function Sponsoren() {
           jaren={jaren}
           bijdragen={sponsorOpen ? bijdrage[sponsorOpen.id] || {} : {}}
           slaBijdrageOp={slaBijdrageOp}
+          onFactuur={(j) => setFactuur({ sponsor: sponsorOpen, jaar: j })}
           onSluit={() => setOpen(null)}
           onOpgeslagen={(s) => {
             setOpen(s?.id || null);
@@ -278,7 +328,57 @@ export default function Sponsoren() {
           }}
         />
       )}
+
+      {factuur && (
+        <Factuur
+          sponsor={factuur.sponsor}
+          jaar={factuur.jaar}
+          bijdrage={factuur.sponsor ? bijdrage[factuur.sponsor.id]?.[factuur.jaar] : null}
+          volgendNummer={volgendNummer(factuur.jaar)}
+          vastleggen={factuur.sponsor ? (velden) => slaBijdrageOp(factuur.sponsor.id, factuur.jaar, velden) : null}
+          onSluit={() => setFactuur(null)}
+        />
+      )}
     </>
+  );
+}
+
+// Een sponsor als kaartje: wie, waar, wat dit jaar en hoe het de afgelopen jaren ging.
+function SponsorTegel({ sponsor: s, bijdragen, jaren, gekozen, onOpen }) {
+  const nu = bijdragen[gekozen];
+  const reeks = jaren.filter((j) => j <= gekozen).slice(-4);
+  const hoogste = Math.max(1, ...reeks.map((j) => Number(bijdragen[j]?.bedrag) || 0));
+  const plek = [s.contactpersoon, s.plaats].filter(Boolean).join(' · ');
+  return (
+    <li>
+      <button className={`ld-sp-kaartje ${doetMee(nu) ? 'is-mee' : ''}`} onClick={onOpen}>
+        <span className="ld-sp-kaartje-kop">
+          <span className={`ld-sp-letter ${s.soort === 'familie' ? 'is-familie' : ''}`}>{sorteerNaam(s.naam).slice(0, 1).toUpperCase()}</span>
+          <span className="ld-sp-kaartje-naam">
+            <strong>{s.naam}</strong>
+            <small>{plek || (s.soort === 'familie' ? 'Familie & vrienden' : s.email || ' ')}</small>
+          </span>
+        </span>
+        <span className="ld-sp-kaartje-bedrag">
+          <Waarde b={nu} />
+          <small>{gekozen}</small>
+        </span>
+        <span className="ld-sp-reeks" aria-hidden="true">
+          {reeks.map((j) => {
+            const b = bijdragen[j];
+            const h = b?.natura ? 100 : ((Number(b?.bedrag) || 0) / hoogste) * 100;
+            return (
+              <span key={j} className={j === gekozen ? 'is-nu' : ''}>
+                <i className={b?.natura ? 'is-natura' : ''} style={{ height: `${Math.max(h, 4)}%`, opacity: doetMee(b) ? 1 : 0.25 }} />
+                <em>{String(j).slice(2)}</em>
+              </span>
+            );
+          })}
+        </span>
+        <Status b={nu} />
+        {s.contact_via && <span className="ld-sp-via">via {s.contact_via}</span>}
+      </button>
+    </li>
   );
 }
 
@@ -355,9 +455,9 @@ function Status({ b }) {
 
 // ---------------------------------------------------------------- één sponsor
 
-const LEEG = { naam: '', soort: 'zakelijk', contact_via: '', benadering: '', email: '', telefoon: '', contactpersoon: '', adres: '', postcode: '', plaats: '', kvk: '', btw: '', notitie: '' };
+const LEEG = { naam: '', factuurnaam: '', soort: 'zakelijk', contact_via: '', benadering: '', email: '', telefoon: '', contactpersoon: '', adres: '', postcode: '', plaats: '', kvk: '', btw: '', notitie: '' };
 
-function SponsorKaart({ sponsor, jaren, bijdragen, slaBijdrageOp, onSluit, onOpgeslagen }) {
+function SponsorKaart({ sponsor, jaren, bijdragen, slaBijdrageOp, onFactuur, onSluit, onOpgeslagen }) {
   const [form, setForm] = useState(() => ({ ...LEEG, ...Object.fromEntries(Object.entries(sponsor || {}).map(([k, v]) => [k, v ?? ''])) }));
   const [bezig, setBezig] = useState(false);
   const [fout, setFout] = useState(null);
@@ -435,11 +535,15 @@ function SponsorKaart({ sponsor, jaren, bijdragen, slaBijdrageOp, onSluit, onOpg
             </label>
 
             {form.soort === 'zakelijk' && (
-              <details className="ld-sp-factuur is-breed" open={!!(form.contactpersoon || form.adres || form.kvk)}>
+              <details className="ld-sp-factuur is-breed" open={!sponsor || !!(form.factuurnaam || form.contactpersoon || form.adres || form.kvk)}>
                 <summary>Factuurgegevens</summary>
                 <div className="ld-sp-form">
                   <label className="ld-veld is-breed">
-                    <span>Contactpersoon</span>
+                    <span>Naam op factuur</span>
+                    <input className="ld-input" placeholder={form.naam} {...veld('factuurnaam')} />
+                  </label>
+                  <label className="ld-veld is-breed">
+                    <span>Ter attentie van</span>
                     <input className="ld-input" {...veld('contactpersoon')} />
                   </label>
                   <label className="ld-veld is-breed">
@@ -483,7 +587,7 @@ function SponsorKaart({ sponsor, jaren, bijdragen, slaBijdrageOp, onSluit, onOpg
               <h3 className="ld-sub ld-sp-kop">Per jaar</h3>
               <ul className="ld-lijst is-scheiding">
                 {[...jaren].reverse().map((j) => (
-                  <JaarRegel key={j} jaar={j} b={bijdragen[j]} opslaan={(v) => slaBijdrageOp(sponsor.id, j, v)} />
+                  <JaarRegel key={j} jaar={j} b={bijdragen[j]} zakelijk={sponsor.soort === 'zakelijk'} onFactuur={() => onFactuur(j)} opslaan={(v) => slaBijdrageOp(sponsor.id, j, v)} />
                 ))}
               </ul>
               <button className="ld-link is-klein is-rood ld-sp-weg" onClick={verwijder}>
@@ -497,7 +601,7 @@ function SponsorKaart({ sponsor, jaren, bijdragen, slaBijdrageOp, onSluit, onOpg
   );
 }
 
-function JaarRegel({ jaar, b, opslaan }) {
+function JaarRegel({ jaar, b, zakelijk, onFactuur, opslaan }) {
   const zet = (velden) => opslaan(velden);
   const vink = (k, label) => (
     <label className="ld-schakel is-klein">
@@ -537,6 +641,11 @@ function JaarRegel({ jaar, b, opslaan }) {
         {vink('reactie', 'Reactie')}
         {vink('ontvangen', 'Ontvangen')}
         {vink('uitnodiging', 'Uitnodiging sponsoravond')}
+        {zakelijk && (
+          <button className="ld-link is-klein ld-sp-factuurknop" onClick={onFactuur}>
+            <Icoon naam="factuur" grootte={15} /> {b?.factuurnr ? `Factuur ${b.factuurnr}` : 'Factuur maken'}
+          </button>
+        )}
       </div>
     </li>
   );
