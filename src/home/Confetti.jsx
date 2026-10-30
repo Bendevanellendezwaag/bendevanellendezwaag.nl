@@ -86,10 +86,12 @@ export default function Confetti() {
     const zetTril = (px) => {
       if (!pagina) return;
       if (px < 0.3) {
+        pagina.classList.remove('is-trillen');
         pagina.style.removeProperty('--sx');
         pagina.style.removeProperty('--sy');
         return;
       }
+      pagina.classList.add('is-trillen');
       pagina.style.setProperty('--sx', `${willekeurig(-px, px).toFixed(1)}px`);
       pagina.style.setProperty('--sy', `${willekeurig(-px, px).toFixed(1)}px`);
     };

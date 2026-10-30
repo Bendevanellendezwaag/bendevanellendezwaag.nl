@@ -363,10 +363,12 @@ html.bv-geen-scroll {
   transform: none;
 }
 
-/* Schermtril bij een mega-knal: Confetti.jsx zet --sx en --sy. */
-.bv-home > .bv-kop,
-.bv-home > main,
-.bv-home > .bv-voet {
+/* Schermtril bij een mega-knal: Confetti.jsx zet --sx en --sy en de klasse is-trillen.
+   Alleen tijdens het trillen: een verschuiving (ook van 0px) maakt van <main> het kader voor
+   vaste vensters, waardoor bijvoorbeeld het fotoalbum niet meer op het scherm zou staan. */
+.bv-home.is-trillen > .bv-kop,
+.bv-home.is-trillen > main,
+.bv-home.is-trillen > .bv-voet {
   translate: var(--sx, 0px) var(--sy, 0px);
 }
 
