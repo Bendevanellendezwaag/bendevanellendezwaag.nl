@@ -3809,3 +3809,10 @@ body.fa-open {
   width: 72px;
   text-align: left;
 }
+
+.ld-sp-permaand {
+  padding-right: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--l-zacht);
+}

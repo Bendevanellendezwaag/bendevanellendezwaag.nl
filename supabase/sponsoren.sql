@@ -134,7 +134,7 @@ create table if not exists public.inleg (
   id       uuid primary key default gen_random_uuid(),
   inlegger uuid not null references public.inleggers (id) on delete cascade,
   jaar     int not null references public.sponsorjaren (jaar) on delete cascade,
-  bedrag   numeric(10, 2) check (bedrag >= 0),
+  bedrag   numeric(10, 2) check (bedrag >= 0),  -- per maand; het jaar telt 12 x dit bedrag
   betaald  boolean not null default false,
   notitie  text,
   unique (inlegger, jaar)

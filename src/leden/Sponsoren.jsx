@@ -18,6 +18,9 @@ const BETAALWIJZE = { factuur: 'Factuur', tikkie: 'Tikkie', contant: 'Contant' }
 const FILTERS = { alle: 'Iedereen', mee: 'Doen mee', benaderen: 'Nog benaderen', geen: 'Niet dit jaar', open: 'Nog niet ontvangen' };
 const SORTERINGEN = { hoog: 'Hoog → laag', laag: 'Laag → hoog', vorig: 'Vorig jaar hoog → laag', naam: 'Naam A → Z' };
 
+// Eigen inleg per lid is een bedrag per maand; voor het jaar telt het twaalf keer.
+const MAANDEN = 12;
+
 const euroFmt = new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
 const euro = (n) => euroFmt.format(n || 0);
 
@@ -134,7 +137,7 @@ export default function Sponsoren() {
     data?.inleg.forEach((i) => {
       const r = t[i.jaar];
       if (!r || !(Number(i.bedrag) > 0)) return;
-      r.perLid += Number(i.bedrag);
+      r.perLid += Number(i.bedrag) * MAANDEN;
       r.n.inleg += 1;
     });
     Object.values(t).forEach((r) => (r.inleg = r.n.inleg ? r.perLid : r.los));
@@ -483,8 +486,8 @@ function InlegSectie({ jaar, vorigJaar, inleggers, inlegVan, totaal, slaInlegOp,
     `${sorteer}|${filter}|${zoek}|${jaar}|${gefilterd.length}`,
   );
   const ingevuld = actief.filter((l) => bedragVan(l, jaar) > 0);
-  const betaald = ingevuld.filter((l) => inlegVan[l.id][jaar].betaald).reduce((x, l) => x + bedragVan(l, jaar), 0);
-  const gemiddeld = ingevuld.length ? totaal.perLid / ingevuld.length : 0;
+  const betaald = ingevuld.filter((l) => inlegVan[l.id][jaar].betaald).reduce((x, l) => x + bedragVan(l, jaar) * MAANDEN, 0);
+  const gemiddeld = ingevuld.length ? totaal.perLid / MAANDEN / ingevuld.length : 0;
   const teKopieren = vorigJaar ? actief.filter((l) => inlegVan[l.id]?.[jaar]?.bedrag == null && bedragVan(l, vorigJaar) > 0) : [];
 
   async function toevoegen(e) {
@@ -519,7 +522,7 @@ function InlegSectie({ jaar, vorigJaar, inleggers, inlegVan, totaal, slaInlegOp,
           <h2>Eigen inleg</h2>
           <p>
             {ingevuld.length} van {actief.length} leden ingevuld
-            {ingevuld.length > 0 && ` · gemiddeld ${euro(gemiddeld)} · ${euro(betaald)} van ${euro(totaal.perLid)} betaald`}
+            {ingevuld.length > 0 && ` · gemiddeld ${euro(gemiddeld)} per maand · ${euro(totaal.perLid)} per jaar, waarvan ${euro(betaald)} betaald`}
           </p>
         </div>
         {teKopieren.length > 0 && (
@@ -564,15 +567,18 @@ function InlegSectie({ jaar, vorigJaar, inleggers, inlegVan, totaal, slaInlegOp,
                 <span className="ld-sp-letter is-inleg">{l.naam.slice(0, 1).toUpperCase()}</span>
                 <span className="ld-sp-inlegnaam">
                   <strong>{l.naam}</strong>
-                  <small>{vorig > 0 ? `${vorigJaar}: ${euro(vorig)}` : ' '}</small>
+                  <small>
+                    {[r?.bedrag > 0 && `${euro(r.bedrag * MAANDEN)} per jaar`, vorig > 0 && `${vorigJaar}: ${euro(vorig)} p/m`].filter(Boolean).join(' · ') || ' '}
+                  </small>
                 </span>
                 <span className="ld-sp-eur">
                   €
                   <BedragInvoer
                     waarde={r?.bedrag}
-                    label={`Inleg ${l.naam} ${jaar}`}
+                    label={`Inleg per maand ${l.naam} ${jaar}`}
                     opslaan={(bedrag) => slaInlegOp(l.id, jaar, { bedrag })}
                   />
+                  <small className="ld-sp-permaand">/mnd</small>
                 </span>
                 <button
                   className={`ld-sp-betaald ${r?.betaald ? 'is-aan' : ''}`}
