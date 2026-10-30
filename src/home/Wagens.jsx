@@ -3,6 +3,7 @@ import { wagens } from './gegevens.js';
 import { minderBeweging, woorden } from './hulp.js';
 import Icoon from './iconen.jsx';
 import { Logo } from './Logo.jsx';
+import Stippen from './Stippen.jsx';
 
 const STREEPJES_PER_JAAR = 12; // één streepje per maand
 
@@ -271,6 +272,7 @@ export default function Wagens() {
 
   return (
     <section id="wagens" className="bv-hero" aria-label="Onze wagens door de jaren heen">
+      <Stippen />
       <div className="bv-kader">
         {/* Het podium: de foto van het jaar met titel, tekst en knop erin; de tijdlijn direct eronder. */}
         <div className="bv-podium">
