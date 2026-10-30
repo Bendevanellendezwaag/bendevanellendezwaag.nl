@@ -6,7 +6,8 @@
 
 /* ------------------------------------------------------------------ wagens */
 
-// Nieuwste eerst. De tijdlijn loopt van het oudste jaar tot het nieuwste.
+// Nieuwste eerst. De tijdlijn toont precies deze jaren (oud naar nieuw) en 'Wagens gebouwd' telt ze.
+// Een jaar zonder wagen laat je gewoon weg.
 // foto:  hoofdfoto (zet bestanden in public/wagens/, liefst als .webp). Leeg = nette placeholder.
 // uitsnede: optioneel, welk deel van de foto in beeld blijft als hij bijgesneden wordt,
 //        bijvoorbeeld '50% 10%' (midden, bijna bovenaan). Standaard het midden.
@@ -51,13 +52,13 @@ export const wagens = [
     plek: 6,
     fotos: { wagen: [], bouw: [] },
   },
-  // PLACEHOLDER: nog in te vullen
-  ...[2021, 2020].map((jaar) => ({
-    jaar,
-    titel: `Wagen ${jaar}`,
-    foto: '',
+  // 2021: geen optocht, dus ook geen wagen.
+  {
+    jaar: 2020,
+    titel: 'Boeren',
+    foto: '/wagens/2020-boeren.webp',
     fotos: { wagen: [], bouw: [] },
-  })),
+  },
   {
     jaar: 2019,
     titel: 'Piratenboot',

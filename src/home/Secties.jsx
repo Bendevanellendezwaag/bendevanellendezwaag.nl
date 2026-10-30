@@ -7,8 +7,10 @@ import { Logo } from './Logo.jsx';
 /* ------------------------------------------------------------------ over de bende */
 
 export function OverDeBende() {
+  const aantalWagens = new Set(wagens.map((w) => w.jaar)).size;
   const feiten = [
-    { waarde: String(wagens.length), label: wagens.length === 1 ? 'Wagen gebouwd' : 'Wagens gebouwd' },
+    // Telt precies de jaren in de tijdlijn, dus altijd gelijk aan wat je daar ziet.
+    { waarde: String(aantalWagens), label: aantalWagens === 1 ? 'Wagen gebouwd' : 'Wagens gebouwd' },
     // Telt vanzelf mee zodra een wagen een 1e, 2e of 3e plek heeft.
     { waarde: String(wagens.filter((w) => w.plek >= 1 && w.plek <= 3).length), label: 'Podiumplekken' },
     ...deBende.feiten.filter((f) => f.waarde),

@@ -56,7 +56,8 @@ function Tijdlijn({ jaren, actief, onKies }) {
   const frame = useRef(0);
   const [afstand, setAfstand] = useState(190);
   const [breedte, setBreedte] = useState(0);
-  const eerste = jaren[0];
+  // Elk jaar met een wagen krijgt een eigen plek op volgorde; jaren zonder wagen (zoals 2021) ontbreken.
+  const plek = (jaar) => Math.max(0, jaren.indexOf(jaar));
   const aantal = (jaren.length - 1) * STREEPJES_PER_JAAR + 1;
 
   useLayoutEffect(() => {
@@ -74,11 +75,11 @@ function Tijdlijn({ jaren, actief, onKies }) {
   const naarJaar = useCallback(
     (jaar, vloeiend = true) => {
       scroller.current?.scrollTo({
-        left: (jaar - eerste) * afstand,
+        left: plek(jaar) * afstand,
         behavior: vloeiend && !minderBeweging() ? 'smooth' : 'auto',
       });
     },
-    [afstand, eerste],
+    [afstand, jaren],
   );
 
   const actiefRef = useRef(actief);
@@ -106,8 +107,8 @@ function Tijdlijn({ jaren, actief, onKies }) {
     frame.current = requestAnimationFrame(() => {
       const pos = tekenGolf();
       if (pos == null) return;
-      const jaar = eerste + Math.round(pos / afstand);
-      if (jaar !== actiefRef.current && jaren.includes(jaar)) onKies(jaar);
+      const jaar = jaren[Math.max(0, Math.min(jaren.length - 1, Math.round(pos / afstand)))];
+      if (jaar !== actiefRef.current) onKies(jaar);
     });
   };
 
@@ -131,7 +132,7 @@ function Tijdlijn({ jaren, actief, onKies }) {
     const { bewogen } = sleep.current;
     sleep.current = null;
     scroller.current.classList.remove('is-slepen');
-    if (bewogen) naarJaar(eerste + Math.round(scroller.current.scrollLeft / afstand));
+    if (bewogen) naarJaar(jaren[Math.max(0, Math.min(jaren.length - 1, Math.round(scroller.current.scrollLeft / afstand)))]);
   };
 
   const toets = (e) => {
@@ -173,7 +174,7 @@ function Tijdlijn({ jaren, actief, onKies }) {
           <div className="bv-tijdlijn-baan" style={{ width: (jaren.length - 1) * afstand + breedte }}>
             {Array.from({ length: aantal }, (_, n) => {
               const isJaar = n % STREEPJES_PER_JAAR === 0;
-              const jaar = eerste + n / STREEPJES_PER_JAAR;
+              const jaar = jaren[n / STREEPJES_PER_JAAR];
               return (
                 <div
                   key={n}
@@ -353,12 +354,8 @@ function Album({ wagen, onSluit }) {
 
 export default function Wagens() {
   const perJaar = useMemo(() => Object.fromEntries(wagens.map((w) => [w.jaar, w])), []);
-  const jaren = useMemo(() => {
-    const lijst = wagens.map((w) => w.jaar);
-    const van = Math.min(...lijst);
-    const tot = Math.max(...lijst);
-    return Array.from({ length: tot - van + 1 }, (_, i) => van + i);
-  }, []);
+  // Precies de jaren uit de lijst met wagens, oud naar nieuw. Jaren zonder wagen staan er dus niet in.
+  const jaren = useMemo(() => [...new Set(wagens.map((w) => w.jaar))].sort((a, b) => a - b), []);
   const nieuwste = jaren[jaren.length - 1];
   const [actief, setActief] = useState(nieuwste);
   const [album, setAlbum] = useState(false);
