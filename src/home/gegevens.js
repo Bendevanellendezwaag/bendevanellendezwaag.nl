@@ -71,6 +71,7 @@ export const wagens = [
     jaar: 2018,
     titel: 'Non-actief met carnaval',
     foto: '/wagens/2018-non-actief-met-carnaval.webp',
+    plek: 11,
     fotos: { wagen: [], bouw: [] },
   },
 ];
