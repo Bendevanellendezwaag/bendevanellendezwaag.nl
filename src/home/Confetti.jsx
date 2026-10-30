@@ -1,10 +1,12 @@
 import { useEffect, useRef } from 'react';
+import { FEEST_DUUR, feestBezig, startFeest } from './feest.js';
 import { minderBeweging } from './hulp.js';
 
 /*
  * Confetti bij elke klik: een knal vanaf de muis die naar beneden dwarrelt en onderaan uit beeld valt.
  * Ingedrukt houden laadt een mega-knal op: na 1,5 s verschijnt een laadbalk die steeds harder trilt;
  * loslaten geeft een schokgolf, heel veel confetti en een trillend scherm.
+ * Laat je precies los op het groene streepje (2/3 van de balk), dan barst er 5 seconden een feest los (zie feest.js).
  * Alles gebeurt op één canvas over de pagina heen; klikken gaan er gewoon doorheen.
  */
 
@@ -16,6 +18,9 @@ const VAL_MAX = 5.2; // anders vallen ze in een rechte rij naar beneden
 const LADEN_NA = 1500; // na zoveel ms ingedrukt houden verschijnt de laadbalk
 const VOL_NA = 4000; // na zoveel ms is de laadbalk vol
 const MAX_EXTRA = 560; // zoveel extra snippers bij een volle lading
+const ZOET = 2 / 3; // het groene streepje op de laadbalk
+const ZOET_MARGE = 0.03; // zo ver ernaast mag je loslaten (het streepje is precies zo breed)
+const REGEN_PER_BEELD = 3; // confetti die tijdens het feest van boven valt
 
 const willekeurig = (min, max) => min + Math.random() * (max - min);
 
@@ -78,6 +83,7 @@ export default function Confetti() {
     let frame = 0;
     let vorige = 0;
     let ringen = []; // schokgolven bij een mega-knal
+    let regenTot = 0; // tot wanneer het confetti regent (tijdens het feest)
 
     // ---- schermtril: de kopbalk, de inhoud en de voettekst schuiven een fractie heen en weer
     const pagina = canvas.closest('.bv-home');
@@ -86,12 +92,13 @@ export default function Confetti() {
     const zetTril = (px) => {
       if (!pagina) return;
       if (px < 0.3) {
+        if (!pagina.classList.contains('is-trillen')) return;
         pagina.classList.remove('is-trillen');
         pagina.style.removeProperty('--sx');
         pagina.style.removeProperty('--sy');
         return;
       }
-      pagina.classList.add('is-trillen');
+      if (!pagina.classList.contains('is-trillen')) pagina.classList.add('is-trillen');
       pagina.style.setProperty('--sx', `${willekeurig(-px, px).toFixed(1)}px`);
       pagina.style.setProperty('--sy', `${willekeurig(-px, px).toFixed(1)}px`);
     };
@@ -141,6 +148,16 @@ export default function Confetti() {
       const dt = Math.min(2.5, vorige ? (tijd - vorige) / 16.67 : 1);
       vorige = tijd;
 
+      // Tijdens het feest regent het confetti van boven.
+      if (tijd < regenTot) {
+        for (let i = 0; i < REGEN_PER_BEELD * dt; i++) {
+          const s = maakSnipper(willekeurig(0, breedte), -12);
+          s.vx = willekeurig(-1.5, 1.5);
+          s.vy = willekeurig(1, 3.5);
+          snippers.push(s);
+        }
+      }
+
       snippers = snippers.filter((s) => {
         s.vy += ZWAARTEKRACHT * dt;
         // Zacht naar de eigen valsnelheid toe, in plaats van hard afkappen.
@@ -156,7 +173,7 @@ export default function Confetti() {
       });
 
       teken();
-      if (snippers.length || ringen.length) frame = requestAnimationFrame(stap);
+      if (snippers.length || ringen.length || tijd < regenTot) frame = requestAnimationFrame(stap);
       else {
         frame = 0;
         vorige = 0;
@@ -179,7 +196,7 @@ export default function Confetti() {
       houd = null;
       cancelAnimationFrame(laadFrame);
       laadFrame = 0;
-      balk.classList.remove('is-zichtbaar', 'is-vol');
+      balk.classList.remove('is-zichtbaar', 'is-vol', 'is-raak');
       document.documentElement.classList.remove('bv-laden');
       if (!trilFrame) zetTril(0);
     };
@@ -202,6 +219,9 @@ export default function Confetti() {
         balk.style.transform = `translate(${houd.x + dx}px, ${houd.y + dy}px) translate(-50%, -100%) rotate(${draai}deg)`;
         vulling.style.transform = `scaleX(${c})`;
         if (c >= 1) balk.classList.add('is-vol');
+        // Precies op het groene streepje: het streepje licht op.
+        const raak = Math.abs(c - ZOET) <= ZOET_MARGE;
+        if (raak !== balk.classList.contains('is-raak')) balk.classList.toggle('is-raak', raak);
         // Bij een bijna volle lading trilt het scherm al een beetje mee.
         if (!trilFrame) zetTril(Math.max(0, c - 0.6) * 5 + (c >= 1 ? 1.5 : 0));
       }
@@ -227,11 +247,25 @@ export default function Confetti() {
 
     const los = (e) => {
       if (!houd || e.pointerId !== houd.id) return;
-      const { actief, c, x, y } = houd;
+      const { actief, x, y, start } = houd;
+      // De lading precies op het moment van loslaten (niet van het laatste beeld).
+      const c = Math.min(1, Math.max(0, (performance.now() - start - LADEN_NA) / (VOL_NA - LADEN_NA)));
       stopLaden();
       if (!actief) return; // een gewone klik: die regelt de klik-afhandeling hieronder
       negeerKlik = true;
       setTimeout(() => (negeerKlik = false), 60);
+
+      if (Math.abs(c - ZOET) <= ZOET_MARGE && !feestBezig()) {
+        // Raak! Een volle knal en daarna 5 seconden feest met confettiregen.
+        knal(x, y, PER_KLIK + 40 + MAX_EXTRA, 2.5, 0.75);
+        ringen.push({ x, y, start: performance.now(), duur: 900, straal: 900 });
+        ringen.push({ x, y, start: performance.now() + 120, duur: 1100, straal: 1400 });
+        schud(26, 1200);
+        regenTot = performance.now() + FEEST_DUUR;
+        if (!frame) frame = requestAnimationFrame(stap);
+        startFeest(pagina);
+        return;
+      }
       // De mega-knal: hoe voller de balk, hoe meer confetti, hoe harder en hoe meer alle kanten op.
       const kracht = c ** 1.2;
       knal(x, y, PER_KLIK + 40 + Math.round(kracht * MAX_EXTRA), 1 + kracht * 1.5, 0.15 + kracht * 0.6);
@@ -287,6 +321,7 @@ export default function Confetti() {
       <div ref={lading} className="bv-lading" aria-hidden="true">
         <span className="bv-lading-balk">
           <i />
+          <b className="bv-lading-zoet" />
         </span>
       </div>
     </>

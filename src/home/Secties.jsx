@@ -139,7 +139,7 @@ export function Agenda() {
           <div>
             <p className="bv-label bv-onthul">Aftellen naar {aftellen.titel.toLowerCase()}</p>
             <h2 id="bv-agenda-kop" className="bv-reuzekop bv-onthul">
-              Waar zie je ons?
+              Wanneer zie je ons?
             </h2>
           </div>
           <div className="bv-datum-kaart bv-onthul" aria-label={`${datum.dag} ${datum.maand} ${datum.jaar}`}>
@@ -242,7 +242,7 @@ function Bouwplaats() {
   return (
     <div className="bv-bouwplaats bv-onthul">
       <div className="bv-lint" aria-hidden="true">
-        <span>{LINT.repeat(6)}</span>
+        <span>{LINT.repeat(14)}</span>
       </div>
       <div className={`bv-bouwplaats-bord ${bouwplaats.foto ? 'met-foto' : ''}`}>
         {bouwplaats.foto && (
@@ -263,7 +263,7 @@ function Bouwplaats() {
         </div>
       </div>
       <div className="bv-lint is-onder" aria-hidden="true">
-        <span>{LINT.repeat(6)}</span>
+        <span>{LINT.repeat(14)}</span>
       </div>
     </div>
   );
