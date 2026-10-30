@@ -55,14 +55,16 @@ export const wagens = [
   // 2021: geen optocht, dus ook geen wagen.
   {
     jaar: 2020,
-    titel: 'Boeren',
+    titel: 'Leven op het platteland',
     foto: '/wagens/2020-boeren.webp',
+    plek: 9,
     fotos: { wagen: [], bouw: [] },
   },
   {
     jaar: 2019,
-    titel: 'Piratenboot',
+    titel: 'Stuurloos',
     foto: '/wagens/2019-piratenboot.webp',
+    plek: 11,
     fotos: { wagen: [], bouw: [] },
   },
   {
