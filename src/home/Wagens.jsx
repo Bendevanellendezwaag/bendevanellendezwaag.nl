@@ -271,36 +271,37 @@ export default function Wagens() {
 
   return (
     <section id="wagens" className="bv-hero" aria-label="Onze wagens door de jaren heen">
-      <div className="bv-kader bv-hero-kop">
-        <p className="bv-label">{actief === nieuwste ? `Wagen ${actief} · heden` : `Wagen ${actief}`}</p>
-        <h1 className="bv-hero-titel" key={`h${actief}`} aria-label={titel}>
-          {woorden(titel).map((w, i) => (
-            <span className="bv-woord" key={`${w}${i}`} aria-hidden="true">
-              <span style={{ '--i': i }}>{w}</span>
-            </span>
-          ))}
-        </h1>
-      </div>
-
-      <div className="bv-hero-beeld-vak">
-        <div className="bv-hero-beeld" data-scroll="groei">
-          <div className="bv-hero-foto" key={`f${actief}`} data-scroll="door">
+      <div className="bv-kader">
+        {/* Het podium: de foto van het jaar met titel, tekst en knop erin; de tijdlijn direct eronder. */}
+        <div className="bv-podium">
+          <div className="bv-podium-foto" key={`f${actief}`}>
             <WagenFoto wagen={wagen} jaar={actief} />
           </div>
+          <div className="bv-podium-schaduw" aria-hidden="true" />
+          {wagen?.plek ? <PlekSticker key={`s${actief}`} plek={wagen.plek} jaar={actief} /> : null}
+
+          <div className="bv-podium-info" key={`t${actief}`}>
+            <div className="bv-podium-tekst">
+              <p className="bv-label">{actief === nieuwste ? `Wagen ${actief} · heden` : `Wagen ${actief}`}</p>
+              <h1 className="bv-hero-titel" aria-label={titel}>
+                {woorden(titel).map((w, i) => (
+                  <span className="bv-woord" key={`${w}${i}`} aria-hidden="true">
+                    <span style={{ '--i': i }}>{w}</span>
+                  </span>
+                ))}
+              </h1>
+              {(!wagen || wagen.tekst) && (
+                <p className="bv-hero-intro">{wagen ? wagen.tekst : 'In dit jaar hebben we geen wagen gebouwd.'}</p>
+              )}
+            </div>
+            {wagen && (
+              <button className="bv-knop is-groot" onClick={() => setAlbum(true)}>
+                Bekijk de foto's <Icoon naam="pijl" grootte={18} />
+              </button>
+            )}
+          </div>
         </div>
-        {wagen?.plek ? <PlekSticker key={`s${actief}`} plek={wagen.plek} jaar={actief} /> : null}
-      </div>
 
-      <div className="bv-kader bv-hero-onder" key={`o${actief}`}>
-        {(!wagen || wagen.tekst) && <p className="bv-hero-intro">{wagen ? wagen.tekst : 'In dit jaar hebben we geen wagen gebouwd.'}</p>}
-        {wagen && (
-          <button className="bv-knop is-groot" onClick={() => setAlbum(true)}>
-            Bekijk de foto's <Icoon naam="pijl" grootte={18} />
-          </button>
-        )}
-      </div>
-
-      <div className="bv-kader">
         <Tijdlijn jaren={jaren} actief={actief} onKies={setActief} />
       </div>
 

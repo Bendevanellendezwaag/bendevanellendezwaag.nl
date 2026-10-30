@@ -148,11 +148,6 @@ export const sponsorWorden = '';
 export const instagram = {
   account: 'bendevanellendezwaag',
   url: 'https://www.instagram.com/bendevanellendezwaag/',
-  // De 3 nieuwste posts komen automatisch binnen via een gratis Behold-feed (behold.so):
-  // maak daar een account, koppel Instagram, kies 'JSON feed' en plak de feed-link hieronder,
-  // bijvoorbeeld 'https://feeds.behold.so/AbCdEf123'. Zolang dit leeg is, toont de site nette tegels
-  // die naar het Instagram-profiel linken.
-  feed: '',
 };
 
 /* ------------------------------------------------------------------ menu */
@@ -160,7 +155,6 @@ export const instagram = {
 // Pagina's in het menu. Zolang alles op de homepagina staat, wijzen ze naar de juiste plek.
 // Komt er een losse pagina bij? Zet de href op bijvoorbeeld '/agenda'. klaar: false toont 'binnenkort'.
 export const paginas = [
-  { label: 'Home', href: '#top', klaar: true },
   { label: 'Onze wagens', href: '#wagens', klaar: true },
   { label: 'De Bende', href: '#over', klaar: true },
   { label: 'Agenda', href: '#agenda', klaar: true },

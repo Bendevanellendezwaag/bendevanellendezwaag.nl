@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { aftellen, agenda, bouwplaats, deBende, instagram, paginas, sponsors, sponsorWorden, wagens } from './gegevens.js';
 import { datumDelen, scrolNaar, useNu, woorden } from './hulp.js';
 import Icoon from './iconen.jsx';
@@ -250,7 +250,7 @@ export function Sponsors() {
         {bouwplaats && <Bouwplaats />}
 
         {hoofd.length > 0 && (
-          <ul className="bv-hoofdsponsors" data-scroll="in">
+          <ul className="bv-hoofdsponsors">
             {hoofd.map((s, i) => (
               <li key={`${s.naam}${i}`} style={{ '--i': i }}>
                 <SponsorTegel s={s} />
@@ -272,7 +272,7 @@ export function Sponsors() {
       <div className="bv-kader">
         <div className="bv-sponsor-actie bv-onthul">
           <div>
-            <strong>Ook jouw naam op de wagen?</strong>
+            <strong>Wil jij hier ook aan bijdragen?</strong>
             <p>We zoeken altijd bedrijven die ons een warm hart toedragen.</p>
           </div>
           <a
@@ -291,51 +291,7 @@ export function Sponsors() {
 
 /* ------------------------------------------------------------------ instagram */
 
-function useInstagramPosts() {
-  const [posts, setPosts] = useState(null);
-  useEffect(() => {
-    if (!instagram.feed) return undefined;
-    let weg = false;
-    fetch(instagram.feed)
-      .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
-      .then((d) => !weg && setPosts((d.posts || []).slice(0, 3)))
-      .catch(() => !weg && setPosts(null));
-    return () => {
-      weg = true;
-    };
-  }, []);
-  return posts;
-}
-
-function Post({ post, i }) {
-  if (!post) {
-    return (
-      <a className="bv-post is-leeg" href={instagram.url} target="_blank" rel="noopener noreferrer" style={{ '--i': i }}>
-        <Logo titel="" />
-        <span className="bv-post-icoon">
-          <Icoon naam="instagram" grootte={22} />
-        </span>
-        <span className="bv-post-tekst">Bekijk op Instagram</span>
-      </a>
-    );
-  }
-  const beeld = post.sizes?.medium?.mediaUrl || post.thumbnailUrl || post.mediaUrl;
-  const tekst = post.prunedCaption || post.caption || '';
-  return (
-    <a className="bv-post" href={post.permalink} target="_blank" rel="noopener noreferrer" style={{ '--i': i }}>
-      <img src={beeld} alt={post.altText || tekst.slice(0, 120) || 'Instagram-post van de Bende van Ellende'} loading="lazy" />
-      <span className="bv-post-icoon">
-        <Icoon naam="instagram" grootte={22} />
-      </span>
-      {tekst && <span className="bv-post-tekst">{tekst.length > 140 ? `${tekst.slice(0, 140)}…` : tekst}</span>}
-    </a>
-  );
-}
-
 export function Instagram() {
-  const posts = useInstagramPosts();
-  const reeks = posts?.length ? posts : [null, null, null];
-
   return (
     <section id="instagram" className="bv-laag is-blauw" aria-labelledby="bv-insta-kop">
       <div className="bv-kader">
@@ -349,11 +305,6 @@ export function Instagram() {
           <a className="bv-knop is-groot bv-onthul" href={instagram.url} target="_blank" rel="noopener noreferrer">
             <Icoon naam="instagram" grootte={18} />@{instagram.account}
           </a>
-        </div>
-        <div className="bv-posts" data-scroll="in">
-          {reeks.map((post, i) => (
-            <Post key={post?.id || i} post={post} i={i} />
-          ))}
         </div>
       </div>
     </section>
@@ -398,7 +349,8 @@ export function Voet({ onLeden }) {
           </nav>
         </div>
       </div>
-      <div className="bv-voet-logo" data-scroll="in">
+      {/* Het logo bouwt zich op als je onderaan komt en golft daarna af en toe even. */}
+      <div className="bv-voet-logo bv-onthul">
         <Logo titel="" />
       </div>
       <div className="bv-kader">

@@ -1049,17 +1049,89 @@ html.bv-geen-scroll {
 
 /* ---------------------------------------------------------------- hero */
 
+/* Alles van één jaar in één beeld: het podium (foto met titel, tekst en knop) en de tijdlijn eronder. */
 .bv-hero {
   position: relative;
-  padding: calc(var(--kop-hoogte) + clamp(24px, 6vh, 72px)) 0 calc(var(--laag) + clamp(56px, 9vh, 104px));
+  padding: calc(var(--kop-hoogte) + 4px) 0 calc(var(--laag) + clamp(28px, 4vh, 48px));
   scroll-margin-top: 0;
 }
 
+.bv-podium {
+  position: relative;
+  height: clamp(440px, calc(100svh - var(--kop-hoogte) - 132px), 940px);
+  overflow: hidden;
+  border-radius: var(--rond);
+  background: var(--blauw-diep);
+  box-shadow: 0 50px 90px -50px rgba(8, 26, 90, 0.75);
+  isolation: isolate;
+}
+
+.bv-podium-foto {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  animation: bv-foto-in 0.9s var(--zacht-uit) both;
+}
+
+.bv-podium-foto img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: bv-foto-zoom 9s var(--zacht-uit) both;
+}
+
+@keyframes bv-foto-in {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+  }
+}
+
+/* Heel langzaam inzoomen, zodat de foto leeft. */
+@keyframes bv-foto-zoom {
+  from {
+    transform: scale(1.08);
+  }
+}
+
+/* Donkere gloed onderaan, zodat de witte tekst op elke foto leesbaar is. */
+.bv-podium-schaduw {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(to top, rgba(6, 18, 64, 0.92) 0%, rgba(6, 18, 64, 0.55) 30%, rgba(6, 18, 64, 0) 62%),
+    linear-gradient(to bottom, rgba(6, 18, 64, 0.35) 0%, rgba(6, 18, 64, 0) 22%);
+  pointer-events: none;
+}
+
+.bv-podium-info {
+  position: absolute;
+  inset: auto 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px 40px;
+  padding: clamp(24px, 3.4vw, 52px);
+}
+
+.bv-podium-tekst {
+  flex: 1 1 520px;
+  min-width: 0;
+}
+
+.bv-podium-info .bv-label {
+  margin-bottom: 14px;
+  animation: bv-tekst-in 0.7s var(--zacht-uit) both;
+}
+
 .bv-hero-titel {
-  max-width: 14ch;
-  font-size: clamp(2.5rem, 8.6vw, 9.6rem);
+  max-width: 16ch;
+  font-size: clamp(2.2rem, 5.4vw, 6.2rem);
   font-weight: 800;
-  line-height: 0.92;
+  line-height: 0.95;
   letter-spacing: -0.05em;
 }
 
@@ -1088,53 +1160,33 @@ html.bv-geen-scroll {
   }
 }
 
-.bv-hero-beeld-vak {
-  --inset: max(var(--rand), calc((100vw - var(--breed)) / 2));
-  position: relative;
-  margin-top: clamp(28px, 5vh, 56px);
+.bv-hero-intro {
+  max-width: 46ch;
+  margin: 16px 0 0;
+  font-size: clamp(1rem, 1.25vw, 1.2rem);
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.9);
+  animation: bv-tekst-in 0.8s var(--zacht-uit) 0.15s both;
 }
 
-/* De foto start binnen het kader en vouwt bij het scrollen uit tot schermbreed. */
-.bv-hero-beeld {
-  --p: 0;
-  position: relative;
-  height: min(86vh, 56.25vw);
-  min-height: 300px;
-  overflow: hidden;
-  background: var(--blauw-diep);
-  clip-path: inset(0 calc((1 - var(--p)) * var(--inset)) round calc((1 - var(--p)) * var(--rond)));
-  will-change: clip-path;
+.bv-podium-info > .bv-knop {
+  flex: none;
+  animation: bv-tekst-in 0.8s var(--zacht-uit) 0.25s both;
 }
 
-.bv-hero-foto {
-  --p: 0.5;
-  position: absolute;
-  inset: -7% 0;
-  transform: translateY(calc((var(--p) - 0.5) * -10%));
-  animation: bv-foto-in 0.9s var(--zacht-uit) both;
-}
-
-.bv-hero-foto img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-@keyframes bv-foto-in {
+@keyframes bv-tekst-in {
   from {
     opacity: 0;
-    filter: blur(10px);
+    transform: translateY(16px);
   }
 }
 
-/* Draaiende sticker met de eindplek. */
+/* Draaiende sticker met de eindplek, rechtsboven in de foto. */
 .bv-sticker {
   position: absolute;
-  top: calc(-1 * clamp(44px, 6vw, 84px));
-  right: calc(var(--inset) + clamp(12px, 3vw, 40px));
-  z-index: 2;
-  width: clamp(112px, 13vw, 184px);
+  top: clamp(16px, 2.4vw, 32px);
+  right: clamp(16px, 2.4vw, 32px);
+  width: clamp(96px, 10vw, 156px);
   aspect-ratio: 1;
   display: grid;
   place-items: center;
@@ -1167,7 +1219,7 @@ html.bv-geen-scroll {
 
 .bv-sticker-plek {
   font-family: var(--font-kop);
-  font-size: clamp(2.2rem, 4vw, 3.6rem);
+  font-size: clamp(2rem, 3.4vw, 3.2rem);
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.05em;
@@ -1193,34 +1245,8 @@ html.bv-geen-scroll {
   }
 }
 
-.bv-hero-onder {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 24px 48px;
-  margin-top: clamp(28px, 5vh, 52px);
-  animation: bv-tekst-in 0.8s var(--zacht-uit) 0.15s both;
-}
-
-.bv-hero-intro {
-  max-width: 34ch;
-  margin: 0;
-  font-size: clamp(1.15rem, 1.9vw, 1.7rem);
-  font-weight: 500;
-  line-height: 1.4;
-  letter-spacing: -0.015em;
-}
-
-@keyframes bv-tekst-in {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-}
-
 .bv-hero .bv-tijdlijn {
-  margin-top: clamp(36px, 6vh, 64px);
+  margin-top: 14px;
 }
 
 /* ---------------------------------------------------------------- over de bende */
@@ -1608,11 +1634,6 @@ html.bv-geen-scroll {
   background: var(--wit);
   box-shadow: 0 24px 50px -24px rgba(11, 31, 102, 0.55);
   transform: rotate(-1.6deg);
-  transition: transform 0.5s var(--vering);
-}
-
-.bv-bouwplaats-foto:hover {
-  transform: rotate(0deg) scale(1.01);
 }
 
 .bv-bouwplaats-foto img {
@@ -1669,9 +1690,8 @@ html.bv-geen-scroll {
   }
 }
 
-/* Drie hoofdsponsors: grote witte tegels die gespreid binnenkomen. */
+/* Drie hoofdsponsors: grote witte tegels. */
 .bv-hoofdsponsors {
-  --p: 0;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 16px;
@@ -1682,7 +1702,6 @@ html.bv-geen-scroll {
 
 .bv-hoofdsponsors li {
   position: relative;
-  transform: translateY(calc((1 - var(--p)) * (60px + var(--i) * 40px)));
 }
 
 .bv-hoofdsponsors .bv-sponsor {
@@ -1718,18 +1737,12 @@ html.bv-geen-scroll {
   color: var(--blauw-nacht);
   text-align: center;
   text-decoration: none;
-  transition: transform 0.45s var(--vering);
 }
 
 .bv-sponsor.is-donker {
   background: #111318;
   color: var(--wit);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
-}
-
-a.bv-sponsor:hover,
-div.bv-sponsor:hover {
-  transform: translateY(-4px);
 }
 
 .bv-sponsor span {
@@ -1744,7 +1757,7 @@ div.bv-sponsor:hover {
   object-fit: contain;
 }
 
-/* Rijen die eindeloos voorbij schuiven; stil zodra je eroverheen gaat. */
+/* Rijen die eindeloos voorbij schuiven. */
 .bv-rijen {
   display: grid;
   gap: 12px;
@@ -1765,10 +1778,6 @@ div.bv-sponsor:hover {
 
 .bv-rij.is-omgekeerd .bv-rij-spoor {
   animation-direction: reverse;
-}
-
-.bv-rij:hover .bv-rij-spoor {
-  animation-play-state: paused;
 }
 
 .bv-rij ul {
@@ -1845,109 +1854,13 @@ div.bv-sponsor:hover {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
+  padding-bottom: clamp(8px, 2vh, 24px);
   justify-content: space-between;
   gap: 28px 40px;
 }
 
 .bv-insta-kop .bv-reuzekop {
   max-width: 11ch;
-}
-
-/* De drie posts liggen eerst als een stapel en waaieren uit terwijl je scrolt. */
-.bv-posts {
-  --p: 0;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(12px, 1.6vw, 20px);
-  margin-top: clamp(40px, 7vh, 72px);
-}
-
-.bv-post {
-  position: relative;
-  display: block;
-  aspect-ratio: 4 / 5;
-  overflow: hidden;
-  border-radius: var(--rond);
-  background: var(--blauw-diep);
-  color: var(--wit);
-  text-decoration: none;
-  transform: translateX(calc((1 - var(--p)) * (1 - var(--i)) * 102%))
-    rotate(calc((1 - var(--p)) * (var(--i) - 1) * 9deg));
-  box-shadow: 0 40px 70px -40px rgba(8, 26, 90, 0.7);
-  transition: box-shadow 0.4s;
-}
-
-.bv-post:nth-child(2) {
-  z-index: 2;
-}
-
-.bv-post img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.8s var(--zacht-uit);
-}
-
-.bv-post:hover img {
-  transform: scale(1.06);
-}
-
-.bv-post-icoon {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 44px;
-  height: 44px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.92);
-  color: var(--blauw);
-}
-
-.bv-post-tekst {
-  position: absolute;
-  inset: auto 0 0;
-  padding: 60px 20px 20px;
-  background: linear-gradient(transparent, rgba(8, 26, 90, 0.85));
-  font-size: 0.92rem;
-  line-height: 1.5;
-  opacity: 0;
-  transform: translateY(12px);
-  transition:
-    opacity 0.35s,
-    transform 0.45s var(--zacht-uit);
-}
-
-.bv-post:hover .bv-post-tekst,
-.bv-post:focus-visible .bv-post-tekst {
-  opacity: 1;
-  transform: none;
-}
-
-.bv-post.is-leeg {
-  display: grid;
-  place-items: center;
-  background:
-    radial-gradient(80% 60% at 50% 30%, rgba(255, 255, 255, 0.16), transparent 70%),
-    var(--blauw-diep);
-}
-
-.bv-post.is-leeg .bv-logo {
-  width: 48%;
-  color: rgba(255, 255, 255, 0.22);
-}
-
-.bv-post.is-leeg .bv-post-tekst {
-  padding: 20px;
-  background: none;
-  font-family: var(--font-kop);
-  font-size: 0.72rem;
-  letter-spacing: 0.12em;
-  text-align: center;
-  text-transform: uppercase;
-  opacity: 0.85;
-  transform: none;
 }
 
 /* ---------------------------------------------------------------- voettekst */
@@ -1993,19 +1906,49 @@ div.bv-sponsor:hover {
   color: var(--blauw);
 }
 
-/* Het logo schuift groot omhoog onderaan de pagina. */
+/* Het logo bouwt zich deel voor deel op zodra het in beeld komt en golft daarna af en toe. */
 .bv-voet-logo {
-  --p: 0;
-  overflow: hidden;
-  padding: clamp(40px, 8vh, 96px) var(--rand) 0;
+  padding: clamp(48px, 9vh, 104px) var(--rand) 0;
+}
+
+.bv-voet-logo.bv-onthul {
+  transform: none;
 }
 
 .bv-voet-logo .bv-logo {
   width: min(100%, 780px);
   margin: 0 auto;
   color: var(--blauw);
-  transform: translateY(calc((1 - var(--p)) * 40%)) scale(calc(0.9 + var(--p) * 0.1));
-  transform-origin: 50% 100%;
+}
+
+.bv-voet-logo .bv-logo path {
+  opacity: 0;
+}
+
+.bv-voet-logo.is-zichtbaar .bv-logo path {
+  animation:
+    bv-intro-pad 0.9s var(--vering) forwards,
+    bv-golf 6s ease-in-out infinite;
+  animation-delay:
+    calc(var(--i) * 110ms),
+    calc(2.4s + var(--i) * 90ms);
+}
+
+@keyframes bv-golf {
+  0%,
+  72%,
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+  80% {
+    opacity: 1;
+    transform: translateY(-9%) rotate(-3deg);
+  }
+  88% {
+    opacity: 1;
+    transform: translateY(2%) rotate(1deg);
+  }
 }
 
 .bv-voet-onder {
@@ -2086,13 +2029,75 @@ div.bv-sponsor:hover {
     display: none;
   }
 
-  .bv-hero-beeld {
-    height: auto;
-    aspect-ratio: 4 / 3;
-    min-height: 0;
+  /* Op de telefoon: foto bovenin het podium, tekst en knop eronder in hetzelfde kader. */
+  .bv-hero {
+    padding-top: calc(var(--kop-hoogte) + 2px);
   }
 
-  .bv-hero-onder .bv-knop,
+  .bv-podium {
+    height: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .bv-podium-foto {
+    position: relative;
+    z-index: 0;
+    aspect-ratio: 4 / 3;
+  }
+
+  .bv-podium-schaduw {
+    display: none;
+  }
+
+  .bv-podium-info {
+    position: relative;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 18px;
+    padding: 20px 20px 22px;
+  }
+
+  .bv-podium-tekst {
+    flex: none;
+  }
+
+  .bv-podium-info .bv-label {
+    margin-bottom: 10px;
+  }
+
+  .bv-hero-titel {
+    font-size: clamp(1.8rem, 8.4vw, 2.4rem);
+  }
+
+  .bv-hero-intro {
+    margin-top: 10px;
+    font-size: 0.95rem;
+  }
+
+  .bv-podium-info > .bv-knop {
+    width: 100%;
+    padding: 16px 24px;
+  }
+
+  .bv-sticker {
+    top: 12px;
+    right: 12px;
+    width: 84px;
+  }
+
+  .bv-sticker text {
+    font-size: 17px;
+  }
+
+  .bv-sticker-plek {
+    font-size: 1.7rem;
+  }
+
+  .bv-hero .bv-tijdlijn {
+    margin-top: 6px;
+  }
+
   .bv-sponsor-actie .bv-knop {
     width: 100%;
   }
@@ -2117,33 +2122,6 @@ div.bv-sponsor:hover {
 
   .bv-agenda-info {
     grid-column: 2;
-  }
-
-  /* Posts naast elkaar om doorheen te vegen. */
-  .bv-posts {
-    display: flex;
-    margin-left: calc(-1 * var(--rand));
-    margin-right: calc(-1 * var(--rand));
-    padding: 0 var(--rand) 8px;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-  }
-
-  .bv-posts::-webkit-scrollbar {
-    display: none;
-  }
-
-  .bv-post {
-    flex: none;
-    width: 78vw;
-    scroll-snap-align: center;
-    transform: none;
-  }
-
-  .bv-post-tekst {
-    opacity: 1;
-    transform: none;
   }
 
   .bv-voet-nav {
