@@ -153,3 +153,14 @@ export const jaarBijwerken = (jaar, velden) => doe(supabase.from('sponsorjaren')
 export const factuurinstellingen = () => doe(supabase.from('factuurinstellingen').select('*').eq('id', 1).maybeSingle());
 export const factuurinstellingenOpslaan = (velden) =>
   doe(supabase.from('factuurinstellingen').upsert({ ...velden, id: 1 }).select().single());
+
+export const inleggers = () => doe(supabase.from('inleggers').select('*').order('naam'));
+export const inleg = () => doe(supabase.from('inleg').select('*'));
+export const inleggerOpslaan = ({ id, ...velden }) =>
+  doe(
+    id
+      ? supabase.from('inleggers').update(velden).eq('id', id).select().single()
+      : supabase.from('inleggers').insert(velden).select().single(),
+  );
+export const inlegOpslaan = (velden) =>
+  doe(supabase.from('inleg').upsert(velden, { onConflict: 'inlegger,jaar' }).select().single());

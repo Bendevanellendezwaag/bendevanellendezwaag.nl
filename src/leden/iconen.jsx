@@ -19,6 +19,8 @@ const PADEN = {
   sponsor: 'M17 6.5A6 6 0 1 0 17 17.5M4 10h9M4 14h9',
   factuur: 'M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8zM14 3v5h5M9 13h6M9 17h4',
   printer: 'M6 9V3h12v6M6 18H4a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-2M6 14h12v7H6z',
+  filter: 'M4 5h16l-6 7v6l-4 2v-8z',
+  sorteer: 'M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4',
   pen: 'M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z',
 };
 

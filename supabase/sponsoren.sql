@@ -115,3 +115,40 @@ values (
   'Bouwtekening carnaval {jaar}',
   'Blijf op de hoogte van het bouwproces via onze Instagram en Facebook!')
 on conflict (id) do nothing;
+
+-- ---------------------------------------------------------------- eigen inleg per lid (30-10-2026)
+--
+-- Flexibele inleg: ieder lid legt een eigen bedrag in. inleggers = de leden van de
+-- bende (los van de accounts, niet iedereen heeft er een). Zolang er voor een jaar
+-- geen inleg per lid is ingevuld, telt sponsorjaren.eigen_inleg als totaal.
+
+create table if not exists public.inleggers (
+  id            uuid primary key default gen_random_uuid(),
+  naam          text not null check (char_length(naam) between 1 and 60),
+  actief        boolean not null default true,
+  aangemaakt_op timestamptz not null default now()
+);
+alter table public.inleggers enable row level security;
+
+create table if not exists public.inleg (
+  id       uuid primary key default gen_random_uuid(),
+  inlegger uuid not null references public.inleggers (id) on delete cascade,
+  jaar     int not null references public.sponsorjaren (jaar) on delete cascade,
+  bedrag   numeric(10, 2) check (bedrag >= 0),
+  betaald  boolean not null default false,
+  notitie  text,
+  unique (inlegger, jaar)
+);
+alter table public.inleg enable row level security;
+
+drop policy if exists "inleggers beheer" on public.inleggers;
+create policy "inleggers beheer" on public.inleggers
+  for all to authenticated
+  using (public.is_beheerder()) with check (public.is_beheerder());
+
+drop policy if exists "inleg beheer" on public.inleg;
+create policy "inleg beheer" on public.inleg
+  for all to authenticated
+  using (public.is_beheerder()) with check (public.is_beheerder());
+
+revoke all on public.inleggers, public.inleg from anon;

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as api from './api.js';
 import Icoon from './iconen.jsx';
 import { meld } from './melding.js';
@@ -6,10 +6,17 @@ import { Leeg, Paginakop } from './onderdelen.jsx';
 import Factuur from './Factuur.jsx';
 
 const BEELD_KEY = 'bve-sponsorweergave';
-const SOORTEN = { zakelijk: 'Zakelijk', familie: 'Familie & vrienden' };
+const SECTIE_KEY = 'bve-sponsorsectie';
+const SECTIES = {
+  zakelijk: { label: 'Bedrijven', enkel: 'bedrijf', nieuw: 'Nieuw bedrijf' },
+  familie: { label: 'Familie & vrienden', enkel: 'familie/vriend', nieuw: 'Nieuwe familie/vriend' },
+  inleg: { label: 'Eigen inleg', enkel: 'lid', nieuw: 'Lid toevoegen' },
+};
+const SOORTEN = { zakelijk: 'Bedrijf', familie: 'Familie & vrienden' };
 const BENADERING = { fysiek: 'Langs geweest', mail: 'Mail', app: 'App' };
 const BETAALWIJZE = { factuur: 'Factuur', tikkie: 'Tikkie', contant: 'Contant' };
-const WEERGAVE = { alle: 'Alle', mee: 'Doen mee', benaderen: 'Nog benaderen', geen: 'Niet dit jaar' };
+const FILTERS = { alle: 'Iedereen', mee: 'Doen mee', benaderen: 'Nog benaderen', geen: 'Niet dit jaar', open: 'Nog niet ontvangen' };
+const SORTERINGEN = { hoog: 'Hoog → laag', laag: 'Laag → hoog', vorig: 'Vorig jaar hoog → laag', naam: 'Naam A → Z' };
 
 const euroFmt = new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
 const euro = (n) => euroFmt.format(n || 0);
@@ -22,45 +29,62 @@ function leesWaarde(tekst) {
   if (/^\d+(\.\d+)?$/.test(schoon)) return { bedrag: Number(schoon), natura: null };
   return { bedrag: null, natura: t.slice(0, 80) };
 }
-const toonWaarde = (b) => (!b ? '' : b.natura ? b.natura : b.bedrag != null ? String(b.bedrag).replace('.', ',') : '');
+const toonWaarde = (b) => (!b ? '' : b.natura ? b.natura : b.bedrag != null ? String(Number(b.bedrag)).replace('.', ',') : '');
 // Namen als ’t Valkje sorteren op de V, niet bovenaan.
 const sorteerNaam = (n) => n.replace(/^[^a-z0-9]*(t\s)?/i, '');
 const naamVolgorde = (a, b) => sorteerNaam(a).localeCompare(sorteerNaam(b), 'nl', { sensitivity: 'base' });
 const doetMee = (b) => !!b && (b.bedrag > 0 || !!b.natura);
+// Om op te sorteren: in natura telt mee boven 'niets', onder elk bedrag.
+const sorteerWaarde = (b) => (b?.natura ? 0.5 : Number(b?.bedrag) || 0);
 
-/** Beheerder: alle sponsoren met hun bijdrage per jaar. */
+function onthouden(sleutel, standaard) {
+  try {
+    return localStorage.getItem(sleutel) || standaard;
+  } catch {
+    return standaard;
+  }
+}
+// Op de telefoon is er geen ruimte voor de tabel: dan altijd de lijst.
+function useSmal(grens = 860) {
+  const vraag = `(max-width: ${grens}px)`;
+  const [smal, setSmal] = useState(() => window.matchMedia(vraag).matches);
+  useEffect(() => {
+    const m = window.matchMedia(vraag);
+    const wissel = () => setSmal(m.matches);
+    m.addEventListener('change', wissel);
+    return () => m.removeEventListener('change', wissel);
+  }, [vraag]);
+  return smal;
+}
+
+function bewaar(sleutel, waarde) {
+  try {
+    localStorage.setItem(sleutel, waarde);
+  } catch {
+    /* niet onthouden */
+  }
+}
+
+/** Beheerder: sponsoring per jaar, strikt gescheiden in bedrijven, familie & vrienden en eigen inleg. */
 export default function Sponsoren() {
   const [data, setData] = useState(null);
   const [fout, setFout] = useState(null);
   const [jaar, setJaar] = useState(null);
-  const [soort, setSoort] = useState('alle');
-  const [weergave, setWeergave] = useState('alle');
-  const [zoek, setZoek] = useState('');
+  const [sectie, setSectieState] = useState(() => onthouden(SECTIE_KEY, 'zakelijk'));
   const [open, setOpen] = useState(null); // sponsor-id, of 'nieuw'
-  const [sorteer, setSorteer] = useState(null); // null = op naam, anders een jaar (hoogste bedrag eerst)
   const [factuur, setFactuur] = useState(null); // { sponsor, jaar } of { jaar } voor het lege sjabloon
-  const [beeld, setBeeld] = useState(() => {
-    try {
-      return localStorage.getItem(BEELD_KEY) || 'tegels';
-    } catch {
-      return 'tegels';
-    }
-  });
-  const kiesBeeld = (b) => {
-    setBeeld(b);
-    try {
-      localStorage.setItem(BEELD_KEY, b);
-    } catch {
-      /* niet onthouden */
-    }
+
+  const setSectie = (s) => {
+    setSectieState(s);
+    bewaar(SECTIE_KEY, s);
   };
 
   const laad = useCallback(async () => {
-    const [s, b, j] = await Promise.all([api.sponsoren(), api.sponsorbijdragen(), api.sponsorjaren()]);
+    const [s, b, j, l, i] = await Promise.all([api.sponsoren(), api.sponsorbijdragen(), api.sponsorjaren(), api.inleggers(), api.inleg()]);
     const mis = [s, b, j].find((x) => x.error);
     if (mis) return setFout(mis.error);
-    setFout(null);
-    setData({ sponsoren: s.data, bijdragen: b.data, jaren: j.data });
+    setFout(l.error || i.error ? 'Eigen inleg per lid is nog niet beschikbaar: draai de nieuwste sponsoren.sql.' : null);
+    setData({ sponsoren: s.data, bijdragen: b.data, jaren: j.data, inleggers: l.data || [], inleg: i.data || [] });
   }, []);
 
   useEffect(() => {
@@ -70,44 +94,58 @@ export default function Sponsoren() {
   const jaren = data?.jaren.map((j) => j.jaar) || [];
   const gekozen = jaar ?? jaren[jaren.length - 1];
 
-  // bijdrage[sponsorId][jaar]
+  // bijdrage[sponsorId][jaar] en inlegVan[inleggerId][jaar]
   const bijdrage = useMemo(() => {
     const m = {};
     data?.bijdragen.forEach((b) => ((m[b.sponsor] ||= {})[b.jaar] = b));
     return m;
   }, [data]);
+  const inlegVan = useMemo(() => {
+    const m = {};
+    data?.inleg.forEach((r) => ((m[r.inlegger] ||= {})[r.jaar] = r));
+    return m;
+  }, [data]);
 
   const totalen = useMemo(() => {
     const t = {};
-    data?.jaren.forEach((j) => (t[j.jaar] = { zakelijk: 0, familie: 0, inleg: Number(j.eigen_inleg) || 0, aantal: 0, natura: 0, ontvangen: 0 }));
+    data?.jaren.forEach(
+      (j) =>
+        (t[j.jaar] = {
+          zakelijk: 0,
+          familie: 0,
+          inleg: 0,
+          los: Number(j.eigen_inleg) || 0, // totaal zonder verdeling per lid
+          perLid: 0,
+          n: { zakelijk: 0, familie: 0, inleg: 0 },
+          natura: 0,
+          ontvangen: { zakelijk: 0, familie: 0 },
+        }),
+    );
     const soortVan = Object.fromEntries((data?.sponsoren || []).map((s) => [s.id, s.soort]));
     data?.bijdragen.forEach((b) => {
       const r = t[b.jaar];
-      if (!r || !soortVan[b.sponsor]) return;
-      r[soortVan[b.sponsor]] += Number(b.bedrag) || 0;
-      if (doetMee(b)) r.aantal += 1;
+      const soort = soortVan[b.sponsor];
+      if (!r || !soort) return;
+      r[soort] += Number(b.bedrag) || 0;
+      if (doetMee(b)) r.n[soort] += 1;
       if (b.natura) r.natura += 1;
-      if (b.ontvangen) r.ontvangen += Number(b.bedrag) || 0;
+      if (b.ontvangen) r.ontvangen[soort] += Number(b.bedrag) || 0;
     });
+    data?.inleg.forEach((i) => {
+      const r = t[i.jaar];
+      if (!r || !(Number(i.bedrag) > 0)) return;
+      r.perLid += Number(i.bedrag);
+      r.n.inleg += 1;
+    });
+    Object.values(t).forEach((r) => (r.inleg = r.n.inleg ? r.perLid : r.los));
     return t;
   }, [data]);
 
   if (!data) return fout ? <p className="ld-fout">{fout}</p> : null;
 
   const vorigJaar = jaren[jaren.indexOf(gekozen) - 1];
-  const lijst = data.sponsoren.filter((s) => {
-    if (soort !== 'alle' && s.soort !== soort) return false;
-    if (zoek && !`${s.naam} ${s.factuurnaam || ''} ${s.contactpersoon || ''} ${s.plaats || ''} ${s.contact_via || ''} ${s.email || ''}`.toLowerCase().includes(zoek.toLowerCase())) return false;
-    const nu = bijdrage[s.id]?.[gekozen];
-    if (weergave === 'mee') return doetMee(nu);
-    if (weergave === 'geen') return nu?.bedrag === 0 && !nu.natura;
-    // Nog benaderen: deed vorig jaar mee, maar voor dit jaar is er nog niets bekend.
-    if (weergave === 'benaderen') return doetMee(bijdrage[s.id]?.[vorigJaar]) && !doetMee(nu) && nu?.bedrag !== 0;
-    return true;
-  });
-  const bedragIn = (s, j) => (bijdrage[s.id]?.[j]?.natura ? 0.5 : Number(bijdrage[s.id]?.[j]?.bedrag) || 0);
-  lijst.sort((a, b) => (sorteer && bedragIn(b, sorteer) - bedragIn(a, sorteer)) || naamVolgorde(a.naam, b.naam));
   const t = totalen[gekozen];
+  const v = totalen[vorigJaar];
   const max = Math.max(1, ...jaren.map((j) => totalen[j].zakelijk + totalen[j].familie + totalen[j].inleg));
   const sponsorOpen = open && open !== 'nieuw' ? data.sponsoren.find((s) => s.id === open) : null;
 
@@ -118,6 +156,17 @@ export default function Sponsoren() {
       setData((d) => ({
         ...d,
         bijdragen: [...d.bijdragen.filter((b) => !(b.sponsor === sponsor && b.jaar === j)), r.data],
+      }));
+    return r;
+  }
+
+  async function slaInlegOp(inlegger, j, velden) {
+    const r = await api.inlegOpslaan({ ...inlegVan[inlegger]?.[j], ...velden, inlegger, jaar: j });
+    if (r.error) meld(r.error, 'fout');
+    else
+      setData((d) => ({
+        ...d,
+        inleg: [...d.inleg.filter((x) => !(x.inlegger === inlegger && x.jaar === j)), r.data],
       }));
     return r;
   }
@@ -139,29 +188,18 @@ export default function Sponsoren() {
     laad();
   }
 
-  async function inlegOpslaan(waarde) {
-    const { bedrag } = leesWaarde(waarde);
-    const r = await api.jaarBijwerken(gekozen, { eigen_inleg: bedrag });
-    if (r.error) meld(r.error, 'fout');
-    else meld('Eigen inleg opgeslagen');
-    laad();
-  }
+  const totaal = t.zakelijk + t.familie + t.inleg;
 
   return (
     <>
-      <Paginakop titel="Sponsoren" sub={`${t.aantal} sponsoren in ${gekozen} · ${euro(t.zakelijk + t.familie)}`}>
-        <span className="ld-sp-kopknoppen">
-          <button className="ld-knop is-klein is-rand" onClick={() => setFactuur({ jaar: gekozen })}>
-            <Icoon naam="factuur" grootte={16} /> Factuursjabloon
-          </button>
-          <button className="ld-knop is-klein" onClick={() => setOpen('nieuw')}>
-            <Icoon naam="plus" grootte={16} /> Nieuwe sponsor
-          </button>
-        </span>
+      <Paginakop titel="Sponsoring" sub={`Carnaval ${gekozen} · ${euro(totaal)} totaal`}>
+        <button className="ld-knop is-klein is-rand ld-sp-sjabloonknop" onClick={() => setFactuur({ jaar: gekozen })}>
+          <Icoon naam="factuur" grootte={16} /> Factuursjabloon
+        </button>
       </Paginakop>
       {fout && <p className="ld-fout">{fout}</p>}
 
-      <section className="ld-kaart">
+      <section className="ld-kaart ld-sp-jarenkaart">
         <div className="ld-sp-jaren" role="tablist" aria-label="Carnavalsjaar">
           {jaren.map((j) => {
             const r = totalen[j];
@@ -182,141 +220,58 @@ export default function Sponsoren() {
             <Icoon naam="plus" />
           </button>
         </div>
-        <div className="ld-sp-legenda">
-          <span><i className="is-zakelijk" /> Zakelijk</span>
-          <span><i className="is-familie" /> Familie & vrienden</span>
-          <span><i className="is-inleg" /> Eigen inleg</span>
-        </div>
       </section>
 
-      <div className="ld-sp-tegels">
-        <Tegel label="Zakelijk" waarde={euro(t.zakelijk)} vorig={totalen[vorigJaar]?.zakelijk} nu={t.zakelijk} />
-        <Tegel label="Familie & vrienden" waarde={euro(t.familie)} vorig={totalen[vorigJaar]?.familie} nu={t.familie} />
-        <div className="ld-sp-tegel">
-          <span>Eigen inleg</span>
-          <input
-            key={`${gekozen}-${t.inleg}`}
-            className="ld-sp-inleg"
-            defaultValue={t.inleg ? euro(t.inleg) : ''}
-            placeholder="€ 0"
-            inputMode="decimal"
-            aria-label={`Eigen inleg ${gekozen}`}
-            onBlur={(e) => Number(leesWaarde(e.target.value).bedrag || 0) !== t.inleg && inlegOpslaan(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-          />
-        </div>
-        <Tegel label="Totaal" waarde={euro(t.zakelijk + t.familie + t.inleg)} sterk />
+      {/* De drie geldstromen, elk met eigen kleur; aantikken opent dat onderdeel. */}
+      <div className="ld-sp-secties" role="tablist" aria-label="Onderdeel">
+        {Object.entries(SECTIES).map(([k, s]) => (
+          <button
+            key={k}
+            role="tab"
+            aria-selected={sectie === k}
+            className={`ld-sp-sectie is-${k} ${sectie === k ? 'is-aan' : ''}`}
+            onClick={() => setSectie(k)}
+          >
+            <span className="ld-sp-sectie-label">{s.label}</span>
+            <strong>{euro(t[k])}</strong>
+            <small>
+              {k === 'inleg' && !t.n.inleg ? (t.los ? 'niet per lid' : 'nog niets') : `${t.n[k]} ${k === 'inleg' ? 'leden' : k === 'zakelijk' ? 'bedrijven' : 'personen'}`}
+              <Verschil nu={t[k]} vorig={v?.[k]} />
+            </small>
+          </button>
+        ))}
       </div>
-      <p className="ld-sp-extra">
-        {t.natura > 0 && `${t.natura} in natura · `}
-        {euro(t.ontvangen)} ontvangen van {euro(t.zakelijk + t.familie)}
-      </p>
 
-      <section className="ld-kaart">
-        <div className="ld-sp-filters">
-          <div className="ld-segment ld-sp-beeld" role="tablist" aria-label="Weergave">
-            {[['tegels', 'Tegels'], ['tabel', 'Tabel']].map(([k, v]) => (
-              <button key={k} role="tab" aria-selected={beeld === k} className={beeld === k ? 'is-aan' : ''} onClick={() => kiesBeeld(k)}>
-                {v}
-              </button>
-            ))}
-          </div>
-          <input className="ld-input" type="search" placeholder="Zoek op naam, contactpersoon, plaats…" value={zoek} onChange={(e) => setZoek(e.target.value)} />
-          <select className="ld-input" value={soort} onChange={(e) => setSoort(e.target.value)} aria-label="Soort">
-            <option value="alle">Iedereen</option>
-            {Object.entries(SOORTEN).map(([k, v]) => (
-              <option key={k} value={k}>{v}</option>
-            ))}
-          </select>
-          <select className="ld-input" value={weergave} onChange={(e) => setWeergave(e.target.value)} aria-label="Weergave">
-            {Object.entries(WEERGAVE).map(([k, v]) => (
-              <option key={k} value={k}>{v} {k !== 'alle' && gekozen}</option>
-            ))}
-          </select>
-        </div>
-
-        {beeld === 'tegels' ? (
-          <ul className="ld-sp-kaarten">
-            {lijst.map((s) => (
-              <SponsorTegel key={s.id} sponsor={s} bijdragen={bijdrage[s.id] || {}} jaren={jaren} gekozen={gekozen} onOpen={() => setOpen(s.id)} />
-            ))}
-            <li>
-              <button className="ld-sp-kaartje is-nieuw" onClick={() => setOpen('nieuw')}>
-                <Icoon naam="plus" grootte={28} />
-                Nieuwe sponsor
-              </button>
-            </li>
-          </ul>
-        ) : lijst.length === 0 ? (
-          <Leeg titel="Geen sponsoren gevonden" />
-        ) : (
-          <div className="ld-sp-scroll">
-            <table className="ld-sp-tabel">
-              <thead>
-                <tr>
-                  <th>
-                    <button className="ld-sp-sorteer" onClick={() => setSorteer(null)} aria-pressed={!sorteer}>
-                      Sponsor
-                    </button>
-                  </th>
-                  {jaren.map((j) => (
-                    <th key={j} className={`is-getal ${j === gekozen ? 'is-gekozen' : ''}`}>
-                      <button className="ld-sp-sorteer" onClick={() => setSorteer(sorteer === j ? null : j)} aria-pressed={sorteer === j}>
-                        {j}
-                        {sorteer === j && <Icoon naam="neer" grootte={12} />}
-                      </button>
-                    </th>
-                  ))}
-                  <th>Status {gekozen}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {lijst.map((s) => (
-                  <tr key={s.id}>
-                    <th>
-                      <button className="ld-sp-naam" onClick={() => setOpen(s.id)}>
-                        {s.naam}
-                        <small>
-                          {[s.soort === 'familie' ? 'Familie' : null, s.contact_via && `via ${s.contact_via}`].filter(Boolean).join(' · ') || ' '}
-                        </small>
-                      </button>
-                    </th>
-                    {jaren.map((j) =>
-                      j === gekozen ? (
-                        <td key={j} className="is-getal is-gekozen">
-                          <WaardeInvoer b={bijdrage[s.id]?.[j]} label={`${s.naam} ${j}`} opslaan={(v) => slaBijdrageOp(s.id, j, leesWaarde(v))} />
-                        </td>
-                      ) : (
-                        <td key={j} className="is-getal">
-                          <Waarde b={bijdrage[s.id]?.[j]} />
-                        </td>
-                      ),
-                    )}
-                    <td>
-                      <Status b={bijdrage[s.id]?.[gekozen]} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot>
-                <tr>
-                  <th>Totaal ({lijst.length})</th>
-                  {jaren.map((j) => (
-                    <td key={j} className={`is-getal ${j === gekozen ? 'is-gekozen' : ''}`}>
-                      {euro(lijst.reduce((som, s) => som + (Number(bijdrage[s.id]?.[j]?.bedrag) || 0), 0))}
-                    </td>
-                  ))}
-                  <td />
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        )}
-      </section>
+      {sectie === 'inleg' ? (
+        <InlegSectie
+          key="inleg"
+          jaar={gekozen}
+          vorigJaar={vorigJaar}
+          inleggers={data.inleggers}
+          inlegVan={inlegVan}
+          totaal={t}
+          slaInlegOp={slaInlegOp}
+          herlaad={laad}
+        />
+      ) : (
+        <SponsorSectie
+          key={sectie}
+          soort={sectie}
+          sponsoren={data.sponsoren.filter((s) => s.soort === sectie)}
+          bijdrage={bijdrage}
+          jaren={jaren}
+          gekozen={gekozen}
+          vorigJaar={vorigJaar}
+          totaal={t}
+          slaBijdrageOp={slaBijdrageOp}
+          onOpen={setOpen}
+        />
+      )}
 
       {open && (
         <SponsorKaart
           sponsor={sponsorOpen}
+          nieuwSoort={sectie === 'familie' ? 'familie' : 'zakelijk'}
           jaren={jaren}
           bijdragen={sponsorOpen ? bijdrage[sponsorOpen.id] || {} : {}}
           slaBijdrageOp={slaBijdrageOp}
@@ -324,6 +279,7 @@ export default function Sponsoren() {
           onSluit={() => setOpen(null)}
           onOpgeslagen={(s) => {
             setOpen(s?.id || null);
+            if (s && s.soort !== sectie) setSectie(s.soort);
             laad();
           }}
         />
@@ -340,6 +296,426 @@ export default function Sponsoren() {
         />
       )}
     </>
+  );
+}
+
+function Verschil({ nu, vorig }) {
+  if (!(vorig > 0) || !(nu > 0) || nu === vorig) return null;
+  const op = nu > vorig;
+  return (
+    <em className={op ? 'is-op' : 'is-neer'}>
+      {op ? '▲' : '▼'} {euro(Math.abs(nu - vorig))}
+    </em>
+  );
+}
+
+// Zoeken, filteren en sorteren; op de telefoon één compacte lijst.
+function Gereedschap({ zoek, setZoek, filter, setFilter, filters, sorteer, setSorteer, beeld, setBeeld, jaar, plaatshouder }) {
+  return (
+    <div className="ld-sp-filters">
+      <input className="ld-input" type="search" placeholder={plaatshouder} value={zoek} onChange={(e) => setZoek(e.target.value)} />
+      <label className="ld-sp-keuze">
+        <Icoon naam="filter" grootte={16} />
+        <select value={filter} onChange={(e) => setFilter(e.target.value)} aria-label="Filter">
+          {Object.entries(filters).map(([k, v]) => (
+            <option key={k} value={k}>
+              {v}
+              {k !== 'alle' && ` ${jaar}`}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="ld-sp-keuze">
+        <Icoon naam="sorteer" grootte={16} />
+        <select value={sorteer} onChange={(e) => setSorteer(e.target.value)} aria-label="Sorteren">
+          {Object.entries(SORTERINGEN).map(([k, v]) => (
+            <option key={k} value={k}>{v}</option>
+          ))}
+        </select>
+      </label>
+      {setBeeld && (
+        <div className="ld-segment ld-sp-beeld" role="tablist" aria-label="Weergave">
+          {[['tegels', 'Tegels'], ['tabel', 'Tabel']].map(([k, v]) => (
+            <button key={k} role="tab" aria-selected={beeld === k} className={beeld === k ? 'is-aan' : ''} onClick={() => setBeeld(k)}>
+              {v}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Volgorde blijft staan terwijl je bedragen invult; pas bij een andere sortering, filter of
+// zoekterm wordt opnieuw gesorteerd. Anders springt de rij weg waar je net in typte.
+function useVasteVolgorde(items, sorteren, sleutel) {
+  const vast = useRef({ sleutel: null, ids: [] });
+  if (vast.current.sleutel !== sleutel) vast.current = { sleutel, ids: sorteren(items).map((x) => x.id) };
+  const plek = new Map(vast.current.ids.map((id, i) => [id, i]));
+  return [...items].sort((a, b) => (plek.get(a.id) ?? Infinity) - (plek.get(b.id) ?? Infinity));
+}
+
+function sorteerLijst(lijst, sorteer, waardeNu, waardeVorig, naam) {
+  return [...lijst].sort((a, b) => {
+    const d =
+      sorteer === 'hoog' ? waardeNu(b) - waardeNu(a)
+      : sorteer === 'laag' ? waardeNu(a) - waardeNu(b)
+      : sorteer === 'vorig' ? waardeVorig(b) - waardeVorig(a)
+      : 0;
+    return d || naamVolgorde(naam(a), naam(b));
+  });
+}
+
+// ---------------------------------------------------------------- bedrijven / familie & vrienden
+
+function SponsorSectie({ soort, sponsoren, bijdrage, jaren, gekozen, vorigJaar, totaal, slaBijdrageOp, onOpen }) {
+  const [zoek, setZoek] = useState('');
+  const [filter, setFilter] = useState('alle');
+  const [sorteer, setSorteer] = useState('hoog');
+  const [gekozenBeeld, setBeeldState] = useState(() => onthouden(BEELD_KEY, 'tegels'));
+  const beeld = useSmal() ? 'tegels' : gekozenBeeld;
+  const setBeeld = (b) => {
+    setBeeldState(b);
+    bewaar(BEELD_KEY, b);
+  };
+  const zakelijk = soort === 'zakelijk';
+  const filters = zakelijk ? FILTERS : Object.fromEntries(Object.entries(FILTERS).filter(([k]) => k !== 'open'));
+
+  const gefilterd = sponsoren.filter((s) => {
+    if (zoek && !`${s.naam} ${s.factuurnaam || ''} ${s.contactpersoon || ''} ${s.plaats || ''} ${s.contact_via || ''} ${s.email || ''}`.toLowerCase().includes(zoek.toLowerCase())) return false;
+    const nu = bijdrage[s.id]?.[gekozen];
+    if (filter === 'mee') return doetMee(nu);
+    if (filter === 'geen') return nu?.bedrag === 0 && !nu.natura;
+    if (filter === 'open') return nu?.bedrag > 0 && !nu.ontvangen;
+    // Nog benaderen: deed vorig jaar mee, maar voor dit jaar is er nog niets bekend.
+    if (filter === 'benaderen') return doetMee(bijdrage[s.id]?.[vorigJaar]) && !doetMee(nu) && nu?.bedrag !== 0;
+    return true;
+  });
+  const lijst = useVasteVolgorde(
+    gefilterd,
+    (l) => sorteerLijst(l, sorteer, (s) => sorteerWaarde(bijdrage[s.id]?.[gekozen]), (s) => sorteerWaarde(bijdrage[s.id]?.[vorigJaar]), (s) => s.naam),
+    `${sorteer}|${filter}|${zoek}|${gekozen}|${gefilterd.length}`,
+  );
+  const som = lijst.reduce((x, s) => x + (Number(bijdrage[s.id]?.[gekozen]?.bedrag) || 0), 0);
+
+  return (
+    <section className={`ld-kaart ld-sp-blok is-${soort}`}>
+      <header className="ld-sp-blokkop">
+        <div>
+          <h2>{SECTIES[soort].label}</h2>
+          <p>
+            {totaal.n[soort]} doen mee in {gekozen}
+            {zakelijk && totaal[soort] > 0 && ` · ${euro(totaal.ontvangen[soort])} van ${euro(totaal[soort])} ontvangen`}
+            {zakelijk && totaal.natura > 0 && ` · ${totaal.natura} in natura`}
+          </p>
+        </div>
+        <button className="ld-knop is-klein" onClick={() => onOpen('nieuw')}>
+          <Icoon naam="plus" grootte={16} /> {SECTIES[soort].nieuw}
+        </button>
+      </header>
+
+      <Gereedschap
+        zoek={zoek}
+        setZoek={setZoek}
+        filter={filter}
+        setFilter={setFilter}
+        filters={filters}
+        sorteer={sorteer}
+        setSorteer={setSorteer}
+        beeld={beeld}
+        setBeeld={setBeeld}
+        jaar={gekozen}
+        plaatshouder={zakelijk ? 'Zoek bedrijf, contactpersoon, plaats…' : 'Zoek op naam…'}
+      />
+
+      {lijst.length === 0 ? (
+        <Leeg titel="Niemand gevonden" />
+      ) : beeld === 'tegels' ? (
+        <ul className="ld-sp-kaarten">
+          {lijst.map((s) => (
+            <SponsorTegel key={s.id} sponsor={s} bijdragen={bijdrage[s.id] || {}} jaren={jaren} gekozen={gekozen} onOpen={() => onOpen(s.id)} />
+          ))}
+        </ul>
+      ) : (
+        <div className="ld-sp-scroll">
+          <table className="ld-sp-tabel">
+            <thead>
+              <tr>
+                <th>{zakelijk ? 'Bedrijf' : 'Naam'}</th>
+                {jaren.map((j) => (
+                  <th key={j} className={`is-getal ${j === gekozen ? 'is-gekozen' : ''}`}>{j}</th>
+                ))}
+                <th>Status {gekozen}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {lijst.map((s) => (
+                <tr key={s.id}>
+                  <th>
+                    <button className="ld-sp-naam" onClick={() => onOpen(s.id)}>
+                      {s.naam}
+                      <small>{[s.plaats, s.contact_via && `via ${s.contact_via}`].filter(Boolean).join(' · ') || ' '}</small>
+                    </button>
+                  </th>
+                  {jaren.map((j) =>
+                    j === gekozen ? (
+                      <td key={j} className="is-getal is-gekozen">
+                        <WaardeInvoer b={bijdrage[s.id]?.[j]} label={`${s.naam} ${j}`} opslaan={(v) => slaBijdrageOp(s.id, j, leesWaarde(v))} />
+                      </td>
+                    ) : (
+                      <td key={j} className="is-getal">
+                        <Waarde b={bijdrage[s.id]?.[j]} />
+                      </td>
+                    ),
+                  )}
+                  <td>
+                    <Status b={bijdrage[s.id]?.[gekozen]} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr>
+                <th>Totaal ({lijst.length})</th>
+                {jaren.map((j) => (
+                  <td key={j} className={`is-getal ${j === gekozen ? 'is-gekozen' : ''}`}>
+                    {euro(lijst.reduce((x, s) => x + (Number(bijdrage[s.id]?.[j]?.bedrag) || 0), 0))}
+                  </td>
+                ))}
+                <td />
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      )}
+      {beeld === 'tegels' && lijst.length > 0 && (
+        <p className="ld-sp-somregel">
+          {lijst.length} getoond · samen {euro(som)} in {gekozen}
+        </p>
+      )}
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------- eigen inleg
+
+const INLEG_FILTERS = { alle: 'Iedereen', leeg: 'Nog niet ingevuld', onbetaald: 'Nog niet betaald' };
+
+function InlegSectie({ jaar, vorigJaar, inleggers, inlegVan, totaal, slaInlegOp, herlaad }) {
+  const [zoek, setZoek] = useState('');
+  const [filter, setFilter] = useState('alle');
+  const [sorteer, setSorteer] = useState('hoog');
+  const [nieuw, setNieuw] = useState('');
+  const [toonWeg, setToonWeg] = useState(false);
+
+  const actief = inleggers.filter((l) => l.actief);
+  const weg = inleggers.filter((l) => !l.actief);
+  const bedragVan = (l, j) => Number(inlegVan[l.id]?.[j]?.bedrag) || 0;
+  const gefilterd = actief.filter((l) => {
+    if (zoek && !l.naam.toLowerCase().includes(zoek.toLowerCase())) return false;
+    const r = inlegVan[l.id]?.[jaar];
+    if (filter === 'leeg') return r?.bedrag == null;
+    if (filter === 'onbetaald') return r?.bedrag > 0 && !r.betaald;
+    return true;
+  });
+  const lijst = useVasteVolgorde(
+    gefilterd,
+    (l) => sorteerLijst(l, sorteer, (x) => bedragVan(x, jaar), (x) => bedragVan(x, vorigJaar), (x) => x.naam),
+    `${sorteer}|${filter}|${zoek}|${jaar}|${gefilterd.length}`,
+  );
+  const ingevuld = actief.filter((l) => bedragVan(l, jaar) > 0);
+  const betaald = ingevuld.filter((l) => inlegVan[l.id][jaar].betaald).reduce((x, l) => x + bedragVan(l, jaar), 0);
+  const gemiddeld = ingevuld.length ? totaal.perLid / ingevuld.length : 0;
+  const teKopieren = vorigJaar ? actief.filter((l) => inlegVan[l.id]?.[jaar]?.bedrag == null && bedragVan(l, vorigJaar) > 0) : [];
+
+  async function toevoegen(e) {
+    e.preventDefault();
+    const naam = nieuw.trim();
+    if (!naam) return;
+    const r = await api.inleggerOpslaan({ naam });
+    if (r.error) return meld(r.error, 'fout');
+    meld(`${naam} toegevoegd`);
+    setNieuw('');
+    herlaad();
+  }
+
+  async function zetActief(l, aan) {
+    if (!aan && !window.confirm(`${l.naam} uit de lijst halen? Eerdere inleg blijft bewaard.`)) return;
+    const r = await api.inleggerOpslaan({ id: l.id, actief: aan });
+    if (r.error) return meld(r.error, 'fout');
+    meld(aan ? `${l.naam} staat weer in de lijst` : `${l.naam} uit de lijst`);
+    herlaad();
+  }
+
+  async function kopieer() {
+    if (!window.confirm(`Bij ${teKopieren.length} leden het bedrag van ${vorigJaar} invullen?`)) return;
+    for (const l of teKopieren) await slaInlegOp(l.id, jaar, { bedrag: bedragVan(l, vorigJaar) });
+    meld(`Bedragen van ${vorigJaar} overgenomen`);
+  }
+
+  return (
+    <section className="ld-kaart ld-sp-blok is-inleg">
+      <header className="ld-sp-blokkop">
+        <div>
+          <h2>Eigen inleg</h2>
+          <p>
+            {ingevuld.length} van {actief.length} leden ingevuld
+            {ingevuld.length > 0 && ` · gemiddeld ${euro(gemiddeld)} · ${euro(betaald)} van ${euro(totaal.perLid)} betaald`}
+          </p>
+        </div>
+        {teKopieren.length > 0 && (
+          <button className="ld-knop is-klein is-rand" onClick={kopieer}>
+            Bedragen {vorigJaar} overnemen
+          </button>
+        )}
+      </header>
+
+      {/* Oude jaren hebben alleen een totaalbedrag; dat blijft tellen tot er per lid is ingevuld. */}
+      {!totaal.n.inleg && totaal.los > 0 && (
+        <div className="ld-sp-los">
+          <span>
+            Totaal zonder verdeling per lid
+            <small>Telt mee tot je hieronder per lid invult.</small>
+          </span>
+          <LosInleg jaar={jaar} waarde={totaal.los} herlaad={herlaad} />
+        </div>
+      )}
+
+      <Gereedschap
+        zoek={zoek}
+        setZoek={setZoek}
+        filter={filter}
+        setFilter={setFilter}
+        filters={INLEG_FILTERS}
+        sorteer={sorteer}
+        setSorteer={setSorteer}
+        jaar={jaar}
+        plaatshouder="Zoek lid…"
+      />
+
+      {actief.length === 0 ? (
+        <Leeg titel="Nog geen leden">Voeg hieronder de leden toe die inleggen.</Leeg>
+      ) : (
+        <ul className="ld-sp-inleglijst">
+          {lijst.map((l) => {
+            const r = inlegVan[l.id]?.[jaar];
+            const vorig = bedragVan(l, vorigJaar);
+            return (
+              <li key={l.id} className={r?.bedrag > 0 ? 'is-mee' : ''}>
+                <span className="ld-sp-letter is-inleg">{l.naam.slice(0, 1).toUpperCase()}</span>
+                <span className="ld-sp-inlegnaam">
+                  <strong>{l.naam}</strong>
+                  <small>{vorig > 0 ? `${vorigJaar}: ${euro(vorig)}` : ' '}</small>
+                </span>
+                <span className="ld-sp-eur">
+                  €
+                  <BedragInvoer
+                    waarde={r?.bedrag}
+                    label={`Inleg ${l.naam} ${jaar}`}
+                    opslaan={(bedrag) => slaInlegOp(l.id, jaar, { bedrag })}
+                  />
+                </span>
+                <button
+                  className={`ld-sp-betaald ${r?.betaald ? 'is-aan' : ''}`}
+                  disabled={!(r?.bedrag > 0)}
+                  onClick={() => slaInlegOp(l.id, jaar, { betaald: !r.betaald })}
+                  aria-pressed={!!r?.betaald}
+                  title={r?.betaald ? 'Betaald' : 'Nog niet betaald'}
+                >
+                  <Icoon naam="vink" grootte={16} />
+                  <span>Betaald</span>
+                </button>
+                <button className="ld-rondje is-rood ld-sp-weg-lid" onClick={() => zetActief(l, false)} aria-label={`${l.naam} uit de lijst halen`}>
+                  <Icoon naam="kruis" grootte={14} />
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      <form className="ld-sp-nieuwlid" onSubmit={toevoegen}>
+        <input className="ld-input" placeholder="Naam nieuw lid" maxLength={60} value={nieuw} onChange={(e) => setNieuw(e.target.value)} />
+        <button className="ld-knop is-klein" type="submit" disabled={!nieuw.trim()}>
+          <Icoon naam="plus" grootte={16} /> Lid toevoegen
+        </button>
+      </form>
+
+      {weg.length > 0 && (
+        <div className="ld-sp-uitlijst">
+          <button className="ld-uitklap" onClick={() => setToonWeg((x) => !x)} aria-expanded={toonWeg}>
+            Niet meer in de lijst ({weg.length}) <span>{toonWeg ? '−' : '+'}</span>
+          </button>
+          {toonWeg && (
+            <ul className="ld-lijst is-scheiding">
+              {weg.map((l) => (
+                <li key={l.id} className="ld-lid">
+                  <span>{l.naam}</span>
+                  <button className="ld-link is-klein" onClick={() => zetActief(l, true)}>
+                    Terugzetten
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function LosInleg({ jaar, waarde, herlaad }) {
+  return (
+    <span className="ld-sp-eur is-groot">
+      €
+      <BedragInvoer
+        key={jaar}
+        waarde={waarde || null}
+        label={`Totaal eigen inleg ${jaar}`}
+        opslaan={async (bedrag) => {
+          const r = await api.jaarBijwerken(jaar, { eigen_inleg: bedrag });
+          if (r.error) meld(r.error, 'fout');
+          else meld('Opgeslagen');
+          herlaad();
+          return r;
+        }}
+      />
+    </span>
+  );
+}
+
+// Alleen een bedrag; opslaan bij verlaten van het veld of Enter.
+function BedragInvoer({ waarde, label, opslaan }) {
+  const begin = waarde != null ? String(Number(waarde)).replace('.', ',') : '';
+  const [tekst, setTekst] = useState(begin);
+  useEffect(() => setTekst(begin), [begin]);
+  return (
+    <input
+      className="ld-sp-bedraginvoer"
+      value={tekst}
+      inputMode="decimal"
+      placeholder="—"
+      aria-label={label}
+      onChange={(e) => setTekst(e.target.value)}
+      onFocus={(e) => e.target.select()}
+      onBlur={async () => {
+        if (tekst.trim() === begin) return;
+        const { bedrag, natura } = leesWaarde(tekst);
+        if (natura) {
+          meld('Vul een bedrag in', 'fout');
+          return setTekst(begin);
+        }
+        const r = await opslaan(bedrag);
+        if (r?.error) setTekst(begin);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') e.currentTarget.blur();
+        if (e.key === 'Escape') {
+          setTekst(begin);
+          setTimeout(() => e.target.blur());
+        }
+      }}
+    />
   );
 }
 
@@ -379,23 +755,6 @@ function SponsorTegel({ sponsor: s, bijdragen, jaren, gekozen, onOpen }) {
         {s.contact_via && <span className="ld-sp-via">via {s.contact_via}</span>}
       </button>
     </li>
-  );
-}
-
-function Tegel({ label, waarde, vorig, nu, sterk }) {
-  const verschil = vorig != null && nu != null ? nu - vorig : null;
-  return (
-    <div className={`ld-sp-tegel ${sterk ? 'is-sterk' : ''}`}>
-      <span>{label}</span>
-      <strong>{waarde}</strong>
-      {nu === 0 && vorig > 0 && <small>vorig jaar {euro(vorig)}</small>}
-      {nu > 0 && verschil !== 0 && vorig > 0 && (
-        <small className={verschil > 0 ? 'is-op' : 'is-neer'}>
-          {verschil > 0 ? '+' : '−'}
-          {euro(Math.abs(verschil))} t.o.v. vorig jaar
-        </small>
-      )}
-    </div>
   );
 }
 
@@ -457,8 +816,8 @@ function Status({ b }) {
 
 const LEEG = { naam: '', factuurnaam: '', soort: 'zakelijk', contact_via: '', benadering: '', email: '', telefoon: '', contactpersoon: '', adres: '', postcode: '', plaats: '', kvk: '', btw: '', notitie: '' };
 
-function SponsorKaart({ sponsor, jaren, bijdragen, slaBijdrageOp, onFactuur, onSluit, onOpgeslagen }) {
-  const [form, setForm] = useState(() => ({ ...LEEG, ...Object.fromEntries(Object.entries(sponsor || {}).map(([k, v]) => [k, v ?? ''])) }));
+function SponsorKaart({ sponsor, nieuwSoort, jaren, bijdragen, slaBijdrageOp, onFactuur, onSluit, onOpgeslagen }) {
+  const [form, setForm] = useState(() => ({ ...LEEG, soort: nieuwSoort || 'zakelijk', ...Object.fromEntries(Object.entries(sponsor || {}).map(([k, v]) => [k, v ?? ''])) }));
   const [bezig, setBezig] = useState(false);
   const [fout, setFout] = useState(null);
   const gewijzigd = !sponsor || Object.keys(LEEG).some((k) => (form[k] || '') !== (sponsor[k] ?? ''));
