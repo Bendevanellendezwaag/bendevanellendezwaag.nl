@@ -451,7 +451,7 @@ function UitwerkLijst({ ronde, themas, ververs }) {
                 </span>
               </span>
               <span className="ld-uitwerk-knop">
-                <Icoon naam="pen" grootte={16} /> Uitwerken
+                <Icoon naam="pen" grootte={16} /> <span className="ld-uitwerk-woord">Uitwerken</span>
               </span>
             </button>
             <button

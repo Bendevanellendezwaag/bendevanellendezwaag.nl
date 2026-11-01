@@ -370,7 +370,8 @@ begin
       select jsonb_agg(r order by r.punten desc, r.eerste desc, r.titel)
       from (
         select t.id, t.titel,
-               coalesce(sum(case when p_ronde = 1 then v_n - p.plek + 1 else 1 end), 0)::int as punten,
+               -- p.plek is leeg bij een thema zonder stemmen: dat telt 0, niet 1
+               coalesce(sum(case when p.plek is null then 0 when p_ronde = 1 then v_n - p.plek + 1 else 1 end), 0)::int as punten,
                count(p.plek)::int                                as stemmen,
                count(*) filter (where p.plek = 1)::int           as eerste
         from public.themas t
