@@ -159,6 +159,8 @@ revoke all on public.inleggers, public.inleg from anon;
 -- bijdragen met een bedrag die de beheerder bevestigd heeft: er is een factuur
 -- of toezegging (betaalwijze gekozen of factuurnummer ingevuld) of het geld is
 -- al ontvangen. Geen contactgegevens, notities of bijdragen in natura.
+-- Daarnaast per jaar het totaal van de eigen inleg (niet per lid): 12 x het
+-- maandbedrag per lid, of het losse totaal zolang er geen inleg per lid is.
 -- De tabellen zelf blijven alleen voor de beheerder.
 
 create or replace function public.sponsoroverzicht()
@@ -173,20 +175,25 @@ begin
     return null;
   end if;
   return coalesce((
-    select jsonb_agg(jsonb_build_object('jaar', j.jaar, 'sponsoren', j.sponsoren) order by j.jaar)
-    from (
-      select b.jaar,
-             jsonb_agg(jsonb_build_object(
-               'naam', s.naam,
-               'soort', s.soort,
-               'bedrag', b.bedrag,
-               'ontvangen', b.ontvangen) order by b.bedrag desc, s.naam) as sponsoren
-      from public.sponsorbijdragen b
-      join public.sponsoren s on s.id = b.sponsor
-      where b.bedrag > 0
-        and (b.betaalwijze is not null or nullif(trim(b.factuurnr), '') is not null or b.ontvangen)
-      group by b.jaar
-    ) j), '[]'::jsonb);
+    select jsonb_agg(jsonb_build_object(
+             'jaar', j.jaar,
+             'inleg', case when exists (select 1 from public.inleg i where i.jaar = j.jaar and i.bedrag > 0)
+                           then (select sum(i.bedrag) * 12 from public.inleg i where i.jaar = j.jaar and i.bedrag > 0)
+                           else coalesce(j.eigen_inleg, 0) end,
+             'sponsoren', coalesce((
+               select jsonb_agg(jsonb_build_object(
+                        'naam', s.naam,
+                        'soort', s.soort,
+                        'bedrag', b.bedrag,
+                        'ontvangen', b.ontvangen) order by b.bedrag desc, s.naam)
+               from public.sponsorbijdragen b
+               join public.sponsoren s on s.id = b.sponsor
+               where b.jaar = j.jaar
+                 and b.bedrag > 0
+                 and (b.betaalwijze is not null or nullif(trim(b.factuurnr), '') is not null or b.ontvangen)
+             ), '[]'::jsonb))
+           order by j.jaar)
+    from public.sponsorjaren j), '[]'::jsonb);
 end $fn$;
 
 revoke all on function public.sponsoroverzicht() from public, anon;

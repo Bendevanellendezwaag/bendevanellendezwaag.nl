@@ -3860,8 +3860,18 @@ body.fa-open {
 
 .ld-spo-totaal {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
+}
+
+.ld-spo-totaal .is-hoofd strong {
+  color: var(--l-accent);
+}
+
+@media (max-width: 560px) {
+  .ld-spo-totaal {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .ld-spo-totaal div {
