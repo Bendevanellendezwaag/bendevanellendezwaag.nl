@@ -153,7 +153,10 @@ export default function Sponsoren() {
   const sponsorOpen = open && open !== 'nieuw' ? data.sponsoren.find((s) => s.id === open) : null;
 
   async function slaBijdrageOp(sponsor, j, velden) {
-    const r = await api.bijdrageOpslaan({ ...bijdrage[sponsor]?.[j], ...velden, sponsor, jaar: j });
+    const rij = { ...bijdrage[sponsor]?.[j], ...velden, sponsor, jaar: j };
+    // Familie & vrienden: een ingevuld bedrag is meteen ontvangen.
+    if (data.sponsoren.find((s) => s.id === sponsor)?.soort === 'familie') rij.ontvangen = Number(rij.bedrag) > 0;
+    const r = await api.bijdrageOpslaan(rij);
     if (r.error) meld(r.error, 'fout');
     else
       setData((d) => ({
@@ -737,12 +740,14 @@ const VINKEN_VOOR = [
   ['contact', 'Benaderd', 'Al contact gehad'],
   ['reactie', 'Reactie', 'Al reactie gekregen'],
 ];
-const VINKEN_NA = [
+const VINKEN_NA_ALLE = [
   ['ontvangen', 'Betaald', 'Geld ontvangen'],
   ['uitnodiging', 'Uitgen.', 'Uitnodiging sponsoravond verstuurd'],
 ];
 
 function SponsorTabel({ lijst, zakelijk, bijdrage, jaren, gekozen, slaBijdrageOp, onOpen }) {
+  // Bij familie & vrienden is een ingevuld bedrag meteen ontvangen: geen vink nodig.
+  const VINKEN_NA = zakelijk ? VINKEN_NA_ALLE : VINKEN_NA_ALLE.filter(([k]) => k !== 'ontvangen');
   const b = (s) => bijdrage[s.id]?.[gekozen];
   const zet = (s, velden) => slaBijdrageOp(s.id, gekozen, velden);
   const telAan = (k) => lijst.filter((s) => b(s)?.[k]).length;
@@ -1114,7 +1119,7 @@ function JaarRegel({ jaar, b, zakelijk, onFactuur, opslaan }) {
       <div className="ld-sp-vinkjes">
         {vink('contact', 'Contact gehad')}
         {vink('reactie', 'Reactie')}
-        {vink('ontvangen', 'Ontvangen')}
+        {zakelijk && vink('ontvangen', 'Ontvangen')}
         {vink('uitnodiging', 'Uitnodiging sponsoravond')}
         {zakelijk && (
           <button className="ld-link is-klein ld-sp-factuurknop" onClick={onFactuur}>

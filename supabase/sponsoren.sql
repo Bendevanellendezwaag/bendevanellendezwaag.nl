@@ -155,11 +155,13 @@ revoke all on public.inleggers, public.inleg from anon;
 
 -- ---------------------------------------------------------------- overzicht voor leden (01-11-2026)
 --
--- Leden zien (alleen lezen) welke sponsoren meedoen en voor welk bedrag. Alleen
+-- Leden zien (alleen lezen) welke bedrijven meedoen en voor welk bedrag. Alleen
 -- bijdragen met een bedrag die de beheerder bevestigd heeft: er is een factuur
 -- of toezegging (betaalwijze gekozen of factuurnummer ingevuld) of het geld is
 -- al ontvangen. Bijdragen in natura (bouwschuur, frituur, ...) staan er ook in,
 -- zonder bedrag. Geen contactgegevens of notities.
+-- Familie & vrienden alleen als totaalbedrag (plus wat er in natura komt, zonder
+-- namen): wie van de families iets geeft zien leden niet.
 -- Daarnaast per jaar het totaal van de eigen inleg (niet per lid): 12 x het
 -- maandbedrag per lid, of het losse totaal zolang er geen inleg per lid is.
 -- De tabellen zelf blijven alleen voor de beheerder.
@@ -181,6 +183,16 @@ begin
              'inleg', case when exists (select 1 from public.inleg i where i.jaar = j.jaar and i.bedrag > 0)
                            then (select sum(i.bedrag) * 12 from public.inleg i where i.jaar = j.jaar and i.bedrag > 0)
                            else coalesce(j.eigen_inleg, 0) end,
+             'familie', coalesce((
+               select sum(b.bedrag)
+               from public.sponsorbijdragen b
+               join public.sponsoren s on s.id = b.sponsor
+               where b.jaar = j.jaar and s.soort = 'familie' and b.bedrag > 0), 0),
+             'familie_natura', coalesce((
+               select jsonb_agg(distinct trim(b.natura))
+               from public.sponsorbijdragen b
+               join public.sponsoren s on s.id = b.sponsor
+               where b.jaar = j.jaar and s.soort = 'familie' and nullif(trim(b.natura), '') is not null), '[]'::jsonb),
              'sponsoren', coalesce((
                select jsonb_agg(jsonb_build_object(
                         'naam', x.naam,
@@ -196,7 +208,7 @@ begin
                              then b.bedrag end as bedrag
                  from public.sponsorbijdragen b
                  join public.sponsoren s on s.id = b.sponsor
-                 where b.jaar = j.jaar
+                 where b.jaar = j.jaar and s.soort = 'zakelijk'
                ) x
                where x.bedrag is not null or x.natura is not null
              ), '[]'::jsonb))
@@ -205,4 +217,29 @@ begin
 end $fn$;
 
 revoke all on function public.sponsoroverzicht() from public, anon;
+
+-- Familie & vrienden: een ingevuld bedrag is meteen ontvangen (geen aparte vink).
+create or replace function public.familie_ontvangen()
+returns trigger
+language plpgsql
+set search_path = public, pg_temp
+as $fn$
+begin
+  if (select soort from public.sponsoren where id = new.sponsor) = 'familie' then
+    new.ontvangen := coalesce(new.bedrag, 0) > 0;
+  end if;
+  return new;
+end $fn$;
+
+drop trigger if exists sponsorbijdragen_familie_ontvangen on public.sponsorbijdragen;
+create trigger sponsorbijdragen_familie_ontvangen before insert or update on public.sponsorbijdragen
+  for each row execute function public.familie_ontvangen();
+revoke all on function public.familie_ontvangen() from public, anon, authenticated;
+
+-- Bestaande familiebijdragen gelijktrekken.
+update public.sponsorbijdragen b
+   set ontvangen = coalesce(b.bedrag, 0) > 0
+  from public.sponsoren s
+ where s.id = b.sponsor and s.soort = 'familie'
+   and b.ontvangen is distinct from (coalesce(b.bedrag, 0) > 0);
 grant execute on function public.sponsoroverzicht() to authenticated;
