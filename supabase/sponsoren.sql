@@ -152,3 +152,42 @@ create policy "inleg beheer" on public.inleg
   using (public.is_beheerder()) with check (public.is_beheerder());
 
 revoke all on public.inleggers, public.inleg from anon;
+
+-- ---------------------------------------------------------------- overzicht voor leden (01-11-2026)
+--
+-- Leden zien (alleen lezen) welke sponsoren meedoen en voor welk bedrag. Alleen
+-- bijdragen met een bedrag die de beheerder bevestigd heeft: er is een factuur
+-- of toezegging (betaalwijze gekozen of factuurnummer ingevuld) of het geld is
+-- al ontvangen. Geen contactgegevens, notities of bijdragen in natura.
+-- De tabellen zelf blijven alleen voor de beheerder.
+
+create or replace function public.sponsoroverzicht()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public, pg_temp
+as $fn$
+begin
+  if not public.is_lid() then
+    return null;
+  end if;
+  return coalesce((
+    select jsonb_agg(jsonb_build_object('jaar', j.jaar, 'sponsoren', j.sponsoren) order by j.jaar)
+    from (
+      select b.jaar,
+             jsonb_agg(jsonb_build_object(
+               'naam', s.naam,
+               'soort', s.soort,
+               'bedrag', b.bedrag,
+               'ontvangen', b.ontvangen) order by b.bedrag desc, s.naam) as sponsoren
+      from public.sponsorbijdragen b
+      join public.sponsoren s on s.id = b.sponsor
+      where b.bedrag > 0
+        and (b.betaalwijze is not null or nullif(trim(b.factuurnr), '') is not null or b.ontvangen)
+      group by b.jaar
+    ) j), '[]'::jsonb);
+end $fn$;
+
+revoke all on function public.sponsoroverzicht() from public, anon;
+grant execute on function public.sponsoroverzicht() to authenticated;

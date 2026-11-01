@@ -16,7 +16,11 @@ export default function Stemming({ data, ververs }) {
   const open = data.rondes.find((r) => r.status === 'open');
   const gesloten = data.rondes.filter((r) => r.status === 'gesloten');
   // Alleen de eerste vergadering kan een openbare uitslag hebben; de stemrondes blijven geheim.
-  const openbaar = data.rondes.filter((r) => r.nr === 1 && r.status === 'gesloten' && r.uitslag_openbaar);
+  // Die uitslag komt vanzelf vrij zodra stemronde 1 begonnen is.
+  const ronde2Begonnen = data.rondes.some((r) => r.nr === 2 && r.status !== 'gepland');
+  const openbaar = data.rondes.filter(
+    (r) => r.nr === 1 && r.status === 'gesloten' && (r.uitslag_openbaar || ronde2Begonnen),
+  );
 
   let hoofd;
   if (open) {
@@ -360,7 +364,15 @@ export function UitslagLaden({ ronde }) {
 
   if (fout) return <p className="ld-fout">{fout}</p>;
   if (!u) return <p className="ld-zacht">Laden…</p>;
-  return <Uitslag ronde={ronde} uitslag={u} />;
+  return (
+    <>
+      <p className="ld-zacht ld-klein">
+        {u.aantal_stemmen} {u.aantal_stemmen === 1 ? 'lid heeft' : 'leden hebben'} gestemd
+        {ronde === 1 && ' · nr. 1 op je lijst geeft de meeste punten'}
+      </p>
+      <Uitslag ronde={ronde} uitslag={u} />
+    </>
+  );
 }
 
 export function Uitslag({ ronde, uitslag }) {
@@ -379,6 +391,9 @@ export function Uitslag({ ronde, uitslag }) {
             <span className="ld-uit-plek">{plek}</span>
             <div className="ld-uit-midden">
               <strong>{r.titel}</strong>
+              {ronde === 1 && r.eerste > 0 && (
+                <span className="ld-uit-eerste">{r.eerste}× op nummer 1</span>
+              )}
               <span className="ld-balk">
                 <span style={{ width: `${(r.punten / max) * 100}%` }} />
               </span>

@@ -6,6 +6,7 @@ import Stemming from './Stemming.jsx';
 import ThemaLijst from './ThemaLijst.jsx';
 import LedenBeheer from './LedenBeheer.jsx';
 import StemBeheer from './StemBeheer.jsx';
+import SponsorOverzicht from './SponsorOverzicht.jsx';
 import Sponsoren from './Sponsoren.jsx';
 
 const TAB_KEY = 'bve-tab';
@@ -78,7 +79,7 @@ export default function Omgeving({ profiel, onSite, onProfiel }) {
           { id: 'leden', label: 'Leden', icoon: 'leden', teller: wachtend },
           { id: 'sponsoren', label: 'Sponsoren', icoon: 'sponsor' },
         ]
-      : []),
+      : [{ id: 'sponsoren', label: 'Sponsoren', icoon: 'sponsor' }]),
   ];
   const actief = tabs.some((t) => t.id === tab) ? tab : 'stemming';
 
@@ -130,7 +131,7 @@ export default function Omgeving({ profiel, onSite, onProfiel }) {
       </header>
 
       {/* Sponsoring is een groot overzicht: dat krijgt de volle breedte. */}
-      <main className={`ld-inhoud ${actief === 'sponsoren' ? 'is-breed' : ''}`}>
+      <main className={`ld-inhoud ${actief === 'sponsoren' && beheerder ? 'is-breed' : ''}`}>
         {alsLid && (
           <div className="ld-alslid">
             <span>Je bekijkt de ledenversie</span>
@@ -142,7 +143,7 @@ export default function Omgeving({ profiel, onSite, onProfiel }) {
         {data && actief === 'stemming' && <Stemming data={data} ververs={ververs} />}
         {data && actief === 'themas' && <ThemaLijst themas={data.themas} />}
         {data && actief === 'stembeheer' && <StemBeheer data={data} ververs={ververs} />}
-        {actief === 'sponsoren' && <Sponsoren />}
+        {actief === 'sponsoren' && (beheerder ? <Sponsoren /> : <SponsorOverzicht />)}
         {actief === 'leden' && <LedenBeheer mijnId={profiel.id} onWijziging={ververs} />}
       </main>
 

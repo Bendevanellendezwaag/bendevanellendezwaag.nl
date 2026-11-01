@@ -112,7 +112,11 @@ function RondeBeheer({ ronde, data, ververs, startOpen }) {
                 {ronde.status === 'gesloten' ? 'Opnieuw openen' : 'Openzetten voor leden'}
               </button>
             )}
-            {ronde.nr === 1 ? (
+            {ronde.nr === 1 && data.rondes.some((r) => r.nr === 2 && r.status !== 'gepland') ? (
+              <span className="ld-geheim">
+                <Icoon naam="vink" grootte={16} /> Uitslag zichtbaar voor leden (stemronde 1 is begonnen)
+              </span>
+            ) : ronde.nr === 1 ? (
               <label className="ld-schakel">
                 <input
                   type="checkbox"

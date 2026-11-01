@@ -319,7 +319,8 @@ begin
 end $fn$;
 
 -- Uitslag van een ronde. De beheerder altijd; leden alleen van de eerste
--- vergadering, en alleen als de beheerder die openbaar heeft gemaakt.
+-- vergadering: als de beheerder die openbaar heeft gemaakt, of vanzelf zodra
+-- stemronde 1 begonnen is. Wie wat stemde ziet alleen de beheerder.
 create or replace function public.uitslag(p_ronde int)
 returns jsonb
 language plpgsql
@@ -333,7 +334,8 @@ declare
 begin
   if not v_beheerder and not (
        public.is_lid() and p_ronde = 1
-       and coalesce((select uitslag_openbaar from public.rondes where nr = p_ronde), false)) then
+       and (coalesce((select uitslag_openbaar from public.rondes where nr = 1), false)
+            or (select status from public.rondes where nr = 2) <> 'gepland')) then
     return null;
   end if;
   select count(*) into v_n from public.themas where ronde >= p_ronde;

@@ -129,6 +129,9 @@ export async function fotoUploaden(bestand) {
 
 export const fotoVerwijder = (pad) => doe(supabase.storage.from(BUCKET).remove([pad]));
 
+// Sponsoring voor leden: alleen lezen, alleen bevestigde bedragen.
+export const sponsoroverzicht = () => doe(supabase.rpc('sponsoroverzicht'));
+
 // ---------------------------------------------------------------- sponsoren (alleen beheerder)
 
 export const sponsoren = () => doe(supabase.from('sponsoren').select('*').order('naam'));
