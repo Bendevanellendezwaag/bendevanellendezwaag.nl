@@ -3922,3 +3922,30 @@ body.fa-open {
   color: var(--l-accent);
   white-space: nowrap;
 }
+
+/* ---------------------------------------------------------------- sponsor verbergen per jaar */
+
+.ld-sp-naamcel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ld-sp-verberg {
+  flex: none;
+  margin-left: auto;
+  padding: 2px 8px;
+  border: 1px solid var(--l-lijn);
+  border-radius: 99px;
+  background: var(--l-kaart);
+  color: var(--l-zacht);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ld-sp-verberg:hover,
+.ld-sp-verberg.is-terug {
+  color: var(--l-accent);
+  border-color: var(--l-accent);
+}

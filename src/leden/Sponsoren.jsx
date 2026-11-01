@@ -15,7 +15,7 @@ const SECTIES = {
 const SOORTEN = { zakelijk: 'Bedrijf', familie: 'Familie & vrienden' };
 const BENADERING = { fysiek: 'Langs geweest', mail: 'Mail', app: 'App' };
 const BETAALWIJZE = { factuur: 'Factuur', tikkie: 'Tikkie', contant: 'Contant' };
-const FILTERS = { alle: 'Iedereen', mee: 'Doen mee', benaderen: 'Nog benaderen', geen: 'Niet dit jaar', open: 'Nog niet ontvangen' };
+const FILTERS = { alle: 'Iedereen', mee: 'Doen mee', benaderen: 'Nog benaderen', geen: 'Niet dit jaar', open: 'Nog niet ontvangen', verborgen: 'Verborgen in' };
 const SORTERINGEN = { hoog: 'Hoog → laag', laag: 'Laag → hoog', vorig: 'Vorig jaar hoog → laag', naam: 'Naam A → Z' };
 
 // Eigen inleg per lid is een bedrag per maand; voor het jaar telt het twaalf keer.
@@ -390,6 +390,9 @@ function SponsorSectie({ soort, sponsoren, bijdrage, jaren, gekozen, vorigJaar, 
   const gefilterd = sponsoren.filter((s) => {
     if (zoek && !`${s.naam} ${s.factuurnaam || ''} ${s.contactpersoon || ''} ${s.plaats || ''} ${s.contact_via || ''} ${s.email || ''}`.toLowerCase().includes(zoek.toLowerCase())) return false;
     const nu = bijdrage[s.id]?.[gekozen];
+    // Verborgen sponsoren (doen dit jaar niet mee) staan alleen onder het filter "Verborgen".
+    if (filter === 'verborgen') return !!nu?.verborgen;
+    if (nu?.verborgen) return false;
     if (filter === 'mee') return doetMee(nu);
     if (filter === 'geen') return nu?.bedrag === 0 && !nu.natura;
     if (filter === 'open') return nu?.bedrag > 0 && !nu.ontvangen;
@@ -403,6 +406,7 @@ function SponsorSectie({ soort, sponsoren, bijdrage, jaren, gekozen, vorigJaar, 
     `${sorteer}|${filter}|${zoek}|${gekozen}|${gefilterd.length}`,
   );
   const som = lijst.reduce((x, s) => x + (Number(bijdrage[s.id]?.[gekozen]?.bedrag) || 0), 0);
+  const verborgen = sponsoren.filter((s) => bijdrage[s.id]?.[gekozen]?.verborgen).length;
 
   return (
     <section className={`ld-kaart ld-sp-blok is-${soort}`}>
@@ -413,6 +417,14 @@ function SponsorSectie({ soort, sponsoren, bijdrage, jaren, gekozen, vorigJaar, 
             {totaal.n[soort]} doen mee in {gekozen}
             {zakelijk && totaal[soort] > 0 && ` · ${euro(totaal.ontvangen[soort])} van ${euro(totaal[soort])} ontvangen`}
             {zakelijk && totaal.natura > 0 && ` · ${totaal.natura} in natura`}
+            {verborgen > 0 && (
+              <>
+                {' · '}
+                <button className="ld-link is-klein" onClick={() => setFilter(filter === 'verborgen' ? 'alle' : 'verborgen')}>
+                  {filter === 'verborgen' ? 'Terug naar iedereen' : `${verborgen} verborgen`}
+                </button>
+              </>
+            )}
           </p>
         </div>
         <button className="ld-knop is-klein" onClick={() => onOpen('nieuw')}>
@@ -788,10 +800,13 @@ function SponsorTabel({ lijst, zakelijk, bijdrage, jaren, gekozen, slaBijdrageOp
           {lijst.map((s) => (
             <tr key={s.id} className={b(s)?.ontvangen ? 'is-betaald' : ''}>
               <th>
-                <button className="ld-sp-naam" onClick={() => onOpen(s.id)}>
-                  {s.naam}
-                  {s.plaats && <small>{s.plaats}</small>}
-                </button>
+                <span className="ld-sp-naamcel">
+                  <button className="ld-sp-naam" onClick={() => onOpen(s.id)}>
+                    {s.naam}
+                    {s.plaats && <small>{s.plaats}</small>}
+                  </button>
+                  <VerbergKnop verborgen={!!b(s)?.verborgen} naam={s.naam} jaar={gekozen} onWissel={() => zet(s, { verborgen: !b(s)?.verborgen })} />
+                </span>
               </th>
               <td className="ld-sp-zacht">{s.contact_via || ''}</td>
               {zakelijk && (
@@ -859,6 +874,20 @@ function SponsorTabel({ lijst, zakelijk, bijdrage, jaren, gekozen, slaBijdrageOp
         </tfoot>
       </table>
     </div>
+  );
+}
+
+// Sponsor die dit jaar niet meedoet uit de lijst halen (of terughalen); verwijderen hoeft niet.
+function VerbergKnop({ verborgen, naam, jaar, onWissel }) {
+  return (
+    <button
+      className={`ld-sp-verberg ${verborgen ? 'is-terug' : ''}`}
+      onClick={onWissel}
+      title={verborgen ? `${naam} terugzetten in ${jaar}` : `${naam} verbergen in ${jaar} (doet niet mee)`}
+      aria-label={verborgen ? `${naam} terugzetten in ${jaar}` : `${naam} verbergen in ${jaar}`}
+    >
+      {verborgen ? 'Terugzetten' : 'Verbergen'}
+    </button>
   );
 }
 
@@ -1121,6 +1150,7 @@ function JaarRegel({ jaar, b, zakelijk, onFactuur, opslaan }) {
         {vink('reactie', 'Reactie')}
         {zakelijk && vink('ontvangen', 'Ontvangen')}
         {vink('uitnodiging', 'Uitnodiging sponsoravond')}
+        {vink('verborgen', `Verbergen in ${jaar} (doet niet mee)`)}
         {zakelijk && (
           <button className="ld-link is-klein ld-sp-factuurknop" onClick={onFactuur}>
             <Icoon naam="factuur" grootte={15} /> {b?.factuurnr ? `Factuur ${b.factuurnr}` : 'Factuur maken'}

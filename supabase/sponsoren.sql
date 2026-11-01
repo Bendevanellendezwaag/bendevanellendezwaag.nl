@@ -153,6 +153,13 @@ create policy "inleg beheer" on public.inleg
 
 revoke all on public.inleggers, public.inleg from anon;
 
+-- ---------------------------------------------------------------- verbergen per jaar (01-11-2026)
+--
+-- Sponsoren die dit jaar niet meedoen kun je per jaar verbergen. Ze blijven
+-- bestaan (met alle eerdere jaren); in andere jaren staan ze er gewoon.
+
+alter table public.sponsorbijdragen add column if not exists verborgen boolean not null default false;
+
 -- ---------------------------------------------------------------- overzicht voor leden (01-11-2026)
 --
 -- Leden zien (alleen lezen) welke bedrijven meedoen en voor welk bedrag. Alleen
@@ -192,7 +199,8 @@ begin
                select jsonb_agg(distinct trim(b.natura))
                from public.sponsorbijdragen b
                join public.sponsoren s on s.id = b.sponsor
-               where b.jaar = j.jaar and s.soort = 'familie' and nullif(trim(b.natura), '') is not null), '[]'::jsonb),
+               where b.jaar = j.jaar and s.soort = 'familie' and not b.verborgen
+                 and nullif(trim(b.natura), '') is not null), '[]'::jsonb),
              'sponsoren', coalesce((
                select jsonb_agg(jsonb_build_object(
                         'naam', x.naam,
@@ -208,7 +216,7 @@ begin
                              then b.bedrag end as bedrag
                  from public.sponsorbijdragen b
                  join public.sponsoren s on s.id = b.sponsor
-                 where b.jaar = j.jaar and s.soort = 'zakelijk'
+                 where b.jaar = j.jaar and s.soort = 'zakelijk' and not b.verborgen
                ) x
                where x.bedrag is not null or x.natura is not null
              ), '[]'::jsonb))
