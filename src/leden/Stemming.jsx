@@ -346,7 +346,7 @@ function Kiezen({ ronde, themas, ververs, onInfo, max }) {
 // ---------------------------------------------------------------- uitslag
 
 export function UitslagLaden({ ronde }) {
-  const [u, setU] = useState(null);
+  const [u, setU] = useState(undefined); // undefined = laden, null = (nog) niet zichtbaar
   const [fout, setFout] = useState(null);
 
   useEffect(() => {
@@ -354,7 +354,7 @@ export function UitslagLaden({ ronde }) {
     api.uitslag(ronde).then((r) => {
       if (weg) return;
       if (r.error) setFout(r.error);
-      else setU(r.data);
+      else setU(r.data ?? null);
     });
     return () => {
       weg = true;
@@ -362,7 +362,8 @@ export function UitslagLaden({ ronde }) {
   }, [ronde]);
 
   if (fout) return <p className="ld-fout">{fout}</p>;
-  if (!u) return <p className="ld-zacht">Laden…</p>;
+  if (u === undefined) return <p className="ld-zacht">Laden…</p>;
+  if (!u) return <p className="ld-zacht">De uitslag is nog niet beschikbaar.</p>;
   return (
     <>
       <p className="ld-zacht ld-klein">
