@@ -158,7 +158,8 @@ revoke all on public.inleggers, public.inleg from anon;
 -- Leden zien (alleen lezen) welke sponsoren meedoen en voor welk bedrag. Alleen
 -- bijdragen met een bedrag die de beheerder bevestigd heeft: er is een factuur
 -- of toezegging (betaalwijze gekozen of factuurnummer ingevuld) of het geld is
--- al ontvangen. Geen contactgegevens, notities of bijdragen in natura.
+-- al ontvangen. Bijdragen in natura (bouwschuur, frituur, ...) staan er ook in,
+-- zonder bedrag. Geen contactgegevens of notities.
 -- Daarnaast per jaar het totaal van de eigen inleg (niet per lid): 12 x het
 -- maandbedrag per lid, of het losse totaal zolang er geen inleg per lid is.
 -- De tabellen zelf blijven alleen voor de beheerder.
@@ -182,15 +183,22 @@ begin
                            else coalesce(j.eigen_inleg, 0) end,
              'sponsoren', coalesce((
                select jsonb_agg(jsonb_build_object(
-                        'naam', s.naam,
-                        'soort', s.soort,
-                        'bedrag', b.bedrag,
-                        'ontvangen', b.ontvangen) order by b.bedrag desc, s.naam)
-               from public.sponsorbijdragen b
-               join public.sponsoren s on s.id = b.sponsor
-               where b.jaar = j.jaar
-                 and b.bedrag > 0
-                 and (b.betaalwijze is not null or nullif(trim(b.factuurnr), '') is not null or b.ontvangen)
+                        'naam', x.naam,
+                        'soort', x.soort,
+                        'bedrag', x.bedrag,
+                        'natura', x.natura,
+                        'ontvangen', x.ontvangen) order by x.bedrag desc nulls last, x.naam)
+               from (
+                 select s.naam, s.soort, b.ontvangen,
+                        nullif(trim(b.natura), '') as natura,
+                        case when b.bedrag > 0
+                              and (b.betaalwijze is not null or nullif(trim(b.factuurnr), '') is not null or b.ontvangen)
+                             then b.bedrag end as bedrag
+                 from public.sponsorbijdragen b
+                 join public.sponsoren s on s.id = b.sponsor
+                 where b.jaar = j.jaar
+               ) x
+               where x.bedrag is not null or x.natura is not null
              ), '[]'::jsonb))
            order by j.jaar)
     from public.sponsorjaren j), '[]'::jsonb);

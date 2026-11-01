@@ -3910,3 +3910,15 @@ body.fa-open {
   font-size: 12px;
   color: var(--l-zacht);
 }
+
+.ld-spo-natura {
+  margin-left: auto;
+  font-style: normal;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 99px;
+  background: var(--l-accent-licht);
+  color: var(--l-accent);
+  white-space: nowrap;
+}

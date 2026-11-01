@@ -12,10 +12,12 @@
 --
 --  Stemming in drie rondes
 --    ronde 1 "eerste vergadering": alle thema's op volgorde (punten: nr. 1 krijgt N, ...)
---    ronde 2 "stemronde 1": maximaal 3 stemmen — uitslag ALLEEN voor de beheerder
+--    ronde 2 "stemronde 1": maximaal 3 stemmen — uitslag voor de leden zodra
+--                            de beheerder de ronde sluit (aantallen, niet wie wat)
 --    ronde 3 "stemronde 2": één stem — uitslag ALLEEN voor de beheerder
 --    Na elke ronde kiest de beheerder zelf welke thema's doorgaan (themas.ronde).
---    Een thema doet mee aan ronde r als themas.ronde >= r.
+--    Een thema doet mee aan ronde r als themas.ronde >= r. Na stemronde 2 kiest
+--    de beheerder het winnende thema: dat krijgt ronde 4.
 --
 --  Beveiliging: RLS op alles. Stemmen kan alleen via stem_uitbrengen(), die
 --  controleert of de ronde open is en of de keuze klopt. Elk account stemt
@@ -144,10 +146,13 @@ create table if not exists public.themas (
   kort          text not null default '' check (char_length(kort) <= 300),
   toelichting   text not null default '' check (char_length(toelichting) <= 20000),
   fotos         jsonb not null default '[]'::jsonb,       -- paden in bucket themafotos
-  ronde         int not null default 1 check (ronde between 1 and 3),
+  ronde         int not null default 1,
   aangemaakt_op timestamptz not null default now()
 );
 alter table public.themas enable row level security;
+-- ronde 4 = het gekozen thema na stemronde 2
+alter table public.themas drop constraint if exists themas_ronde_check;
+alter table public.themas add constraint themas_ronde_check check (ronde between 1 and 4);
 
 drop policy if exists "themas lezen" on public.themas;
 create policy "themas lezen" on public.themas
@@ -187,6 +192,7 @@ create policy "rondes beheren" on public.rondes
 
 -- Thema's door naar de volgende ronde: de gekozen gaan naar p_nr + 1, de rest
 -- van deze ronde blijft op p_nr (zo kun je de keuze ook nog herzien).
+-- Na stemronde 2 (p_nr 3) kies je precies één winnaar.
 create or replace function public.ronde_doorzetten(p_nr int, p_ids uuid[])
 returns void
 language plpgsql
@@ -197,8 +203,11 @@ begin
   if not public.is_beheerder() then
     raise exception 'Alleen de beheerder kan dit' using errcode = '42501';
   end if;
-  if p_nr not in (1, 2) then
-    raise exception 'Alleen na ronde 1 of 2' using errcode = '22023';
+  if p_nr not in (1, 2, 3) then
+    raise exception 'Alleen na ronde 1, 2 of 3' using errcode = '22023';
+  end if;
+  if p_nr = 3 and coalesce(array_length(p_ids, 1), 0) <> 1 then
+    raise exception 'Kies precies één winnend thema' using errcode = '22023';
   end if;
   update public.themas
      set ronde = case when id = any (p_ids) then p_nr + 1 else p_nr end
@@ -318,9 +327,9 @@ begin
       from public.rondes r), '{}'::jsonb));
 end $fn$;
 
--- Uitslag van een ronde. De beheerder altijd; leden alleen van de eerste
--- vergadering: als de beheerder die openbaar heeft gemaakt, of vanzelf zodra
--- stemronde 1 begonnen is. Wie wat stemde ziet alleen de beheerder.
+-- Uitslag van een ronde. De beheerder altijd; leden alleen van stemronde 1, en
+-- pas als de beheerder die ronde gesloten heeft. Wie wat stemde ziet alleen de
+-- beheerder.
 create or replace function public.uitslag(p_ronde int)
 returns jsonb
 language plpgsql
@@ -333,9 +342,8 @@ declare
   v_n int;
 begin
   if not v_beheerder and not (
-       public.is_lid() and p_ronde = 1
-       and (coalesce((select uitslag_openbaar from public.rondes where nr = 1), false)
-            or (select status from public.rondes where nr = 2) <> 'gepland')) then
+       public.is_lid() and p_ronde = 2
+       and (select status from public.rondes where nr = 2) = 'gesloten') then
     return null;
   end if;
   select count(*) into v_n from public.themas where ronde >= p_ronde;

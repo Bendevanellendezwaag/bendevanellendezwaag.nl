@@ -6,7 +6,7 @@ import { Paginakop } from './onderdelen.jsx';
 import { RONDES, Uitslag } from './Stemming.jsx';
 
 const STATUS = { gepland: 'Gepland', open: 'Open', gesloten: 'Gesloten' };
-const DOOR = { 1: 5, 2: 3 }; // standaard voorselectie: top 5 na de vergadering, top 3 na stemronde 1
+const DOOR = { 1: 5, 2: 3, 3: 1 }; // standaard voorselectie: top 5 na de vergadering, top 3 na stemronde 1, winnaar na stemronde 2
 
 /**
  * Beheerder, per ronde:
@@ -112,24 +112,11 @@ function RondeBeheer({ ronde, data, ververs, startOpen }) {
                 {ronde.status === 'gesloten' ? 'Opnieuw openen' : 'Openzetten voor leden'}
               </button>
             )}
-            {ronde.nr === 1 && data.rondes.some((r) => r.nr === 2 && r.status !== 'gepland') ? (
+            {ronde.nr === 2 ? (
               <span className="ld-geheim">
-                <Icoon naam="vink" grootte={16} /> Uitslag zichtbaar voor leden (stemronde 1 is begonnen)
+                <Icoon naam={ronde.status === 'gesloten' ? 'vink' : 'slot'} grootte={16} />
+                {ronde.status === 'gesloten' ? ' Uitslag zichtbaar voor leden' : ' Uitslag gaat naar de leden zodra je sluit'}
               </span>
-            ) : ronde.nr === 1 ? (
-              <label className="ld-schakel">
-                <input
-                  type="checkbox"
-                  checked={ronde.uitslag_openbaar}
-                  onChange={(e) =>
-                    doe(
-                      api.rondeBijwerken(ronde.nr, { uitslag_openbaar: e.target.checked }),
-                      e.target.checked ? 'Uitslag zichtbaar voor leden' : 'Uitslag verborgen',
-                    )
-                  }
-                />
-                Uitslag zichtbaar voor leden
-              </label>
             ) : (
               <span className="ld-geheim">
                 <Icoon naam="slot" grootte={16} /> Uitslag alleen voor jou
@@ -174,7 +161,7 @@ function RondeBeheer({ ronde, data, ververs, startOpen }) {
             </div>
           )}
 
-          {ronde.nr < 3 && ronde.status === 'gesloten' && uitslag && (
+          {ronde.status === 'gesloten' && uitslag && (
             <Doorzetten
               // Opnieuw beginnen zodra de doorgezette thema's elders wijzigen (knoppen in de lijst).
               key={mee
@@ -232,20 +219,26 @@ function Doorzetten({ ronde, mee, uitslag, ververs }) {
   const [keuze, setKeuze] = useState(al.length ? al : top);
   const [fout, setFout] = useState(null);
   const volgorde = uitslag.rijen.map((r) => mee.find((t) => t.id === r.id)).filter(Boolean);
+  // Na stemronde 2 kies je één winnaar: die komt als enige op het tabblad Thema's.
+  const laatste = ronde === 3;
+  const naar = laatste ? 'het gekozen thema' : RONDES[ronde + 1].naam.toLowerCase();
 
   return (
     <div className="ld-door">
       <h3 className="ld-sub">
-        Door naar {RONDES[ronde + 1].naam.toLowerCase()} <span>{keuze.length} gekozen</span>
+        {laatste ? 'Winnend thema' : `Door naar ${naar}`} <span>{keuze.length} gekozen</span>
       </h3>
       <ul className="ld-lijst">
         {volgorde.map((t) => (
           <li key={t.id}>
             <label className="ld-schakel is-rij">
               <input
-                type="checkbox"
+                type={laatste ? 'radio' : 'checkbox'}
+                name={laatste ? 'winnaar' : undefined}
                 checked={keuze.includes(t.id)}
-                onChange={(e) => setKeuze(e.target.checked ? [...keuze, t.id] : keuze.filter((x) => x !== t.id))}
+                onChange={(e) =>
+                  setKeuze(laatste ? [t.id] : e.target.checked ? [...keuze, t.id] : keuze.filter((x) => x !== t.id))
+                }
               />
               {t.titel}
             </label>
@@ -255,15 +248,16 @@ function Doorzetten({ ronde, mee, uitslag, ververs }) {
       {fout && <p className="ld-fout">{fout}</p>}
       <button
         className="ld-knop is-klein"
-        disabled={keuze.length === 0}
+        disabled={laatste ? keuze.length !== 1 : keuze.length === 0}
         onClick={async () => {
           const r = await api.doorzetten(ronde, keuze);
           if (r.error) setFout(r.error);
-          else meld(`${keuze.length} thema's door naar ${RONDES[ronde + 1].naam.toLowerCase()} — werk ze daar uit`);
+          else if (laatste) meld('Winnend thema gekozen: dat staat nu als enige bij Thema’s');
+          else meld(`${keuze.length} thema's door naar ${naar} — werk ze daar uit`);
           ververs();
         }}
       >
-        Doorzetten
+        {laatste ? 'Kies als ons thema' : 'Doorzetten'}
       </button>
     </div>
   );
@@ -373,7 +367,7 @@ function SnelleThemas({ themas, ververs }) {
                   >
                     {t.ronde > 1 ? (
                       <>
-                        <Icoon naam="vink" grootte={14} /> {RONDES[t.ronde].naam}
+                        <Icoon naam="vink" grootte={14} /> {RONDES[t.ronde]?.naam || 'Ons thema'}
                       </>
                     ) : (
                       'Doorzetten'

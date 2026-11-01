@@ -15,12 +15,9 @@ export default function Stemming({ data, ververs }) {
   const [detail, setDetail] = useState(null);
   const open = data.rondes.find((r) => r.status === 'open');
   const gesloten = data.rondes.filter((r) => r.status === 'gesloten');
-  // Alleen de eerste vergadering kan een openbare uitslag hebben; de stemrondes blijven geheim.
-  // Die uitslag komt vanzelf vrij zodra stemronde 1 begonnen is.
-  const ronde2Begonnen = data.rondes.some((r) => r.nr === 2 && r.status !== 'gepland');
-  const openbaar = data.rondes.filter(
-    (r) => r.nr === 1 && r.status === 'gesloten' && (r.uitslag_openbaar || ronde2Begonnen),
-  );
+  // Alleen de uitslag van stemronde 1 gaat naar de leden, zodra de beheerder die ronde sluit.
+  const openbaar = data.rondes.filter((r) => r.nr === 2 && r.status === 'gesloten');
+  const winnaar = data.themas.find((t) => t.ronde === 4);
 
   let hoofd;
   if (open) {
@@ -51,7 +48,9 @@ export default function Stemming({ data, ververs }) {
     hoofd = (
       <>
         <Paginakop titel="Stemming" />
-        {laatste?.nr === 3 ? (
+        {winnaar ? (
+          <Leeg titel={`Ons thema: ${winnaar.titel}`}>Bedankt voor het stemmen! Bekijk het thema bij Thema’s.</Leeg>
+        ) : laatste?.nr === 3 ? (
           <Leeg titel="De stemming is klaar">Bedankt voor het stemmen!</Leeg>
         ) : (
           <Leeg titel="Er staat nu geen stemming open">Bekijk alvast de thema’s.</Leeg>
@@ -368,7 +367,6 @@ export function UitslagLaden({ ronde }) {
     <>
       <p className="ld-zacht ld-klein">
         {u.aantal_stemmen} {u.aantal_stemmen === 1 ? 'lid heeft' : 'leden hebben'} gestemd
-        {ronde === 1 && ' · nr. 1 op je lijst geeft de meeste punten'}
       </p>
       <Uitslag ronde={ronde} uitslag={u} />
     </>

@@ -12,8 +12,8 @@ const euro = (n) => euroFmt.format(n || 0);
 
 /**
  * Sponsoring voor leden: alleen lezen. De database geeft alleen bijdragen met een
- * bedrag waarvan de beheerder een factuur of toezegging heeft vastgelegd, plus het
- * totaal van de eigen inleg (niet per lid).
+ * bedrag waarvan de beheerder een factuur of toezegging heeft vastgelegd, bijdragen
+ * in natura, en het totaal van de eigen inleg (niet per lid).
  */
 export default function SponsorOverzicht() {
   const [jaren, setJaren] = useState(null);
@@ -35,7 +35,7 @@ export default function SponsorOverzicht() {
   if (!jaren) return <p className="ld-zacht">Laden…</p>;
 
   const jaar = jaren.find((j) => j.jaar === JAAR) || { sponsoren: [], inleg: 0 };
-  const som = (lijst) => lijst.reduce((t, s) => t + Number(s.bedrag), 0);
+  const som = (lijst) => lijst.reduce((t, s) => t + (Number(s.bedrag) || 0), 0);
   const per = Object.fromEntries(Object.keys(SOORTEN).map((k) => [k, jaar.sponsoren.filter((s) => s.soort === k)]));
   const inleg = Number(jaar.inleg) || 0;
   const totaal = som(jaar.sponsoren) + inleg;
@@ -75,16 +75,14 @@ export default function SponsorOverzicht() {
               {lijst.map((s, i) => (
                 <li key={`${s.naam}-${i}`} className="ld-rij ld-spo-rij">
                   <span className="ld-rij-tekst">{s.naam}</span>
-                  {s.ontvangen && <em className="ld-spo-binnen">binnen</em>}
-                  <strong>{euro(s.bedrag)}</strong>
+                  {s.ontvangen && s.bedrag && <em className="ld-spo-binnen">binnen</em>}
+                  {s.bedrag ? <strong>{euro(s.bedrag)}</strong> : <em className="ld-spo-natura">{s.natura}</em>}
                 </li>
               ))}
             </ul>
           </section>
         );
       })}
-
-      <p className="ld-zacht ld-klein">Alleen bijdragen met een factuur of toezegging. Je kunt hier niets aanpassen.</p>
     </>
   );
 }

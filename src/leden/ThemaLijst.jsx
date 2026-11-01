@@ -7,12 +7,17 @@ import { Leeg, Paginakop } from './onderdelen.jsx';
 export default function ThemaLijst({ themas: alle }) {
   const [open, setOpen] = useState(null);
   // Bij de eerste vergadering zijn het nog losse titels; uitgewerkt worden alleen
-  // de thema's die doorgaan naar de stemrondes.
-  const themas = alle.filter((t) => t.ronde >= 2);
+  // de thema's die doorgaan naar de stemrondes. Is er een winnaar (ronde 4), dan
+  // staat alleen die er nog.
+  const winnaar = alle.filter((t) => t.ronde === 4);
+  const themas = winnaar.length ? winnaar : alle.filter((t) => t.ronde >= 2);
 
   return (
     <>
-      <Paginakop titel="Thema's" sub={themas.length ? `${themas.length} thema's in de stemrondes` : undefined} />
+      <Paginakop
+        titel={winnaar.length ? 'Ons thema' : "Thema's"}
+        sub={winnaar.length ? 'Gekozen na stemronde 2' : themas.length ? `${themas.length} thema's in de stemrondes` : undefined}
+      />
       {themas.length === 0 ? (
         <Leeg titel="Nog geen thema's">Na de eerste vergadering staan hier de thema's die doorgaan.</Leeg>
       ) : (
@@ -33,7 +38,7 @@ function ThemaKaart({ thema, onOpen }) {
     <button className="ld-themakaart" onClick={onOpen}>
       <span className="ld-themakaart-foto">
         {foto ? <img src={fotoUrl(foto)} alt="" loading="lazy" /> : <span>{thema.titel.slice(0, 1)}</span>}
-        {thema.ronde > 1 && <em>{thema.ronde === 3 ? 'Stemronde 2' : 'Stemronde 1'}</em>}
+        {thema.ronde > 1 && <em>{{ 2: 'Stemronde 1', 3: 'Stemronde 2', 4: 'Ons thema' }[thema.ronde]}</em>}
         {thema.fotos?.length > 1 && (
           <i>
             <Icoon naam="foto" grootte={14} /> {thema.fotos.length}
