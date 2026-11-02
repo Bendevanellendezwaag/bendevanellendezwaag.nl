@@ -1476,13 +1476,41 @@ html.bv-laden * {
   }
 }
 
-/* Wagens van het jaar ervoor en erna: wazig en donkerder naast het podium, alleen op grote schermen. */
+/* Carrousel: de wagens van het jaar ervoor en erna staan in 3D naar achteren gedraaid naast het podium,
+   wazig en donkerder; bij hover draaien ze naar je toe. Alleen op grote schermen. */
 .bv-podium-rij {
   position: relative;
+  perspective: 1400px;
+  perspective-origin: 50% 45%;
 }
 
 .bv-podium-rij > .bv-podium {
   z-index: 1;
+}
+
+/* Nieuwe wagen zwenkt in beeld vanaf de kant waar hij vandaan komt. */
+.bv-podium-rij.van-links .bv-podium-foto {
+  animation: bv-zwenk-links 0.8s var(--zacht-uit) both;
+}
+
+.bv-podium-rij.van-rechts .bv-podium-foto {
+  animation: bv-zwenk-rechts 0.8s var(--zacht-uit) both;
+}
+
+@keyframes bv-zwenk-links {
+  from {
+    opacity: 0;
+    transform: perspective(1200px) translateX(-14%) rotateY(-16deg) scale(0.94);
+    filter: blur(6px) brightness(0.6);
+  }
+}
+
+@keyframes bv-zwenk-rechts {
+  from {
+    opacity: 0;
+    transform: perspective(1200px) translateX(14%) rotateY(16deg) scale(0.94);
+    filter: blur(6px) brightness(0.6);
+  }
 }
 
 .bv-buur {
@@ -1496,9 +1524,12 @@ html.bv-laden * {
   }
 
   .bv-buur {
+    --draai: 38deg;
+    --diepte: -160px;
+    --schuif: 0px;
     position: absolute;
-    top: 8%;
-    bottom: 8%;
+    top: 6%;
+    bottom: 6%;
     z-index: 0;
     display: block;
     width: 62%;
@@ -1507,16 +1538,34 @@ html.bv-laden * {
     border: 0;
     border-radius: var(--rond);
     background: var(--blauw-diep);
+    box-shadow: 0 40px 70px -30px rgba(6, 18, 64, 0.8);
     cursor: pointer;
-    animation: bv-buur-in 0.7s var(--zacht-uit) both;
+    transition:
+      transform 0.7s var(--zacht-uit),
+      box-shadow 0.5s;
   }
 
   .bv-buur.is-links {
-    right: calc(100% - 56px);
+    right: calc(100% - 64px);
+    transform-origin: 100% 50%;
+    transform: translateX(calc(-1 * var(--schuif))) translateZ(var(--diepte)) rotateY(var(--draai));
+    animation: bv-buur-in-links 0.8s var(--zacht-uit) both;
   }
 
   .bv-buur.is-rechts {
-    left: calc(100% - 56px);
+    left: calc(100% - 64px);
+    transform-origin: 0% 50%;
+    transform: translateX(var(--schuif)) translateZ(var(--diepte)) rotateY(calc(-1 * var(--draai)));
+    animation: bv-buur-in-rechts 0.8s var(--zacht-uit) both;
+  }
+
+  /* Hover: naar je toe draaien, iets naar buiten schuiven en scherper worden. */
+  .bv-buur:hover,
+  .bv-buur:focus-visible {
+    --draai: 16deg;
+    --diepte: -70px;
+    --schuif: 24px;
+    box-shadow: 0 50px 90px -30px rgba(6, 18, 64, 0.9);
   }
 
   .bv-buur img,
@@ -1525,38 +1574,100 @@ html.bv-laden * {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    filter: blur(5px) brightness(0.5) saturate(0.85);
+    filter: blur(5px) brightness(0.48) saturate(0.85);
     transform: scale(1.08);
-    transition: filter 0.4s;
+    transition:
+      filter 0.5s,
+      transform 0.7s var(--zacht-uit);
   }
 
   .bv-buur:hover img,
   .bv-buur:hover .bv-foto-leeg {
-    filter: blur(3px) brightness(0.68) saturate(0.95);
+    filter: blur(1.5px) brightness(0.78) saturate(1);
+    transform: scale(1.02);
+  }
+
+  /* Lichtglans die over de buur trekt bij hover. */
+  .bv-buur::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.22) 50%, transparent 65%);
+    transform: translateX(-100%);
+    pointer-events: none;
+  }
+
+  .bv-buur:hover::after {
+    transform: translateX(100%);
+    transition: transform 0.9s var(--zacht-uit);
   }
 
   .bv-buur-jaar {
     position: absolute;
-    bottom: 18px;
+    bottom: 20px;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(6, 18, 64, 0.45);
     font-family: var(--font-kop);
     font-size: 0.78rem;
     font-weight: 600;
-    letter-spacing: 0.08em;
-    color: rgba(255, 255, 255, 0.75);
+    letter-spacing: 0.06em;
+    color: rgba(255, 255, 255, 0.8);
+    opacity: 0; /* alleen bij hover: anders valt het jaartal op kleine schermen half achter de foto */
+    transition:
+      opacity 0.3s,
+      background 0.3s,
+      color 0.3s,
+      transform 0.5s var(--vering);
+  }
+
+  .bv-buur-jaar svg {
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .bv-buur:hover .bv-buur-jaar {
+    opacity: 1;
+    background: var(--lichtblauw);
+    color: var(--blauw);
+  }
+
+  .bv-buur:hover .bv-buur-jaar svg {
+    opacity: 1;
   }
 
   .bv-buur.is-links .bv-buur-jaar {
-    right: 80px;
+    right: 88px;
   }
 
   .bv-buur.is-rechts .bv-buur-jaar {
-    left: 80px;
+    left: 88px;
+  }
+
+  .bv-buur.is-links:hover .bv-buur-jaar {
+    transform: translateX(-4px);
+  }
+
+  .bv-buur.is-rechts:hover .bv-buur-jaar {
+    transform: translateX(4px);
   }
 }
 
-@keyframes bv-buur-in {
+@keyframes bv-buur-in-links {
   from {
     opacity: 0;
+    transform: translateX(-60px) translateZ(-320px) rotateY(60deg);
+  }
+}
+
+@keyframes bv-buur-in-rechts {
+  from {
+    opacity: 0;
+    transform: translateX(60px) translateZ(-320px) rotateY(-60deg);
   }
 }
 

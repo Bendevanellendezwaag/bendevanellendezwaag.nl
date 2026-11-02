@@ -369,7 +369,14 @@ export default function Wagens() {
   // Precies de jaren uit de lijst met wagens, oud naar nieuw. Jaren zonder wagen staan er dus niet in.
   const jaren = useMemo(() => [...new Set(wagens.map((w) => w.jaar))].sort((a, b) => a - b), []);
   const nieuwste = jaren[jaren.length - 1];
-  const [actief, setActief] = useState(nieuwste);
+  const [actief, zetActief] = useState(nieuwste);
+  const [richting, setRichting] = useState(0); // -1 = naar een ouder jaar, 1 = naar een nieuwer jaar
+  const setActief = useCallback((jaar) => {
+    zetActief((oud) => {
+      if (jaar !== oud) setRichting(jaar < oud ? -1 : 1);
+      return jaar;
+    });
+  }, []);
   const [album, setAlbum] = useState(false);
   const wagen = perJaar[actief];
   const titel = wagen ? wagen.titel : `Geen wagen in ${actief}`;
@@ -388,7 +395,11 @@ export default function Wagens() {
         tabIndex={-1}
       >
         <WagenFoto wagen={perJaar[jaar]} jaar={jaar} />
-        <span className="bv-buur-jaar">{jaar}</span>
+        <span className="bv-buur-jaar">
+          {kant === 'links' && <Icoon naam="pijlLinks" grootte={16} />}
+          {jaar}
+          {kant === 'rechts' && <Icoon naam="pijl" grootte={16} />}
+        </span>
       </button>
     ) : null;
 
@@ -397,7 +408,7 @@ export default function Wagens() {
       <Stippen />
       <div className="bv-kader">
         {/* Het podium: de foto van het jaar met titel, tekst en knop erin; de tijdlijn direct eronder. */}
-        <div className="bv-podium-rij">
+        <div className={`bv-podium-rij ${richting < 0 ? 'van-links' : richting > 0 ? 'van-rechts' : ''}`}>
         {buur(vorig, 'links')}
         {buur(volgend, 'rechts')}
         <div className="bv-podium">
