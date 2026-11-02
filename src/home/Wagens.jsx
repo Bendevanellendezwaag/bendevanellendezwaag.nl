@@ -84,6 +84,7 @@ function Tijdlijn({ jaren, actief, onKies }) {
 
   const actiefRef = useRef(actief);
   actiefRef.current = actief;
+  const vanScroll = useRef(actief); // het laatste jaar dat door het scrollen van de tijdlijn zelf gekozen is
   useLayoutEffect(() => {
     if (breedte) naarJaar(actiefRef.current, false);
   }, [breedte, afstand, naarJaar]);
@@ -108,13 +109,24 @@ function Tijdlijn({ jaren, actief, onKies }) {
       const pos = tekenGolf();
       if (pos == null) return;
       const jaar = jaren[Math.max(0, Math.min(jaren.length - 1, Math.round(pos / afstand)))];
-      if (jaar !== actiefRef.current) onKies(jaar);
+      if (jaar !== actiefRef.current) {
+        vanScroll.current = jaar;
+        onKies(jaar);
+      }
     });
   };
 
   useEffect(() => {
     tekenGolf();
   }, [tekenGolf, breedte]);
+
+  // Jaar gekozen buiten de tijdlijn om (bijvoorbeeld door op een buur-wagen te klikken): meeschuiven.
+  useEffect(() => {
+    if (actief !== vanScroll.current) {
+      vanScroll.current = actief;
+      naarJaar(actief);
+    }
+  }, [actief, naarJaar]);
 
   const omlaag = (e) => {
     if (e.pointerType !== 'mouse' || e.button !== 0) return;
@@ -361,12 +373,33 @@ export default function Wagens() {
   const [album, setAlbum] = useState(false);
   const wagen = perJaar[actief];
   const titel = wagen ? wagen.titel : `Geen wagen in ${actief}`;
+  const plekInLijst = jaren.indexOf(actief);
+  const vorig = jaren[plekInLijst - 1];
+  const volgend = jaren[plekInLijst + 1];
+
+  // Wazige wagen van het jaar ervoor of erna naast het podium (alleen op grote schermen); klik = naar dat jaar.
+  const buur = (jaar, kant) =>
+    jaar ? (
+      <button
+        key={`${kant}${jaar}`}
+        className={`bv-buur is-${kant}`}
+        onClick={() => setActief(jaar)}
+        aria-label={`Bekijk de wagen van ${jaar}`}
+        tabIndex={-1}
+      >
+        <WagenFoto wagen={perJaar[jaar]} jaar={jaar} />
+        <span className="bv-buur-jaar">{jaar}</span>
+      </button>
+    ) : null;
 
   return (
     <section id="wagens" className="bv-hero" aria-label="Onze wagens door de jaren heen">
       <Stippen />
       <div className="bv-kader">
         {/* Het podium: de foto van het jaar met titel, tekst en knop erin; de tijdlijn direct eronder. */}
+        <div className="bv-podium-rij">
+        {buur(vorig, 'links')}
+        {buur(volgend, 'rechts')}
         <div className="bv-podium">
           <div className="bv-podium-foto" key={`f${actief}`}>
             <WagenFoto wagen={wagen} jaar={actief} />
@@ -392,6 +425,7 @@ export default function Wagens() {
               </button>
             )}
           </div>
+        </div>
         </div>
 
         <Tijdlijn jaren={jaren} actief={actief} onKies={setActief} />

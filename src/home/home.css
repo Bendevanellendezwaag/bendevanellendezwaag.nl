@@ -1476,6 +1476,90 @@ html.bv-laden * {
   }
 }
 
+/* Wagens van het jaar ervoor en erna: wazig en donkerder naast het podium, alleen op grote schermen. */
+.bv-podium-rij {
+  position: relative;
+}
+
+.bv-podium-rij > .bv-podium {
+  z-index: 1;
+}
+
+.bv-buur {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  /* Het podium iets smaller, zodat er links en rechts ruimte is voor de buren. */
+  .bv-hero > .bv-kader {
+    max-width: min(calc(var(--breed) + 2 * var(--rand)), calc(100vw - 2 * clamp(72px, 8vw, 200px)));
+  }
+
+  .bv-buur {
+    position: absolute;
+    top: 8%;
+    bottom: 8%;
+    z-index: 0;
+    display: block;
+    width: 62%;
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    border-radius: var(--rond);
+    background: var(--blauw-diep);
+    cursor: pointer;
+    animation: bv-buur-in 0.7s var(--zacht-uit) both;
+  }
+
+  .bv-buur.is-links {
+    right: calc(100% - 56px);
+  }
+
+  .bv-buur.is-rechts {
+    left: calc(100% - 56px);
+  }
+
+  .bv-buur img,
+  .bv-buur .bv-foto-leeg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(5px) brightness(0.5) saturate(0.85);
+    transform: scale(1.08);
+    transition: filter 0.4s;
+  }
+
+  .bv-buur:hover img,
+  .bv-buur:hover .bv-foto-leeg {
+    filter: blur(3px) brightness(0.68) saturate(0.95);
+  }
+
+  .bv-buur-jaar {
+    position: absolute;
+    bottom: 18px;
+    font-family: var(--font-kop);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  .bv-buur.is-links .bv-buur-jaar {
+    right: 80px;
+  }
+
+  .bv-buur.is-rechts .bv-buur-jaar {
+    left: 80px;
+  }
+}
+
+@keyframes bv-buur-in {
+  from {
+    opacity: 0;
+  }
+}
+
 /* Draaiende sticker met de eindplek, rechtsboven in de foto. */
 .bv-sticker {
   position: absolute;
@@ -1820,53 +1904,6 @@ html.bv-laden * {
 .bv-bouwplaats {
   position: relative;
   margin: clamp(48px, 8vh, 88px) 0 clamp(48px, 8vh, 96px);
-  padding: 26px 0;
-}
-
-.bv-lint {
-  /* Van rand tot rand van het scherm, ook op brede schermen (een beetje extra voor de schuine stand). */
-  position: absolute;
-  left: calc(50% - 55vw);
-  width: 110vw;
-  top: 0;
-  z-index: 2;
-  overflow: hidden;
-  padding: 9px 0;
-  background: #ffd23f;
-  color: #14120a;
-  transform: rotate(-2.2deg);
-  box-shadow:
-    inset 0 7px 0 -3px #14120a,
-    inset 0 -7px 0 -3px #14120a,
-    0 10px 24px -12px rgba(0, 0, 0, 0.6);
-}
-
-.bv-lint.is-onder {
-  top: auto;
-  bottom: 0;
-  transform: rotate(1.6deg);
-}
-
-.bv-lint span {
-  display: block;
-  width: max-content;
-  font-family: var(--font-kop);
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  animation: bv-lint 40s linear infinite;
-}
-
-.bv-lint.is-onder span {
-  animation-direction: reverse;
-}
-
-@keyframes bv-lint {
-  to {
-    transform: translateX(-50%);
-  }
 }
 
 .bv-bouwplaats-bord {
@@ -1874,20 +1911,16 @@ html.bv-laden * {
   display: grid;
   justify-items: center;
   gap: 10px;
-  padding: clamp(56px, 8vw, 88px) clamp(20px, 6vw, 72px);
-  border-radius: 32px;
-  background:
-    radial-gradient(120% 90% at 50% 0%, #ffffff 40%, #eef5ff 100%);
-  color: var(--blauw-nacht);
+  padding: 0;
+  color: var(--wit);
   text-align: center;
-  box-shadow: 0 40px 90px -40px rgba(0, 0, 0, 0.75);
 }
 
 .bv-bouwplaats-icoon {
   width: 56px;
   height: 56px;
   fill: none;
-  stroke: var(--blauw);
+  stroke: var(--lichtblauw);
   stroke-width: 4;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -1900,7 +1933,7 @@ html.bv-laden * {
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--blauw);
+  color: var(--lichtblauw);
 }
 
 .bv-bouwplaats-bord strong {
@@ -1916,7 +1949,7 @@ html.bv-laden * {
   margin: 8px 0 0;
   font-size: clamp(1rem, 1.6vw, 1.15rem);
   line-height: 1.55;
-  color: #44507a;
+  color: rgba(255, 255, 255, 0.82);
 }
 
 /* Met foto: foto links (vastgeplakt met plakband), tekst rechts; op de telefoon onder elkaar. */
@@ -1924,8 +1957,8 @@ html.bv-laden * {
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
   align-items: center;
   justify-items: stretch;
-  gap: clamp(28px, 4vw, 56px);
-  padding: clamp(56px, 6vw, 80px) clamp(24px, 4vw, 56px);
+  gap: clamp(32px, 5vw, 72px);
+  padding: 0;
   text-align: left;
 }
 
@@ -1988,7 +2021,7 @@ html.bv-laden * {
 @media (max-width: 760px) {
   .bv-bouwplaats-bord.met-foto {
     grid-template-columns: 1fr;
-    padding: 52px 18px 40px;
+    padding: 0;
     text-align: center;
   }
 
@@ -2117,18 +2150,6 @@ html.bv-laden * {
 }
 
 @media (max-width: 560px) {
-  .bv-bouwplaats {
-    padding: 22px 0;
-  }
-
-  .bv-lint {
-    padding: 7px 0;
-  }
-
-  .bv-lint span {
-    font-size: 0.66rem;
-  }
-
   .bv-bouwplaats-bord {
     border-radius: 24px;
   }
@@ -2463,7 +2484,6 @@ html.bv-laden * {
   }
 
   .bv-rij-spoor,
-  .bv-lint span,
   .bv-sticker svg {
     animation: none !important;
   }

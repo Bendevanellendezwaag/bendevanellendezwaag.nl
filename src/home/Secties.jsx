@@ -11,8 +11,6 @@ export function OverDeBende() {
   const feiten = [
     // Telt precies de jaren in de tijdlijn, dus altijd gelijk aan wat je daar ziet.
     { waarde: String(aantalWagens), label: aantalWagens === 1 ? 'Wagen gebouwd' : 'Wagens gebouwd' },
-    // Telt vanzelf mee zodra een wagen een 1e, 2e of 3e plek heeft.
-    { waarde: String(wagens.filter((w) => w.plek >= 1 && w.plek <= 3).length), label: 'Podiumplekken' },
     ...deBende.feiten.filter((f) => f.waarde),
   ];
   // Alle woorden van beide alinea's krijgen een volgnummer, zodat ze tijdens het scrollen één voor één oplichten.
@@ -237,15 +235,10 @@ function SponsorRij({ lijst, omgekeerd }) {
   );
 }
 
-const LINT = 'Onze bouwplaats ✦ Zonder hen geen wagen ✦ Dank jullie wel ✦ ';
-
-/** De bouwplaats krijgt een eigen plek: een bord met afzetlint, want zonder hen komen we niet verder. */
+/** De bouwplaats krijgt een eigen plek, want zonder hen komen we niet verder. */
 function Bouwplaats() {
   return (
     <div className="bv-bouwplaats bv-onthul">
-      <div className="bv-lint" aria-hidden="true">
-        <span>{LINT.repeat(14)}</span>
-      </div>
       <div className={`bv-bouwplaats-bord ${bouwplaats.foto ? 'met-foto' : ''}`}>
         {bouwplaats.foto && (
           <figure className="bv-bouwplaats-foto">
@@ -263,9 +256,6 @@ function Bouwplaats() {
           <strong>{bouwplaats.naam}</strong>
           <p className="bv-bouwplaats-tekst">{bouwplaats.tekst}</p>
         </div>
-      </div>
-      <div className="bv-lint is-onder" aria-hidden="true">
-        <span>{LINT.repeat(14)}</span>
       </div>
     </div>
   );
