@@ -7,10 +7,12 @@ import Stippen from './Stippen.jsx';
 
 const STREEPJES_PER_JAAR = 12; // één streepje per maand
 
-function WagenFoto({ wagen, jaar }) {
+function WagenFoto({ wagen, jaar, laden }) {
   if (wagen?.foto) {
     return (
       <img
+        loading={laden}
+        decoding="async"
         src={wagen.foto}
         alt={`Carnavalswagen ${jaar}: ${wagen.titel}`}
         style={wagen.uitsnede ? { objectPosition: wagen.uitsnede } : undefined}
@@ -49,7 +51,7 @@ function PlekSticker({ plek, jaar }) {
 }
 
 /** Tijdlijn met kleine streepjes per maand en grote bij elk jaartal. Slepen, swipen, klikken of pijltjes. */
-function Tijdlijn({ jaren, actief, onKies }) {
+function Tijdlijn({ jaren, actief, onKies, onPositie }) {
   const scroller = useRef(null);
   const streepjes = useRef([]);
   const sleep = useRef(null);
@@ -108,6 +110,7 @@ function Tijdlijn({ jaren, actief, onKies }) {
     frame.current = requestAnimationFrame(() => {
       const pos = tekenGolf();
       if (pos == null) return;
+      onPositie?.(pos / afstand); // ook tussen twee jaren in, zodat de carrousel vloeiend meeschuift
       const jaar = jaren[Math.max(0, Math.min(jaren.length - 1, Math.round(pos / afstand)))];
       if (jaar !== actiefRef.current) {
         vanScroll.current = jaar;
@@ -364,82 +367,125 @@ function Album({ wagen, onSluit }) {
   );
 }
 
+/*
+ * De carrousel: alle wagens staan als dia's in één rij in 3D. De tijdlijn geeft zijn positie door
+ * (ook tussen twee jaren in) en elke dia schuift, draait en vervaagt daar vloeiend op mee.
+ * Desktop: de wagens ervoor en erna staan schuin en wazig naast de middelste. Mobiel: dia's schuiven naast elkaar.
+ */
+const BREED = '(min-width: 1024px)';
+
+function plaatsDias(rij, f) {
+  if (!rij) return;
+  const dias = rij.querySelectorAll('.bv-dia');
+  const W = rij.clientWidth;
+  const breed = window.matchMedia(BREED).matches;
+  dias.forEach((dia, i) => {
+    const d = i - f; // afstand tot het midden, in dia's (negatief = links/ouder)
+    const a = Math.abs(d);
+    const s = Math.sign(d);
+    const dichtbij = Math.min(a, 1);
+    const verder = Math.max(0, a - 1);
+    let x;
+    let z = 0;
+    let draai = 0;
+    let zicht;
+    if (breed) {
+      x = s * (dichtbij * W * 0.78 + verder * W * 0.3);
+      z = -(dichtbij * 360 + verder * 260);
+      draai = -s * dichtbij * 40;
+      zicht = a <= 1 ? 1 : Math.max(0, 2 - a);
+    } else {
+      x = d * (W + 48); // ruim genoeg dat er niets van de volgende foto aan de rand te zien is
+      zicht = a < 1.5 ? 1 : 0;
+    }
+    dia.style.transform = `translate3d(${x.toFixed(1)}px, 0, ${z.toFixed(1)}px) rotateY(${draai.toFixed(2)}deg)`;
+    dia.style.opacity = zicht.toFixed(3);
+    dia.style.zIndex = String(100 - Math.round(a * 10));
+    dia.style.visibility = zicht < 0.01 ? 'hidden' : 'visible';
+    dia.style.setProperty('--wazig', breed ? dichtbij.toFixed(3) : '0');
+    dia.style.setProperty('--info', Math.max(0, 1 - a * 2.2).toFixed(3));
+    dia.classList.toggle('is-midden', a < 0.5);
+    dia.classList.toggle('is-links', d <= -0.5);
+    dia.classList.toggle('is-rechts', d >= 0.5);
+  });
+}
+
 export default function Wagens() {
   const perJaar = useMemo(() => Object.fromEntries(wagens.map((w) => [w.jaar, w])), []);
   // Precies de jaren uit de lijst met wagens, oud naar nieuw. Jaren zonder wagen staan er dus niet in.
   const jaren = useMemo(() => [...new Set(wagens.map((w) => w.jaar))].sort((a, b) => a - b), []);
   const nieuwste = jaren[jaren.length - 1];
-  const [actief, zetActief] = useState(nieuwste);
-  const [richting, setRichting] = useState(0); // -1 = naar een ouder jaar, 1 = naar een nieuwer jaar
-  const setActief = useCallback((jaar) => {
-    zetActief((oud) => {
-      if (jaar !== oud) setRichting(jaar < oud ? -1 : 1);
-      return jaar;
-    });
-  }, []);
+  const [actief, setActief] = useState(nieuwste);
   const [album, setAlbum] = useState(false);
   const wagen = perJaar[actief];
-  const titel = wagen ? wagen.titel : `Geen wagen in ${actief}`;
-  const plekInLijst = jaren.indexOf(actief);
-  const vorig = jaren[plekInLijst - 1];
-  const volgend = jaren[plekInLijst + 1];
+  const rij = useRef(null);
+  const positie = useRef(jaren.length - 1);
 
-  // Wazige wagen van het jaar ervoor of erna naast het podium (alleen op grote schermen); klik = naar dat jaar.
-  const buur = (jaar, kant) =>
-    jaar ? (
-      <button
-        key={`${kant}${jaar}`}
-        className={`bv-buur is-${kant}`}
-        onClick={() => setActief(jaar)}
-        aria-label={`Bekijk de wagen van ${jaar}`}
-        tabIndex={-1}
-      >
-        <WagenFoto wagen={perJaar[jaar]} jaar={jaar} />
-        <span className="bv-buur-jaar">
-          {kant === 'links' && <Icoon naam="pijlLinks" grootte={16} />}
-          {jaar}
-          {kant === 'rechts' && <Icoon naam="pijl" grootte={16} />}
-        </span>
-      </button>
-    ) : null;
+  const opPositie = useCallback((f) => {
+    positie.current = f;
+    plaatsDias(rij.current, f);
+  }, []);
+
+  // Beginstand en opnieuw plaatsen als het scherm van maat verandert.
+  useLayoutEffect(() => {
+    plaatsDias(rij.current, positie.current);
+    const ro = new ResizeObserver(() => plaatsDias(rij.current, positie.current));
+    ro.observe(rij.current);
+    return () => ro.disconnect();
+  }, []);
 
   return (
     <section id="wagens" className="bv-hero" aria-label="Onze wagens door de jaren heen">
       <Stippen />
       <div className="bv-kader">
-        {/* Het podium: de foto van het jaar met titel, tekst en knop erin; de tijdlijn direct eronder. */}
-        <div className={`bv-podium-rij ${richting < 0 ? 'van-links' : richting > 0 ? 'van-rechts' : ''}`}>
-        {buur(vorig, 'links')}
-        {buur(volgend, 'rechts')}
-        <div className="bv-podium">
-          <div className="bv-podium-foto" key={`f${actief}`}>
-            <WagenFoto wagen={wagen} jaar={actief} />
-          </div>
-          <div className="bv-podium-schaduw" aria-hidden="true" />
-          {wagen?.plek ? <PlekSticker key={`s${actief}`} plek={wagen.plek} jaar={actief} /> : null}
-
-          <div className="bv-podium-info" key={`t${actief}`}>
-            <div className="bv-podium-tekst">
-              <p className="bv-label">{actief === nieuwste ? `Wagen ${actief} · heden` : `Wagen ${actief}`}</p>
-              <h1 className="bv-hero-titel" aria-label={titel}>
-                {woorden(titel).map((w, i) => (
-                  <span className="bv-woord" key={`${w}${i}`} aria-hidden="true">
-                    <span style={{ '--i': i }}>{w}</span>
+        <h1 className="bv-sr">Bende van Ellende – onze carnavalswagens</h1>
+        <div className="bv-podium-rij" ref={rij}>
+          {jaren.map((jaar) => {
+            const w = perJaar[jaar];
+            const midden = jaar === actief;
+            return (
+              <div
+                key={jaar}
+                className="bv-podium bv-dia"
+                aria-hidden={!midden}
+                onClick={midden ? undefined : () => setActief(jaar)}
+                title={midden ? undefined : `Bekijk de wagen van ${jaar}`}
+              >
+                <div className="bv-podium-foto">
+                  {/* Alle foto's meteen laden: anders licht er bij doorscrollen een leeg vlak op. */}
+                  <WagenFoto wagen={w} jaar={jaar} laden="eager" />
+                </div>
+                <div className="bv-podium-schaduw" aria-hidden="true" />
+                {w.plek ? <PlekSticker plek={w.plek} jaar={jaar} /> : null}
+                <div className="bv-podium-info">
+                  <div className="bv-podium-tekst">
+                    <p className="bv-label">{jaar === nieuwste ? `Wagen ${jaar} · heden` : `Wagen ${jaar}`}</p>
+                    <h2 className="bv-hero-titel" aria-label={w.titel}>
+                      {woorden(w.titel).map((woord, n) => (
+                        <span className="bv-woord" key={`${woord}${n}`} aria-hidden="true">
+                          <span style={{ '--i': n }}>{woord}</span>
+                        </span>
+                      ))}
+                    </h2>
+                    {w.tekst && <p className="bv-hero-intro">{w.tekst}</p>}
+                  </div>
+                  <button className="bv-knop is-groot" onClick={() => setAlbum(true)} tabIndex={midden ? 0 : -1}>
+                    Bekijk de foto's <Icoon naam="pijl" grootte={18} />
+                  </button>
+                </div>
+                {!midden && (
+                  <span className="bv-dia-jaar" aria-hidden="true">
+                    {jaar < actief && <Icoon naam="pijlLinks" grootte={16} />}
+                    {jaar}
+                    {jaar > actief && <Icoon naam="pijl" grootte={16} />}
                   </span>
-                ))}
-              </h1>
-              {wagen?.tekst && <p className="bv-hero-intro">{wagen.tekst}</p>}
-            </div>
-            {wagen && (
-              <button className="bv-knop is-groot" onClick={() => setAlbum(true)}>
-                Bekijk de foto's <Icoon naam="pijl" grootte={18} />
-              </button>
-            )}
-          </div>
-        </div>
+                )}
+              </div>
+            );
+          })}
         </div>
 
-        <Tijdlijn jaren={jaren} actief={actief} onKies={setActief} />
+        <Tijdlijn jaren={jaren} actief={actief} onKies={setActief} onPositie={opPositie} />
       </div>
 
       {album && wagen && <Album wagen={wagen} onSluit={() => setAlbum(false)} />}
