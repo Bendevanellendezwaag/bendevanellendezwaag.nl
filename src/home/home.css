@@ -968,6 +968,21 @@ html.bv-laden * {
     scale 0.4s var(--vering);
 }
 
+/* Het klikgebied loopt door tot boven het streepje: ook op het streepje klikken gaat naar dat jaar. */
+.bv-streep-jaar::before {
+  content: '';
+  position: absolute;
+  top: -50px;
+  bottom: -6px;
+  left: -8px;
+  right: -8px;
+}
+
+/* Hover op het jaartal of het streepje: het streepje licht mee op. */
+.bv-streep.is-jaar:has(.bv-streep-jaar:hover) {
+  background: var(--wit);
+}
+
 .bv-streep-jaar:hover {
   color: var(--wit);
 }
