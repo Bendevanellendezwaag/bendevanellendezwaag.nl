@@ -15,8 +15,11 @@ export default function Stemming({ data, ververs }) {
   const [detail, setDetail] = useState(null);
   const open = data.rondes.find((r) => r.status === 'open');
   const gesloten = data.rondes.filter((r) => r.status === 'gesloten');
-  // Alleen de uitslag van stemronde 1 gaat naar de leden, zodra de beheerder die ronde sluit.
-  const openbaar = data.rondes.filter((r) => r.nr === 2 && r.status === 'gesloten');
+  // Leden zien de uitslag van stemronde 1 zodra de beheerder die ronde sluit, en van
+  // stemronde 2 live het aantal stemmen zodra die open staat.
+  const openbaar = data.rondes.filter(
+    (r) => (r.nr === 2 && r.status === 'gesloten') || (r.nr === 3 && r.status !== 'gepland'),
+  );
   const winnaar = data.themas.find((t) => t.ronde === 4);
 
   let hoofd;
@@ -67,8 +70,12 @@ export default function Stemming({ data, ververs }) {
         .reverse()
         .map((r) => (
           <section key={r.nr} className="ld-kaart">
-            <h2 className="ld-sub">Uitslag {RONDES[r.nr].naam.toLowerCase()}</h2>
-            <UitslagLaden ronde={r.nr} />
+            <h2 className="ld-sub">
+              {r.status === 'open' ? 'Tussenstand' : 'Uitslag'} {RONDES[r.nr].naam.toLowerCase()}
+              {r.status === 'open' && <span className="ld-live">live</span>}
+            </h2>
+            {/* opnieuw ophalen zodra er iemand bij gestemd heeft */}
+            <UitslagLaden key={data.deelname?.per_ronde?.[r.nr] ?? 0} ronde={r.nr} />
           </section>
         ))}
       {detail && <ThemaDetail thema={detail} onSluit={() => setDetail(null)} />}

@@ -14,7 +14,8 @@
 --    ronde 1 "eerste vergadering": alle thema's op volgorde (punten: nr. 1 krijgt N, ...)
 --    ronde 2 "stemronde 1": maximaal 3 stemmen — uitslag voor de leden zodra
 --                            de beheerder de ronde sluit (aantallen, niet wie wat)
---    ronde 3 "stemronde 2": één stem — uitslag ALLEEN voor de beheerder
+--    ronde 3 "stemronde 2": één stem — leden zien het aantal stemmen per thema
+--                            live zodra de ronde open is (niet wie wat)
 --    Na elke ronde kiest de beheerder zelf welke thema's doorgaan (themas.ronde).
 --    Een thema doet mee aan ronde r als themas.ronde >= r. Na stemronde 2 kiest
 --    de beheerder het winnende thema: dat krijgt ronde 4.
@@ -327,9 +328,9 @@ begin
       from public.rondes r), '{}'::jsonb));
 end $fn$;
 
--- Uitslag van een ronde. De beheerder altijd; leden alleen van stemronde 1, en
--- pas als de beheerder die ronde gesloten heeft. Wie wat stemde ziet alleen de
--- beheerder.
+-- Uitslag van een ronde. De beheerder altijd; leden van stemronde 1 pas als de
+-- beheerder die ronde gesloten heeft, van stemronde 2 live zodra die open is.
+-- Wie wat stemde ziet alleen de beheerder.
 create or replace function public.uitslag(p_ronde int)
 returns jsonb
 language plpgsql
@@ -342,8 +343,9 @@ declare
   v_n int;
 begin
   if not v_beheerder and not (
-       public.is_lid() and p_ronde = 2
-       and (select status from public.rondes where nr = 2) = 'gesloten') then
+       public.is_lid() and (
+         (p_ronde = 2 and (select status from public.rondes where nr = 2) = 'gesloten')
+         or (p_ronde = 3 and (select status from public.rondes where nr = 3) <> 'gepland'))) then
     return null;
   end if;
   select count(*) into v_n from public.themas where ronde >= p_ronde;

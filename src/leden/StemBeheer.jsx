@@ -117,6 +117,11 @@ function RondeBeheer({ ronde, data, ververs, startOpen }) {
                 <Icoon naam={ronde.status === 'gesloten' ? 'vink' : 'slot'} grootte={16} />
                 {ronde.status === 'gesloten' ? ' Uitslag zichtbaar voor leden' : ' Uitslag gaat naar de leden zodra je sluit'}
               </span>
+            ) : ronde.nr === 3 ? (
+              <span className="ld-geheim">
+                <Icoon naam={ronde.status === 'gepland' ? 'slot' : 'vink'} grootte={16} />
+                {ronde.status === 'gepland' ? ' Leden zien de stemmen zodra je opent' : ' Aantal stemmen zichtbaar voor leden'}
+              </span>
             ) : (
               <span className="ld-geheim">
                 <Icoon naam="slot" grootte={16} /> Uitslag alleen voor jou
