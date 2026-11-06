@@ -96,12 +96,15 @@ export const deBende = {
 /* ------------------------------------------------------------------ maandagavond */
 
 // Eigen sectie: de maandagavond is iets anders dan de optocht en telt niet mee bij de wagens.
-// plekken: elke podiumplek als getal (1, 2 of 3). Een plek erbij? Zet het getal erbij.
+// plekken: elke podiumplek met plek (1, 2 of 3), jaar, groepsnaam, leus en optioneel een foto (in public/maandag/). Een plek erbij? Zet hem erbij.
 // credit: wie de eer krijgt. Leeg = geen creditregel.
 export const maandagavond = {
   kop: 'Twee keer op het podium',
-  tekst: 'Niet alleen met de wagen laten we van ons horen. Ook op de maandagavond pakten we twee podiumplekken: één keer de eerste plek en één keer de tweede.',
-  plekken: [1, 2],
+  tekst: 'Niet alleen met de wagen laten we van ons horen. Ook op de maandagavond pakten we twee podiumplekken: de eerste plek in 2025 en de tweede plek in 2026.',
+  plekken: [
+    { plek: 1, jaar: 2025, groep: 'Huis Meeuwis', leus: 'Trek in patat', foto: '/maandag/2025-huis-meeuwis.webp' },
+    { plek: 2, jaar: 2026, groep: 'Armando Bin Laden', leus: 'Carnaval is 1 groot offerfeest' },
+  ],
   credit: 'De Bende van Jongens',
 };
 

@@ -76,8 +76,10 @@ export function Maandagavond() {
   if (!maandagavond?.plekken?.length) return null;
   // Klassieke podiumvolgorde: 2 links, 1 in het midden, 3 rechts.
   const volgorde = [2, 1, 3];
-  const plekken = [...maandagavond.plekken].sort((a, b) => volgorde.indexOf(a) - volgorde.indexOf(b));
+  const plekken = [...maandagavond.plekken].sort((a, b) => volgorde.indexOf(a.plek) - volgorde.indexOf(b.plek));
   const aantal = maandagavond.plekken.length;
+  // Foto's op volgorde van plek: eerst de 1e, dan de 2e.
+  const fotos = maandagavond.plekken.filter((p) => p.foto).sort((a, b) => a.plek - b.plek);
 
   return (
     <section id="maandag" className="bv-laag is-nacht" aria-labelledby="bv-maandag-kop">
@@ -97,16 +99,35 @@ export function Maandagavond() {
         </div>
 
         <ol className="bv-maandag-podium bv-onthul" aria-label={`${aantal} podiumplekken op de maandagavond`}>
-          {plekken.map((plek, i) => (
-            <li key={i} className={`bv-trede is-plek-${plek}`}>
+          {plekken.map((p) => (
+            <li key={`${p.jaar}-${p.plek}`} className={`bv-trede is-plek-${p.plek}`}>
               <span className="bv-trede-plek">
-                {plek}
+                {p.plek}
                 <sup>e</sup>
               </span>
-              <span className="bv-trede-label">plek</span>
+              <span className="bv-trede-label">plek{p.jaar ? ` · ${p.jaar}` : ''}</span>
+              {p.groep && <strong className="bv-trede-groep">{p.groep}</strong>}
+              {p.leus && <span className="bv-trede-leus">‘{p.leus}’</span>}
             </li>
           ))}
         </ol>
+
+        {fotos.length > 0 && (
+          <div className={`bv-maandag-fotos ${fotos.length === 1 ? 'is-een' : ''}`}>
+            {fotos.map((p) => (
+              <figure key={p.foto} className="bv-maandag-foto bv-onthul">
+                <img src={p.foto} alt={`${p.groep} op de maandagavond van ${p.jaar}, ${p.plek}e plek`} loading="lazy" />
+                <figcaption>
+                  <span>
+                    {p.plek}e plek · {p.jaar}
+                  </span>
+                  <strong>{p.groep}</strong>
+                  {p.leus && <em>‘{p.leus}’</em>}
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
