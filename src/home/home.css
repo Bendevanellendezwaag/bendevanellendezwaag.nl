@@ -1745,6 +1745,143 @@ html.bv-laden * {
   color: var(--blauw);
 }
 
+/* ---------------------------------------------------------------- maandagavond */
+
+.bv-maandag {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  align-items: end;
+  gap: clamp(40px, 6vw, 96px);
+}
+
+.bv-maandag .bv-reuzekop {
+  font-size: clamp(2.4rem, 6vw, 6.4rem);
+}
+
+.bv-maandag-credit {
+  display: grid;
+  gap: 6px;
+  margin: 36px 0 0;
+  padding-top: 28px;
+  border-top: 1px solid var(--lijn);
+}
+
+.bv-maandag-credit span {
+  font-family: var(--font-kop);
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tekst-zacht);
+}
+
+.bv-maandag-credit strong {
+  font-family: var(--font-kop);
+  font-size: clamp(1.4rem, 2.6vw, 2.2rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--lichtblauw);
+}
+
+/* Twee (of drie) treden van een echt podium; de 1e plek staat het hoogst. */
+.bv-maandag-podium {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bv-trede {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  padding: 28px 12px 0;
+  border-radius: var(--rond) var(--rond) 0 0;
+  background: var(--blauw);
+  color: var(--wit);
+  transform-origin: bottom;
+}
+
+.bv-trede.is-plek-1 {
+  height: clamp(240px, 30vw, 360px);
+  background: var(--lichtblauw);
+  color: var(--blauw-nacht);
+}
+
+.bv-trede.is-plek-2 {
+  height: clamp(180px, 22vw, 270px);
+}
+
+.bv-trede.is-plek-3 {
+  height: clamp(130px, 16vw, 200px);
+  background: var(--blauw-diep);
+}
+
+.bv-trede-plek {
+  font-family: var(--font-kop);
+  font-size: clamp(3.4rem, 7vw, 6rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.bv-trede-plek sup {
+  font-size: 0.38em;
+  vertical-align: 0.9em;
+  margin-left: 2px;
+}
+
+.bv-trede-label {
+  font-family: var(--font-kop);
+  font-size: 0.66rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+/* Treden groeien omhoog zodra de sectie in beeld komt. */
+.bv-maandag-podium.bv-onthul .bv-trede {
+  transform: scaleY(0.2);
+  transition: transform 0.9s var(--vering);
+}
+
+.bv-maandag-podium.bv-onthul.is-zichtbaar .bv-trede {
+  transform: none;
+}
+
+.bv-maandag-podium.bv-onthul.is-zichtbaar .bv-trede.is-plek-1 {
+  transition-delay: 0.15s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bv-maandag-podium.bv-onthul .bv-trede {
+    transform: none;
+    transition: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .bv-maandag {
+    grid-template-columns: 1fr;
+  }
+
+  .bv-trede.is-plek-1 {
+    height: 220px;
+  }
+
+  .bv-trede.is-plek-2 {
+    height: 165px;
+  }
+
+  .bv-trede.is-plek-3 {
+    height: 120px;
+  }
+}
+
 /* ---------------------------------------------------------------- aftellen */
 
 .bv-agenda-kop {
