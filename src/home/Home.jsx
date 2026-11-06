@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Confetti from './Confetti.jsx';
 import Kop from './Kop.jsx';
 import { Intro } from './Logo.jsx';
-import { Agenda, Instagram, OverDeBende, Sponsors, Voet } from './Secties.jsx';
+import { Agenda, Instagram, Maandagavond, OverDeBende, Sponsors, Voet } from './Secties.jsx';
 import Wagens from './Wagens.jsx';
 import { useOnthullen, useScrollMotor } from './hulp.js';
 import './home.css';
@@ -43,6 +43,7 @@ export default function Home({ onLeden }) {
       <main>
         <Wagens />
         <OverDeBende />
+        <Maandagavond />
         <Agenda />
         <Sponsors />
         <Instagram />

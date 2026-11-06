@@ -1,5 +1,5 @@
 import { useLayoutEffect, useMemo, useRef } from 'react';
-import { aftellen, agenda, bouwplaats, deBende, instagram, paginas, sponsors, sponsorWorden, wagens } from './gegevens.js';
+import { aftellen, agenda, bouwplaats, deBende, instagram, maandagavond, paginas, sponsors, sponsorWorden, wagens } from './gegevens.js';
 import { datumDelen, scrolNaar, useNu, woorden } from './hulp.js';
 import Icoon from './iconen.jsx';
 import { Logo } from './Logo.jsx';
@@ -64,6 +64,49 @@ export function OverDeBende() {
             </dl>
           </div>
         </div>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ maandagavond */
+
+/** Aparte sectie voor de maandagavond: podiumplekken als echte podiumblokken, met credits. */
+export function Maandagavond() {
+  if (!maandagavond?.plekken?.length) return null;
+  // Klassieke podiumvolgorde: 2 links, 1 in het midden, 3 rechts.
+  const volgorde = [2, 1, 3];
+  const plekken = [...maandagavond.plekken].sort((a, b) => volgorde.indexOf(a) - volgorde.indexOf(b));
+  const aantal = maandagavond.plekken.length;
+
+  return (
+    <section id="maandag" className="bv-laag is-nacht" aria-labelledby="bv-maandag-kop">
+      <div className="bv-kader bv-maandag">
+        <div className="bv-maandag-tekst">
+          <p className="bv-label bv-onthul">Maandagavond</p>
+          <h2 id="bv-maandag-kop" className="bv-reuzekop bv-onthul">
+            {maandagavond.kop}
+          </h2>
+          {maandagavond.tekst && <p className="bv-sectie-intro bv-onthul">{maandagavond.tekst}</p>}
+          {maandagavond.credit && (
+            <p className="bv-maandag-credit bv-onthul">
+              <span>Alle credits naar</span>
+              <strong>{maandagavond.credit}</strong>
+            </p>
+          )}
+        </div>
+
+        <ol className="bv-maandag-podium bv-onthul" aria-label={`${aantal} podiumplekken op de maandagavond`}>
+          {plekken.map((plek, i) => (
+            <li key={i} className={`bv-trede is-plek-${plek}`}>
+              <span className="bv-trede-plek">
+                {plek}
+                <sup>e</sup>
+              </span>
+              <span className="bv-trede-label">plek</span>
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   );

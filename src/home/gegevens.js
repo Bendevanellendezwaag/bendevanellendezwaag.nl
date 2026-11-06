@@ -93,6 +93,18 @@ export const deBende = {
   ],
 };
 
+/* ------------------------------------------------------------------ maandagavond */
+
+// Eigen sectie: de maandagavond is iets anders dan de optocht en telt niet mee bij de wagens.
+// plekken: elke podiumplek als getal (1, 2 of 3). Een plek erbij? Zet het getal erbij.
+// credit: wie de eer krijgt. Leeg = geen creditregel.
+export const maandagavond = {
+  kop: 'Twee keer op het podium',
+  tekst: 'Niet alleen met de wagen laten we van ons horen. Ook op de maandagavond pakten we twee podiumplekken: één keer de eerste plek en één keer de tweede.',
+  plekken: [1, 2],
+  credit: 'De Bende van Jongens',
+};
+
 /* ------------------------------------------------------------------ aftellen en agenda */
 
 // De grote teller. Na de datum toont de site vanzelf een feestelijke melding.
@@ -175,6 +187,7 @@ export const instagram = {
 export const paginas = [
   { label: 'Onze wagens', href: '#wagens', klaar: true },
   { label: 'De Bende', href: '#over', klaar: true },
+  { label: 'Maandagavond', href: '#maandag', klaar: true },
   { label: 'Agenda', href: '#agenda', klaar: true },
   { label: 'Sponsors', href: '#sponsors', klaar: true },
   { label: 'Instagram', href: '#instagram', klaar: true },
