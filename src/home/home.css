@@ -1807,17 +1807,17 @@ html.bv-laden * {
 }
 
 .bv-trede.is-plek-1 {
-  height: clamp(240px, 30vw, 360px);
+  min-height: clamp(300px, 30vw, 380px);
   background: var(--lichtblauw);
   color: var(--blauw-nacht);
 }
 
 .bv-trede.is-plek-2 {
-  height: clamp(180px, 22vw, 270px);
+  min-height: clamp(240px, 23vw, 300px);
 }
 
 .bv-trede.is-plek-3 {
-  height: clamp(130px, 16vw, 200px);
+  min-height: clamp(180px, 17vw, 230px);
   background: var(--blauw-diep);
 }
 
@@ -1841,6 +1841,28 @@ html.bv-laden * {
   letter-spacing: 0.18em;
   text-transform: uppercase;
   opacity: 0.75;
+}
+
+/* Groepsnaam en leus van die avond onder de plek. */
+.bv-trede-groep {
+  margin-top: 18px;
+  font-family: var(--font-kop);
+  font-size: clamp(0.85rem, 1.3vw, 1.1rem);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.bv-trede-leus {
+  margin-top: 6px;
+  padding-bottom: 20px;
+  font-size: clamp(0.8rem, 1.1vw, 0.95rem);
+  font-style: italic;
+  line-height: 1.4;
+  text-align: center;
+  opacity: 0.85;
 }
 
 /* Treden groeien omhoog zodra de sectie in beeld komt. */
@@ -1870,15 +1892,15 @@ html.bv-laden * {
   }
 
   .bv-trede.is-plek-1 {
-    height: 220px;
+    min-height: 280px;
   }
 
   .bv-trede.is-plek-2 {
-    height: 165px;
+    min-height: 230px;
   }
 
   .bv-trede.is-plek-3 {
-    height: 120px;
+    min-height: 180px;
   }
 }
 

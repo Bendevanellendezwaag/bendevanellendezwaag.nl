@@ -76,7 +76,7 @@ export function Maandagavond() {
   if (!maandagavond?.plekken?.length) return null;
   // Klassieke podiumvolgorde: 2 links, 1 in het midden, 3 rechts.
   const volgorde = [2, 1, 3];
-  const plekken = [...maandagavond.plekken].sort((a, b) => volgorde.indexOf(a) - volgorde.indexOf(b));
+  const plekken = [...maandagavond.plekken].sort((a, b) => volgorde.indexOf(a.plek) - volgorde.indexOf(b.plek));
   const aantal = maandagavond.plekken.length;
 
   return (
@@ -97,13 +97,15 @@ export function Maandagavond() {
         </div>
 
         <ol className="bv-maandag-podium bv-onthul" aria-label={`${aantal} podiumplekken op de maandagavond`}>
-          {plekken.map((plek, i) => (
-            <li key={i} className={`bv-trede is-plek-${plek}`}>
+          {plekken.map((p) => (
+            <li key={`${p.jaar}-${p.plek}`} className={`bv-trede is-plek-${p.plek}`}>
               <span className="bv-trede-plek">
-                {plek}
+                {p.plek}
                 <sup>e</sup>
               </span>
-              <span className="bv-trede-label">plek</span>
+              <span className="bv-trede-label">plek{p.jaar ? ` · ${p.jaar}` : ''}</span>
+              {p.groep && <strong className="bv-trede-groep">{p.groep}</strong>}
+              {p.leus && <span className="bv-trede-leus">‘{p.leus}’</span>}
             </li>
           ))}
         </ol>
