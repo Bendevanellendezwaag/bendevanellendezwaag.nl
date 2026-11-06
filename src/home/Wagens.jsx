@@ -51,7 +51,7 @@ function PlekSticker({ plek, jaar }) {
 }
 
 /** Tijdlijn met kleine streepjes per maand en grote bij elk jaartal. Slepen, swipen, klikken of pijltjes. */
-function Tijdlijn({ jaren, actief, onKies, onPositie }) {
+function Tijdlijn({ jaren, actief, onKies, onPositie, stuur }) {
   const scroller = useRef(null);
   const streepjes = useRef([]);
   const sleep = useRef(null);
@@ -83,6 +83,35 @@ function Tijdlijn({ jaren, actief, onKies, onPositie }) {
     },
     [afstand, jaren],
   );
+
+  // Stuur-functies voor het slepen van de wagenkaarten: de kaarten schuiven de tijdlijn mee.
+  useEffect(() => {
+    if (!stuur) return undefined;
+    let start = 0;
+    stuur.current = {
+      begin() {
+        const el = scroller.current;
+        start = el.scrollLeft;
+        el.classList.add('is-slepen'); // geen 'snap' tijdens het slepen
+      },
+      // dDia: hoeveel kaarten ver de vinger is versleept (negatief = naar links = naar een nieuwer jaar)
+      schuif(dDia) {
+        scroller.current.scrollLeft = start - dDia * afstand;
+      },
+      // snelheid in kaarten per seconde: een snelle veeg gaat door naar de volgende wagen
+      eind(snelheid) {
+        const el = scroller.current;
+        const f = el.scrollLeft / afstand; // eerst uitlezen: zonder 'is-slepen' springt de tijdlijn meteen terug
+        el.classList.remove('is-slepen');
+        const duw = Math.max(-1, Math.min(1, snelheid * 0.3));
+        const i = Math.max(0, Math.min(jaren.length - 1, Math.round(f - duw)));
+        naarJaar(jaren[i]);
+      },
+    };
+    return () => {
+      stuur.current = null;
+    };
+  }, [stuur, afstand, jaren, naarJaar]);
 
   const actiefRef = useRef(actief);
   actiefRef.current = actief;
@@ -420,6 +449,49 @@ export default function Wagens() {
   const wagen = perJaar[actief];
   const rij = useRef(null);
   const positie = useRef(jaren.length - 1);
+  const stuur = useRef(null); // gevuld door de tijdlijn
+  const veeg = useRef(null);
+  const negeerKlik = useRef(false);
+
+  // Kaarten slepen (vinger of muis): horizontaal slepen schuift de carrousel, verticaal blijft gewoon scrollen.
+  const omlaag = (e) => {
+    if (e.button > 0 || !e.isPrimary) return;
+    veeg.current = { id: e.pointerId, x: e.clientX, y: e.clientY, as: null, punten: [[e.timeStamp, e.clientX]] };
+  };
+  const beweeg = (e) => {
+    const v = veeg.current;
+    if (!v || e.pointerId !== v.id) return;
+    const dx = e.clientX - v.x;
+    const dy = e.clientY - v.y;
+    if (!v.as) {
+      if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)) {
+        v.as = 'x';
+        stuur.current?.begin();
+        rij.current.classList.add('is-slepen');
+        rij.current.setPointerCapture?.(e.pointerId);
+      } else if (Math.abs(dy) > 8) {
+        veeg.current = null; // verticaal: de pagina scrolt gewoon
+      }
+      return;
+    }
+    stuur.current?.schuif(dx / rij.current.clientWidth);
+    v.punten.push([e.timeStamp, e.clientX]);
+    if (v.punten.length > 6) v.punten.shift();
+  };
+  const los = (e) => {
+    const v = veeg.current;
+    if (!v || e.pointerId !== v.id) return;
+    veeg.current = null;
+    if (v.as !== 'x') return;
+    rij.current.classList.remove('is-slepen');
+    const [t0, x0] = v.punten[0];
+    const [t1, x1] = v.punten[v.punten.length - 1];
+    const snelheid = t1 > t0 ? (x1 - x0) / (t1 - t0) / rij.current.clientWidth * 1000 : 0; // kaarten per seconde
+    stuur.current?.eind(snelheid);
+    // Na slepen geen klik (anders springt een kaart ernaast alsnog naar voren).
+    negeerKlik.current = true;
+    setTimeout(() => (negeerKlik.current = false), 80);
+  };
 
   const opPositie = useCallback((f) => {
     positie.current = f;
@@ -439,7 +511,21 @@ export default function Wagens() {
       <Stippen />
       <div className="bv-kader">
         <h1 className="bv-sr">Bende van Ellende – onze carnavalswagens</h1>
-        <div className="bv-podium-rij" ref={rij}>
+        <div
+          className="bv-podium-rij"
+          ref={rij}
+          onPointerDown={omlaag}
+          onPointerMove={beweeg}
+          onPointerUp={los}
+          onPointerCancel={los}
+          onClickCapture={(e) => {
+            if (negeerKlik.current) {
+              e.stopPropagation();
+              e.preventDefault();
+            }
+          }}
+          onDragStart={(e) => e.preventDefault()}
+        >
           {jaren.map((jaar) => {
             const w = perJaar[jaar];
             const midden = jaar === actief;
@@ -485,7 +571,7 @@ export default function Wagens() {
           })}
         </div>
 
-        <Tijdlijn jaren={jaren} actief={actief} onKies={setActief} onPositie={opPositie} />
+        <Tijdlijn jaren={jaren} actief={actief} onKies={setActief} onPositie={opPositie} stuur={stuur} />
       </div>
 
       {album && wagen && <Album wagen={wagen} onSluit={() => setAlbum(false)} />}

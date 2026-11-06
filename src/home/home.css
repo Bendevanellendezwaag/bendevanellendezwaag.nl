@@ -1491,6 +1491,22 @@ html.bv-laden * {
   }
 }
 
+/* Kaarten slepen: horizontaal is voor de carrousel, verticaal blijft de pagina scrollen. */
+.bv-podium-rij {
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.bv-podium-rij img {
+  -webkit-user-drag: none;
+}
+
+.bv-podium-rij.is-slepen,
+.bv-podium-rij.is-slepen * {
+  cursor: grabbing !important;
+}
+
 /* Carrousel (zie plaatsDias in Wagens.jsx): alle wagens staan op elkaar gestapeld in één rij;
    het script zet per dia transform, opacity en de variabelen --wazig (0-1) en --info (0-1). */
 .bv-podium-rij {
