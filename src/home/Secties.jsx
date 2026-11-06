@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { aftellen, agenda, bouwplaats, deBende, instagram, maandagavond, paginas, sponsors, sponsorWorden, wagens } from './gegevens.js';
 import { datumDelen, scrolNaar, useNu, woorden } from './hulp.js';
 import Icoon from './iconen.jsx';
@@ -71,15 +71,23 @@ export function OverDeBende() {
 
 /* ------------------------------------------------------------------ maandagavond */
 
-/** Aparte sectie voor de maandagavond: podiumplekken als echte podiumblokken, met credits. */
+/**
+ * Aparte sectie voor de maandagavond. Het podium en de tabs vormen samen een keuzemenu:
+ * kies een plek en de foto met bijschrift eronder wisselt mee.
+ */
 export function Maandagavond() {
-  if (!maandagavond?.plekken?.length) return null;
+  const lijst = maandagavond?.plekken ?? [];
+  // Standaard de hoogste plek (1e) geselecteerd.
+  const [actief, setActief] = useState(() => Math.min(...lijst.map((p) => p.plek)));
+  if (!lijst.length) return null;
+
   // Klassieke podiumvolgorde: 2 links, 1 in het midden, 3 rechts.
   const volgorde = [2, 1, 3];
-  const plekken = [...maandagavond.plekken].sort((a, b) => volgorde.indexOf(a.plek) - volgorde.indexOf(b.plek));
-  const aantal = maandagavond.plekken.length;
-  // Foto's op volgorde van plek: eerst de 1e, dan de 2e.
-  const fotos = maandagavond.plekken.filter((p) => p.foto).sort((a, b) => a.plek - b.plek);
+  const podium = [...lijst].sort((a, b) => volgorde.indexOf(a.plek) - volgorde.indexOf(b.plek));
+  // Tabs en foto's op volgorde van plek: eerst de 1e, dan de 2e.
+  const opPlek = [...lijst].sort((a, b) => a.plek - b.plek);
+  const gekozen = opPlek.find((p) => p.plek === actief) ?? opPlek[0];
+  const sleutel = (p) => `${p.jaar}-${p.plek}`;
 
   return (
     <section id="maandag" className="bv-laag is-nacht" aria-labelledby="bv-maandag-kop">
@@ -98,36 +106,78 @@ export function Maandagavond() {
           )}
         </div>
 
-        <ol className="bv-maandag-podium bv-onthul" aria-label={`${aantal} podiumplekken op de maandagavond`}>
-          {plekken.map((p) => (
-            <li key={`${p.jaar}-${p.plek}`} className={`bv-trede is-plek-${p.plek}`}>
-              <span className="bv-trede-plek">
-                {p.plek}
-                <sup>e</sup>
-              </span>
-              <span className="bv-trede-label">plek{p.jaar ? ` · ${p.jaar}` : ''}</span>
-              {p.groep && <strong className="bv-trede-groep">{p.groep}</strong>}
-              {p.leus && <span className="bv-trede-leus">‘{p.leus}’</span>}
+        <ol className="bv-maandag-podium bv-onthul" aria-label={`${lijst.length} podiumplekken op de maandagavond`}>
+          {podium.map((p) => (
+            <li key={sleutel(p)} className={`bv-trede is-plek-${p.plek} ${p.plek === gekozen.plek ? 'is-actief' : ''}`}>
+              <button
+                type="button"
+                className="bv-trede-knop"
+                aria-pressed={p.plek === gekozen.plek}
+                aria-controls="bv-maandag-paneel"
+                onClick={() => setActief(p.plek)}
+              >
+                <span className="bv-trede-plek">
+                  {p.plek}
+                  <sup>e</sup>
+                </span>
+                <span className="bv-trede-label">plek{p.jaar ? ` · ${p.jaar}` : ''}</span>
+                {p.groep && <strong className="bv-trede-groep">{p.groep}</strong>}
+                {p.leus && <span className="bv-trede-leus">‘{p.leus}’</span>}
+              </button>
             </li>
           ))}
         </ol>
 
-        {fotos.length > 0 && (
-          <div className={`bv-maandag-fotos ${fotos.length === 1 ? 'is-een' : ''}`}>
-            {fotos.map((p) => (
-              <figure key={p.foto} className="bv-maandag-foto bv-onthul">
-                <img src={p.foto} alt={`${p.groep} op de maandagavond van ${p.jaar}, ${p.plek}e plek`} loading="lazy" />
-                <figcaption>
-                  <span>
-                    {p.plek}e plek · {p.jaar}
-                  </span>
-                  <strong>{p.groep}</strong>
-                  {p.leus && <em>‘{p.leus}’</em>}
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-        )}
+        <div className="bv-maandag-album bv-onthul">
+          {opPlek.length > 1 && (
+            <div className="bv-maandag-tabs" role="tablist" aria-label="Kies een podiumplek">
+              {opPlek.map((p) => (
+                <button
+                  key={sleutel(p)}
+                  type="button"
+                  role="tab"
+                  aria-selected={p.plek === gekozen.plek}
+                  aria-controls="bv-maandag-paneel"
+                  className={p.plek === gekozen.plek ? 'is-actief' : ''}
+                  onClick={() => setActief(p.plek)}
+                >
+                  {p.plek}e plek{p.jaar ? ` · ${p.jaar}` : ''}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <figure id="bv-maandag-paneel" className="bv-maandag-foto" role="tabpanel" aria-live="polite">
+            <div className="bv-maandag-beeld">
+              {/* Alle foto's staan klaar en vervagen in elkaar over, zodat er niets flitst bij wisselen. */}
+              {opPlek.map((p) =>
+                p.foto ? (
+                  <img
+                    key={sleutel(p)}
+                    src={p.foto}
+                    alt={p === gekozen ? `${p.groep} op de maandagavond van ${p.jaar}, ${p.plek}e plek` : ''}
+                    aria-hidden={p !== gekozen}
+                    className={p === gekozen ? 'is-actief' : ''}
+                    loading="lazy"
+                  />
+                ) : null,
+              )}
+              {!gekozen.foto && (
+                <div className="bv-foto-leeg">
+                  <Logo titel="" />
+                  <span>Foto volgt</span>
+                </div>
+              )}
+            </div>
+            <figcaption key={sleutel(gekozen)}>
+              <span>
+                {gekozen.plek}e plek · {gekozen.jaar}
+              </span>
+              <strong>{gekozen.groep}</strong>
+              {gekozen.leus && <em>‘{gekozen.leus}’</em>}
+            </figcaption>
+          </figure>
+        </div>
       </div>
     </section>
   );
