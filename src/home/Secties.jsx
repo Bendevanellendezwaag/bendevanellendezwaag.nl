@@ -78,6 +78,8 @@ export function Maandagavond() {
   const volgorde = [2, 1, 3];
   const plekken = [...maandagavond.plekken].sort((a, b) => volgorde.indexOf(a.plek) - volgorde.indexOf(b.plek));
   const aantal = maandagavond.plekken.length;
+  // Foto's op volgorde van plek: eerst de 1e, dan de 2e.
+  const fotos = maandagavond.plekken.filter((p) => p.foto).sort((a, b) => a.plek - b.plek);
 
   return (
     <section id="maandag" className="bv-laag is-nacht" aria-labelledby="bv-maandag-kop">
@@ -109,6 +111,23 @@ export function Maandagavond() {
             </li>
           ))}
         </ol>
+
+        {fotos.length > 0 && (
+          <div className={`bv-maandag-fotos ${fotos.length === 1 ? 'is-een' : ''}`}>
+            {fotos.map((p) => (
+              <figure key={p.foto} className="bv-maandag-foto bv-onthul">
+                <img src={p.foto} alt={`${p.groep} op de maandagavond van ${p.jaar}, ${p.plek}e plek`} loading="lazy" />
+                <figcaption>
+                  <span>
+                    {p.plek}e plek · {p.jaar}
+                  </span>
+                  <strong>{p.groep}</strong>
+                  {p.leus && <em>‘{p.leus}’</em>}
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
