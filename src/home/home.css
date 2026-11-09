@@ -1904,6 +1904,10 @@ html.bv-laden * {
   cursor: pointer;
 }
 
+.bv-trede-knop.is-vast {
+  cursor: default;
+}
+
 .bv-trede-knop:focus-visible {
   outline: 3px solid var(--wit);
   outline-offset: 4px;
@@ -1914,13 +1918,17 @@ html.bv-laden * {
   color: var(--wit);
 }
 
-.bv-trede:not(.is-actief):hover {
+.bv-trede:not(.is-actief):has(button):hover {
   background: var(--blauw-diep);
 }
 
 .bv-trede.is-actief {
   background: var(--lichtblauw);
   color: var(--blauw-nacht);
+}
+
+/* De ring om de gekozen trede alleen als er iets te kiezen is. */
+.bv-trede.is-actief:has(button) {
   box-shadow: 0 0 0 4px var(--blauw-nacht), 0 0 0 7px var(--lichtblauw);
 }
 
