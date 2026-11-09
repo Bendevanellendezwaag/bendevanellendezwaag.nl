@@ -105,7 +105,7 @@ export const maandagavond = {
   tekst: 'Niet alleen met de wagen laten we van ons horen. Ook op de maandagavond pakten we twee podiumplekken: de eerste plek in 2025 en de tweede plek in 2026.',
   plekken: [
     { plek: 1, jaar: 2025, groep: 'Guus Meeuwis', leus: 'Trek in patat', foto: '/maandag/2025-guus-meeuwis.webp' },
-    { plek: 2, jaar: 2026, groep: 'Armando Bin Laden' },
+    { plek: 2, jaar: 2026 },
   ],
   credit: 'De Bende van Jongens',
 };
