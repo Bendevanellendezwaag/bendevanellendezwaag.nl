@@ -71,9 +71,24 @@ export function OverDeBende() {
 
 /* ------------------------------------------------------------------ maandagavond */
 
+/** Inhoud van één podiumtrede: plek, jaar, groepsnaam en (als die er is) de leus. */
+function TredeInhoud({ p }) {
+  return (
+    <>
+      <span className="bv-trede-plek">
+        {p.plek}
+        <sup>e</sup>
+      </span>
+      <span className="bv-trede-label">plek{p.jaar ? ` · ${p.jaar}` : ''}</span>
+      {p.groep && <strong className="bv-trede-groep">{p.groep}</strong>}
+      {p.leus && <span className="bv-trede-leus">‘{p.leus}’</span>}
+    </>
+  );
+}
+
 /**
- * Aparte sectie voor de maandagavond. Het podium en de tabs vormen samen een keuzemenu:
- * kies een plek en de foto met bijschrift eronder wisselt mee.
+ * Aparte sectie voor de maandagavond: tekst, podium (1e links) en de foto's.
+ * Hebben twee of meer plekken een foto, dan vormen podium en tabs samen een keuzemenu.
  */
 export function Maandagavond() {
   const lijst = maandagavond?.plekken ?? [];
@@ -81,12 +96,12 @@ export function Maandagavond() {
   const [actief, setActief] = useState(() => Math.min(...lijst.map((p) => p.plek)));
   if (!lijst.length) return null;
 
-  // Klassieke podiumvolgorde: 2 links, 1 in het midden, 3 rechts.
-  const volgorde = [2, 1, 3];
-  const podium = [...lijst].sort((a, b) => volgorde.indexOf(a.plek) - volgorde.indexOf(b.plek));
-  // Tabs en foto's op volgorde van plek: eerst de 1e, dan de 2e.
+  // Op volgorde van plek: de 1e staat links, dan de 2e (en 3e).
   const opPlek = [...lijst].sort((a, b) => a.plek - b.plek);
-  const gekozen = opPlek.find((p) => p.plek === actief) ?? opPlek[0];
+  // Alleen plekken met een foto komen in het album. Pas bij twee of meer foto's is er iets te kiezen.
+  const metFoto = opPlek.filter((p) => p.foto);
+  const kiesbaar = metFoto.length > 1;
+  const gekozen = (kiesbaar && metFoto.find((p) => p.plek === actief)) || metFoto[0] || opPlek[0];
   const sleutel = (p) => `${p.jaar}-${p.plek}`;
 
   return (
@@ -107,77 +122,81 @@ export function Maandagavond() {
         </div>
 
         <ol className="bv-maandag-podium bv-onthul" aria-label={`${lijst.length} podiumplekken op de maandagavond`}>
-          {podium.map((p) => (
-            <li key={sleutel(p)} className={`bv-trede is-plek-${p.plek} ${p.plek === gekozen.plek ? 'is-actief' : ''}`}>
-              <button
-                type="button"
-                className="bv-trede-knop"
-                aria-pressed={p.plek === gekozen.plek}
-                aria-controls="bv-maandag-paneel"
-                onClick={() => setActief(p.plek)}
-              >
-                <span className="bv-trede-plek">
-                  {p.plek}
-                  <sup>e</sup>
-                </span>
-                <span className="bv-trede-label">plek{p.jaar ? ` · ${p.jaar}` : ''}</span>
-                {p.groep && <strong className="bv-trede-groep">{p.groep}</strong>}
-                {p.leus && <span className="bv-trede-leus">‘{p.leus}’</span>}
-              </button>
+          {opPlek.map((p) => (
+            <li
+              key={sleutel(p)}
+              className={`bv-trede is-plek-${p.plek} ${p.plek === (kiesbaar ? gekozen.plek : opPlek[0].plek) ? 'is-actief' : ''}`}
+            >
+              {kiesbaar ? (
+                <button
+                  type="button"
+                  className="bv-trede-knop"
+                  aria-pressed={p.plek === gekozen.plek}
+                  aria-controls="bv-maandag-paneel"
+                  onClick={() => setActief(p.plek)}
+                >
+                  <TredeInhoud p={p} />
+                </button>
+              ) : (
+                <div className="bv-trede-knop is-vast">
+                  <TredeInhoud p={p} />
+                </div>
+              )}
             </li>
           ))}
         </ol>
 
-        <div className="bv-maandag-album bv-onthul">
-          {opPlek.length > 1 && (
-            <div className="bv-maandag-tabs" role="tablist" aria-label="Kies een podiumplek">
-              {opPlek.map((p) => (
-                <button
-                  key={sleutel(p)}
-                  type="button"
-                  role="tab"
-                  aria-selected={p.plek === gekozen.plek}
-                  aria-controls="bv-maandag-paneel"
-                  className={p.plek === gekozen.plek ? 'is-actief' : ''}
-                  onClick={() => setActief(p.plek)}
-                >
-                  {p.plek}e plek{p.jaar ? ` · ${p.jaar}` : ''}
-                </button>
-              ))}
-            </div>
-          )}
-
-          <figure id="bv-maandag-paneel" className="bv-maandag-foto" role="tabpanel" aria-live="polite">
-            <div className="bv-maandag-beeld">
-              {/* Alle foto's staan klaar en vervagen in elkaar over, zodat er niets flitst bij wisselen. */}
-              {opPlek.map((p) =>
-                p.foto ? (
-                  <img
+        {metFoto.length > 0 && (
+          <div className="bv-maandag-album bv-onthul">
+            {kiesbaar && (
+              <div className="bv-maandag-tabs" role="tablist" aria-label="Kies een podiumplek">
+                {metFoto.map((p) => (
+                  <button
                     key={sleutel(p)}
-                    src={p.foto}
-                    alt={p === gekozen ? `${p.groep} op de maandagavond van ${p.jaar}, ${p.plek}e plek` : ''}
-                    aria-hidden={p !== gekozen}
-                    className={p === gekozen ? 'is-actief' : ''}
-                    loading="lazy"
-                  />
-                ) : null,
-              )}
-              {!gekozen.foto && (
-                <div className="bv-foto-leeg">
-                  <Logo titel="" />
-                  <span>Foto volgt</span>
-                </div>
-              )}
-            </div>
-            <figcaption key={sleutel(gekozen)}>
-              <span>
-                {gekozen.plek}e plek · {gekozen.jaar}
-              </span>
-              <strong>{gekozen.groep}</strong>
-              {gekozen.leus && <em>‘{gekozen.leus}’</em>}
-            </figcaption>
-          </figure>
-        </div>
+                    type="button"
+                    role="tab"
+                    aria-selected={p.plek === gekozen.plek}
+                    aria-controls="bv-maandag-paneel"
+                    className={p.plek === gekozen.plek ? 'is-actief' : ''}
+                    onClick={() => setActief(p.plek)}
+                  >
+                    {p.plek}e plek{p.jaar ? ` · ${p.jaar}` : ''}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <figure
+              id="bv-maandag-paneel"
+              className="bv-maandag-foto"
+              role={kiesbaar ? 'tabpanel' : undefined}
+              aria-live={kiesbaar ? 'polite' : undefined}
+            >
+              <div className="bv-maandag-beeld">
+                {/* Alle foto's staan klaar en vervagen in elkaar over, zodat er niets flitst bij wisselen. */}
+                {metFoto.map((p) =>
+                  p.foto ? (
+                    <img
+                      key={sleutel(p)}
+                      src={p.foto}
+                      alt={p === gekozen ? `${p.groep} op de maandagavond van ${p.jaar}, ${p.plek}e plek` : ''}
+                      aria-hidden={p !== gekozen}
+                      className={p === gekozen ? 'is-actief' : ''}
+                      loading="lazy"
+                    />
+                  ) : null,
+                )}
+              </div>
+              <figcaption key={sleutel(gekozen)}>
+                <span>
+                  {gekozen.plek}e plek · {gekozen.jaar}
+                </span>
+                <strong>{gekozen.groep}</strong>
+                {gekozen.leus && <em>‘{gekozen.leus}’</em>}
+              </figcaption>
+            </figure>
+          </div>
+        )}
       </div>
     </section>
   );
