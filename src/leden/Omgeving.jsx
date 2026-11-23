@@ -6,7 +6,6 @@ import Stemming from './Stemming.jsx';
 import ThemaLijst from './ThemaLijst.jsx';
 import LedenBeheer from './LedenBeheer.jsx';
 import StemBeheer from './StemBeheer.jsx';
-import SponsorOverzicht from './SponsorOverzicht.jsx';
 import Sponsoren from './Sponsoren.jsx';
 import Onderstel from './Onderstel.jsx';
 
@@ -81,7 +80,7 @@ export default function Omgeving({ profiel, onSite, onProfiel }) {
           { id: 'leden', label: 'Leden', icoon: 'leden', teller: wachtend },
           { id: 'sponsoren', label: 'Sponsoren', icoon: 'sponsor' },
         ]
-      : [{ id: 'sponsoren', label: 'Sponsoren', icoon: 'sponsor' }]),
+      : []),
   ];
   const actief = tabs.some((t) => t.id === tab) ? tab : 'stemming';
 
@@ -145,7 +144,7 @@ export default function Omgeving({ profiel, onSite, onProfiel }) {
         {data && actief === 'stemming' && <Stemming data={data} ververs={ververs} />}
         {data && actief === 'themas' && <ThemaLijst themas={data.themas} />}
         {data && actief === 'stembeheer' && <StemBeheer data={data} ververs={ververs} />}
-        {actief === 'sponsoren' && (beheerder ? <Sponsoren /> : <SponsorOverzicht />)}
+        {actief === 'sponsoren' && <Sponsoren />}
         {actief === 'onderstel' && <Onderstel />}
         {actief === 'leden' && <LedenBeheer mijnId={profiel.id} onWijziging={ververs} />}
       </main>
