@@ -21,8 +21,6 @@ const FOTOS = [
   { src: '/onderstel/3.webp', alt: 'Een wagen in aanbouw in de loods' },
 ];
 
-const NU = ['Een onzekere motor: we weten nooit zeker of we de hele optocht halen.'];
-
 const STRAKS = [
   { kop: 'Elektromotor', tekst: 'We rijden elektrisch. Dat is een stuk betrouwbaarder.' },
   { kop: 'Hydraulisch rijden', tekst: 'Hier kunnen we in de toekomst extra beweging op aansluiten.' },
@@ -31,71 +29,30 @@ const STRAKS = [
   { kop: 'Schakelkasten', tekst: 'Eén voor de stroom en één voor de pneumatiek.' },
   { kop: 'Bediening bij de chauffeur', tekst: 'Alle techniek is te bedienen vanaf de bestuurdersplek.' },
   { kop: 'Verplaatsbare chauffeur', tekst: 'De plek van de chauffeur ligt niet meer vast, maar kunnen we verplaatsen.' },
-  { kop: 'Meerdere motoren', tekst: 'Het onderstel heeft meer dan één motor.' },
 ];
-
-const euro = (n) =>
-  new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
 
 export default function Onderstel() {
   return (
     <>
-      <Paginakop titel="Nieuw onderstel" sub="Waarom ieder lid eenmalig € 50 extra inlegt" />
+      <Paginakop titel="Nieuw onderstel" sub="Dit komt er allemaal bij" />
 
       <Carrousel fotos={FOTOS} />
 
-      <section className="ld-kaart ld-os-vergelijk">
-        <div className="ld-os-nu">
-          <h2 className="ld-sub">Nu</h2>
-          <ul className="ld-os-lijst">
-            {NU.map((t) => (
-              <li key={t}>
-                <span className="ld-os-bol is-nee">
-                  <Icoon naam="kruis" grootte={14} />
-                </span>
-                <span>{t}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="ld-os-straks">
-          <h2 className="ld-sub">Met het nieuwe onderstel</h2>
-          <ul className="ld-os-lijst">
-            {STRAKS.map((p) => (
-              <li key={p.kop}>
-                <span className="ld-os-bol">
-                  <Icoon naam="vink" grootte={14} />
-                </span>
-                <span>
-                  <strong>{p.kop}</strong> {p.tekst}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      <section className="ld-kaart is-accent">
-        <h2 className="ld-sub">Hoe betalen we het?</h2>
-        <div className="ld-os-geld">
-          <div className="is-hoofd">
-            <small>Totaal</small>
-            <strong>{euro(2250)}</strong>
-          </div>
-          <div>
-            <small>Eenmalig extra per lid</small>
-            <strong>{euro(50)}</strong>
-          </div>
-          <div>
-            <small>De rest</small>
-            <strong className="is-tekst">Uit de pot en de verkoop van onze huidige kar</strong>
-          </div>
-        </div>
-        <p className="ld-zacht ld-os-slot">
-          Het nieuwe onderstel kost samen {euro(2250)}. Ieder lid legt eenmalig {euro(50)} extra in. De rest betalen we
-          uit de pot en met wat de verkoop van onze huidige kar oplevert. Zo rijden we straks zonder zorgen de optocht
-          uit, en kunnen we de komende jaren steeds meer laten bewegen.
-        </p>
+      <section className="ld-kaart">
+        <h2 className="ld-sub">Wat het nieuwe onderstel ons brengt</h2>
+        <ul className="ld-os-tegels">
+          {STRAKS.map((p) => (
+            <li key={p.kop}>
+              <span className="ld-os-bol">
+                <Icoon naam="vink" grootte={14} />
+              </span>
+              <span>
+                <strong>{p.kop}</strong>
+                <small>{p.tekst}</small>
+              </span>
+            </li>
+          ))}
+        </ul>
       </section>
     </>
   );
