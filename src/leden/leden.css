@@ -3986,3 +3986,248 @@ body.fa-open {
     display: none;
   }
 }
+
+/* ---------------------------------------------------------------- nieuw onderstel */
+
+.ld-os-carrousel {
+  position: relative;
+  margin: 0 0 16px;
+  border-radius: var(--l-rond);
+  overflow: hidden;
+  background: var(--blauw-nacht);
+  box-shadow: var(--l-schaduw);
+}
+
+.ld-os-baan {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  outline: none;
+}
+
+.ld-os-baan::-webkit-scrollbar {
+  display: none;
+}
+
+.ld-os-baan:focus-visible {
+  box-shadow: inset 0 0 0 3px var(--lichtblauw);
+}
+
+.ld-os-dia {
+  flex: 0 0 100%;
+  margin: 0;
+  aspect-ratio: 16 / 10;
+  scroll-snap-align: start;
+}
+
+.ld-os-dia img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ld-os-leeg {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
+  height: 100%;
+  background: var(--l-accent-licht);
+  color: var(--l-zacht);
+  font-size: 14px;
+}
+
+.ld-os-pijl {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--blauw-nacht) !important;
+  box-shadow: 0 4px 14px rgba(11, 31, 102, 0.25);
+}
+
+.ld-os-pijl.is-links {
+  left: 12px;
+}
+
+.ld-os-pijl.is-rechts {
+  right: 12px;
+}
+
+.ld-os-pijl:hover {
+  background: #fff;
+}
+
+.ld-os-stippen {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 999px;
+  background: rgba(11, 31, 102, 0.45);
+}
+
+.ld-os-stippen button {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+  transition: width 0.2s, background 0.2s;
+}
+
+.ld-os-stippen button.is-aan {
+  width: 20px;
+  background: #fff;
+}
+
+.ld-os-teller {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(11, 31, 102, 0.55);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ld-os-vergelijk {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: 24px;
+}
+
+.ld-os-nu {
+  padding-right: 24px;
+  border-right: 1px solid var(--l-lijn);
+}
+
+.ld-os-lijst {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  line-height: 1.5;
+}
+
+.ld-os-lijst li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.ld-os-bol {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  border-radius: 50%;
+  background: #e2f5ea;
+  color: var(--l-groen);
+}
+
+.ld-os-bol.is-nee {
+  background: #fde8ea;
+  color: var(--l-rood);
+}
+
+.ld-os-geld {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.6fr;
+  gap: 12px;
+}
+
+.ld-os-geld div {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+}
+
+.ld-os-geld small {
+  color: var(--l-zacht);
+  font-size: 13px;
+}
+
+.ld-os-geld strong {
+  font-size: 22px;
+}
+
+.ld-os-geld .is-hoofd strong {
+  color: var(--l-accent);
+}
+
+.ld-os-geld strong.is-tekst {
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.ld-os-slot {
+  margin: 16px 0 0;
+}
+
+@media (max-width: 700px) {
+  .ld-os-vergelijk {
+    grid-template-columns: 1fr;
+  }
+
+  .ld-os-nu {
+    padding: 0 0 20px;
+    border-right: 0;
+    border-bottom: 1px solid var(--l-lijn);
+  }
+
+  .ld-os-geld {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .ld-os-geld div:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .ld-os-pijl {
+    width: 38px;
+    height: 38px;
+  }
+
+  .ld-os-dia {
+    aspect-ratio: 4 / 5;
+  }
+}
+
+.ld-os-dia {
+  position: relative;
+}
+
+.ld-os-dia img {
+  object-fit: contain;
+  background: var(--blauw-nacht);
+}
+
+.ld-os-dia figcaption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 32px 16px 44px;
+  background: linear-gradient(transparent, rgba(11, 31, 102, 0.8));
+  color: #fff;
+  font-size: 14px;
+  text-align: center;
+}
