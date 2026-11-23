@@ -36,7 +36,7 @@ const euro = (n) =>
 export default function Onderstel() {
   return (
     <>
-      <Paginakop titel="Nieuw onderstel" sub="Waarom we eenmalig € 50 extra inleggen" />
+      <Paginakop titel="Nieuw onderstel" sub="Waarom ieder lid eenmalig € 50 extra inlegt" />
 
       <Carrousel fotos={FOTOS} />
 
@@ -88,7 +88,7 @@ export default function Onderstel() {
           </div>
         </div>
         <p className="ld-zacht ld-os-slot">
-          Het nieuwe onderstel kost samen {euro(2250)}. Iedereen legt eenmalig {euro(50)} extra in. De rest betalen we
+          Het nieuwe onderstel kost samen {euro(2250)}. Ieder lid legt eenmalig {euro(50)} extra in. De rest betalen we
           uit de pot en met wat de verkoop van onze huidige kar oplevert. Zo rijden we straks zonder zorgen de optocht
           uit, en kunnen we de komende jaren steeds meer laten bewegen.
         </p>
