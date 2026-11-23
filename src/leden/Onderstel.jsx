@@ -10,10 +10,14 @@ import { Paginakop } from './onderdelen.jsx';
  * carrousel lege vlakken zodat de pagina al bruikbaar is.
  */
 const FOTOS = [
+  { src: '/onderstel/8.webp', alt: 'De vloer van het onderstel, met achterin de bestuurdersplek' },
   { src: '/onderstel/1.webp', alt: 'Bestuurdersplek met stuur, drukmeter, hydraulische slangen en stopcontacten' },
   { src: '/onderstel/4.webp', alt: 'Compressor met motor, ingebouwd in het onderstel' },
   { src: '/onderstel/5.webp', alt: 'Luchtvat onder de vloer van de wagen' },
+  { src: '/onderstel/7.webp', alt: 'Hydrauliektank onder de vloer' },
   { src: '/onderstel/2.webp', alt: 'Schakelkasten voor stroom en pneumatiek' },
+  { src: '/onderstel/9.webp', alt: 'Cilinders op de plank' },
+  { src: '/onderstel/6.webp', alt: 'Het rek met cilinders en motoren' },
   { src: '/onderstel/3.webp', alt: 'Een wagen in aanbouw in de loods' },
 ];
 
