@@ -18,7 +18,7 @@ const FOTOS = [
   { src: '/onderstel/2.webp', alt: 'Schakelkasten voor stroom en pneumatiek' },
   { src: '/onderstel/9.webp', alt: 'Cilinders op de plank' },
   { src: '/onderstel/6.webp', alt: 'Het rek met cilinders en motoren' },
-  { src: '/onderstel/3.webp', alt: 'Een wagen in aanbouw in de loods' },
+  { src: '/onderstel/3.webp', alt: 'Frames die wij kunnen overnemen' },
 ];
 
 const STRAKS = [
