@@ -10,7 +10,11 @@ import { Paginakop } from './onderdelen.jsx';
  * carrousel lege vlakken zodat de pagina al bruikbaar is.
  */
 const FOTOS = [
-  // { src: '/onderstel/1.jpg', alt: 'Het nieuwe onderstel van voren' },
+  { src: '/onderstel/1.webp', alt: 'Bestuurdersplek met stuur, drukmeter, hydraulische slangen en stopcontacten' },
+  { src: '/onderstel/4.webp', alt: 'Compressor met motor, ingebouwd in het onderstel' },
+  { src: '/onderstel/5.webp', alt: 'Luchtvat onder de vloer van de wagen' },
+  { src: '/onderstel/2.webp', alt: 'Schakelkasten voor stroom en pneumatiek' },
+  { src: '/onderstel/3.webp', alt: 'Een wagen in aanbouw in de loods' },
 ];
 
 const NU = ['Een onzekere motor: we weten nooit zeker of we de hele optocht halen.'];
@@ -141,7 +145,10 @@ function Carrousel({ fotos }) {
                 <span>{f.alt}</span>
               </div>
             ) : (
-              <img src={f.src} alt={f.alt} loading={i === 0 ? 'eager' : 'lazy'} />
+              <>
+                <img src={f.src} alt={f.alt} loading={i === 0 ? 'eager' : 'lazy'} />
+                <figcaption>{f.alt}</figcaption>
+              </>
             )}
           </figure>
         ))}
