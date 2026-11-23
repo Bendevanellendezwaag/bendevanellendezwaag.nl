@@ -21,6 +21,7 @@ const PADEN = {
   printer: 'M6 9V3h12v6M6 18H4a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-2M6 14h12v7H6z',
   filter: 'M4 5h16l-6 7v6l-4 2v-8z',
   sorteer: 'M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4',
+  onderstel: 'M3 14V7h12v7M15 10h4l2 3v1M2 14h20M7 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4M17 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4',
   pen: 'M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z',
 };
 
