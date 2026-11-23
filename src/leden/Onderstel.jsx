@@ -54,6 +54,11 @@ export default function Onderstel() {
           ))}
         </ul>
       </section>
+
+      <section className="ld-kaart is-accent ld-os-kosten">
+        <small>Geschatte kosten</small>
+        <strong>ongeveer € 2.250</strong>
+      </section>
     </>
   );
 }

@@ -4196,3 +4196,21 @@ body.fa-open {
     grid-template-columns: 1fr;
   }
 }
+
+.ld-os-kosten {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ld-os-kosten small {
+  color: var(--l-zacht);
+  font-size: 15px;
+}
+
+.ld-os-kosten strong {
+  color: var(--l-accent);
+  font-size: 22px;
+}
