@@ -2784,7 +2784,7 @@ body.fa-open {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  padding: 16px 56px;
+  padding: 24px 56px;
   background:
     radial-gradient(90% 140% at 100% 0%, rgba(255, 255, 255, 0.18), transparent 60%),
     var(--blauw);
@@ -2817,7 +2817,7 @@ body.fa-open {
   display: flex;
   justify-content: space-between;
   gap: 32px;
-  padding: 20px 56px 0;
+  padding: 28px 56px 0;
 }
 
 .fa-aan {
@@ -2908,13 +2908,13 @@ body.fa-open {
 }
 
 .fa-intro {
-  margin: 22px 56px 0;
+  margin: 28px 56px 0;
   font-size: 14.5px;
 }
 
 .fa-regels {
   width: calc(100% - 112px);
-  margin: 16px 56px 0;
+  margin: 22px 56px 0;
   border-collapse: collapse;
 }
 
@@ -2953,8 +2953,8 @@ body.fa-open {
   grid-template-columns: auto 1fr;
   gap: 24px;
   align-items: center;
-  margin: 16px 56px 0;
-  padding: 12px 22px;
+  margin: 20px 56px 0;
+  padding: 14px 22px;
   border-radius: 16px;
   background: #eef5ff;
 }
@@ -2969,12 +2969,12 @@ body.fa-open {
 }
 
 .fa-slot {
-  margin: 16px 56px 0;
+  margin: 20px 56px 0;
   font-weight: 600;
 }
 
 .fa-beeld {
-  margin: 14px 56px 0;
+  margin: 20px 110px 0;
 }
 
 .fa-beeld img,
