@@ -2784,7 +2784,7 @@ body.fa-open {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  padding: 34px 56px;
+  padding: 16px 56px;
   background:
     radial-gradient(90% 140% at 100% 0%, rgba(255, 255, 255, 0.18), transparent 60%),
     var(--blauw);
@@ -2792,7 +2792,7 @@ body.fa-open {
 }
 
 .fa-kop img {
-  width: 132px;
+  width: 104px;
 }
 
 .fa-kop h1 {
@@ -2817,7 +2817,7 @@ body.fa-open {
   display: flex;
   justify-content: space-between;
   gap: 32px;
-  padding: 40px 56px 0;
+  padding: 20px 56px 0;
 }
 
 .fa-aan {
@@ -2908,19 +2908,19 @@ body.fa-open {
 }
 
 .fa-intro {
-  margin: 36px 56px 0;
+  margin: 22px 56px 0;
   font-size: 14.5px;
 }
 
 .fa-regels {
   width: calc(100% - 112px);
-  margin: 28px 56px 0;
+  margin: 16px 56px 0;
   border-collapse: collapse;
 }
 
 .fa-regels th,
 .fa-regels td {
-  padding: 12px 0;
+  padding: 8px 0;
   text-align: left;
   border-bottom: 1px solid #dbe6fb;
 }
@@ -2953,8 +2953,8 @@ body.fa-open {
   grid-template-columns: auto 1fr;
   gap: 24px;
   align-items: center;
-  margin: 24px 56px 0;
-  padding: 18px 22px;
+  margin: 16px 56px 0;
+  padding: 12px 22px;
   border-radius: 16px;
   background: #eef5ff;
 }
@@ -2969,19 +2969,19 @@ body.fa-open {
 }
 
 .fa-slot {
-  margin: 24px 56px 0;
+  margin: 16px 56px 0;
   font-weight: 600;
 }
 
 .fa-beeld {
-  margin: 24px 56px 0;
+  margin: 14px 56px 0;
 }
 
 .fa-beeld img,
 .fa-beeld-leeg {
   display: block;
   width: 100%;
-  height: 250px;
+  aspect-ratio: 3 / 2;
   object-fit: cover;
   border-radius: 16px;
 }
@@ -2992,11 +2992,6 @@ body.fa-open {
   border: 2px dashed #c7d8fb;
   color: #8a9bc6;
   font-weight: 500;
-}
-
-/* Bovenkant van de bouwtekening in beeld houden (daar staan de figuren). */
-.fa-beeld img {
-  object-position: 50% 15%;
 }
 
 .fa-beeld figcaption {
@@ -3011,10 +3006,11 @@ body.fa-open {
   justify-content: space-between;
   gap: 24px;
   margin-top: auto;
-  padding: 22px 56px;
+  padding: 12px 56px;
   background: var(--blauw-nacht);
   color: #fff;
-  font-size: 12px;
+  font-size: 11px;
+  line-height: 1.4;
 }
 
 .fa-voet .fa-tekst:hover,
