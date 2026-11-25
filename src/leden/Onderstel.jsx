@@ -22,19 +22,14 @@ const FOTOS = [
 ];
 
 const STRAKS = [
-  { kop: 'Elektromotor', tekst: 'We rijden elektrisch. Dat is een stuk betrouwbaarder.' },
+  { kop: 'Elektromotor', tekst: 'We rijden elektrisch. Dat is betrouwbaarder, en er is veel minder kans op oververhitting.' },
   { kop: 'Hydraulisch rijden', tekst: 'Hier kunnen we in de toekomst extra beweging op aansluiten.' },
   { kop: '50 cilinders', tekst: 'Daarmee kunnen we van alles op de wagen laten bewegen.' },
   { kop: 'Vaste compressor', tekst: 'Op de wagen, met extra luchtvaten voor beweging.' },
   { kop: 'Schakelkasten', tekst: 'Eén voor de stroom en één voor de pneumatiek.' },
   { kop: 'Bediening bij de chauffeur', tekst: 'Alle techniek is te bedienen vanaf de bestuurdersplek.' },
-  { kop: 'Verplaatsbare chauffeur', tekst: 'De plek van de chauffeur ligt niet meer vast, maar kunnen we verplaatsen.' },
-];
-
-// Korte toelichting: waarom een ander onderstel fijn is.
-const WAAROM = [
-  { kop: 'Veel minder kans op oververhitting', tekst: 'Zo verkleinen we de kans dat we tijdens de optocht stil komen te staan.' },
   { kop: 'Sturen gaat veel lichter', tekst: 'Bij wijze van spreken stuur je met één vinger.' },
+  { kop: 'Verplaatsbare chauffeur', tekst: 'De plek van de chauffeur ligt niet meer vast, maar kunnen we verplaatsen.' },
 ];
 
 export default function Onderstel() {
@@ -59,32 +54,9 @@ export default function Onderstel() {
             </li>
           ))}
         </ul>
-      </section>
-
-      <section className="ld-kaart">
-        <h2 className="ld-sub">Waarom een ander onderstel fijn is</h2>
-        <ul className="ld-os-tegels">
-          {WAAROM.map((p) => (
-            <li key={p.kop}>
-              <span className="ld-os-bol">
-                <Icoon naam="vink" grootte={14} />
-              </span>
-              <span>
-                <strong>{p.kop}</strong>
-                <small>{p.tekst}</small>
-              </span>
-            </li>
-          ))}
-        </ul>
-        <div className="ld-os-let">
-          <span className="ld-os-bol is-let">
-            <Icoon naam="info" grootte={14} />
-          </span>
-          <span>
-            <strong>Eerlijke kanttekening: luchtbanden</strong>
-            <small>Het onderstel rijdt op luchtbanden. Die kunnen lek gaan, dus daar moeten we rekening mee houden.</small>
-          </span>
-        </div>
+        <p className="ld-zacht ld-os-noot">
+          Enige aandachtspunt: het onderstel heeft 6 luchtbanden in plaats van massieve banden. Die kunnen lek gaan.
+        </p>
       </section>
 
       <section className="ld-kaart is-accent ld-os-waarde">

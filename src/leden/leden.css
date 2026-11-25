@@ -4198,31 +4198,9 @@ body.fa-open {
   }
 }
 
-.ld-os-let {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  margin-top: 12px;
-  padding: 14px 16px;
-  border-radius: 16px;
-  background: #fff6e0;
-  line-height: 1.45;
-}
-
-.ld-os-let strong,
-.ld-os-let small {
-  display: block;
-}
-
-.ld-os-let small {
-  margin-top: 2px;
-  color: #6b5a2e;
+.ld-os-noot {
+  margin: 14px 0 0;
   font-size: 14px;
-}
-
-.ld-os-bol.is-let {
-  background: #ffe7a8;
-  color: #9a6a00;
 }
 
 .ld-os-waarde {
