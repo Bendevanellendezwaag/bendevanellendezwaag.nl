@@ -4197,3 +4197,48 @@ body.fa-open {
     grid-template-columns: 1fr;
   }
 }
+
+.ld-os-let {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #fff6e0;
+  line-height: 1.45;
+}
+
+.ld-os-let strong,
+.ld-os-let small {
+  display: block;
+}
+
+.ld-os-let small {
+  margin-top: 2px;
+  color: #6b5a2e;
+  font-size: 14px;
+}
+
+.ld-os-bol.is-let {
+  background: #ffe7a8;
+  color: #9a6a00;
+}
+
+.ld-os-waarde {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ld-os-waarde small {
+  color: var(--l-zacht);
+  font-size: 15px;
+}
+
+.ld-os-waarde strong {
+  color: var(--l-accent);
+  font-size: 22px;
+}

@@ -31,6 +31,12 @@ const STRAKS = [
   { kop: 'Verplaatsbare chauffeur', tekst: 'De plek van de chauffeur ligt niet meer vast, maar kunnen we verplaatsen.' },
 ];
 
+// Korte toelichting: waarom een ander onderstel fijn is.
+const WAAROM = [
+  { kop: 'Veel minder kans op oververhitting', tekst: 'Zo verkleinen we de kans dat we tijdens de optocht stil komen te staan.' },
+  { kop: 'Sturen gaat veel lichter', tekst: 'Bij wijze van spreken stuur je met één vinger.' },
+];
+
 export default function Onderstel() {
   return (
     <>
@@ -53,6 +59,37 @@ export default function Onderstel() {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section className="ld-kaart">
+        <h2 className="ld-sub">Waarom een ander onderstel fijn is</h2>
+        <ul className="ld-os-tegels">
+          {WAAROM.map((p) => (
+            <li key={p.kop}>
+              <span className="ld-os-bol">
+                <Icoon naam="vink" grootte={14} />
+              </span>
+              <span>
+                <strong>{p.kop}</strong>
+                <small>{p.tekst}</small>
+              </span>
+            </li>
+          ))}
+        </ul>
+        <div className="ld-os-let">
+          <span className="ld-os-bol is-let">
+            <Icoon naam="info" grootte={14} />
+          </span>
+          <span>
+            <strong>Eerlijke kanttekening: luchtbanden</strong>
+            <small>Het onderstel rijdt op luchtbanden. Die kunnen lek gaan, dus daar moeten we rekening mee houden.</small>
+          </span>
+        </div>
+      </section>
+
+      <section className="ld-kaart is-accent ld-os-waarde">
+        <small>Als je dit allemaal los zou kopen</small>
+        <strong>minimaal € 7.000</strong>
       </section>
     </>
   );
