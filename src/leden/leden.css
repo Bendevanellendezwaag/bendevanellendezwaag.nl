@@ -2994,6 +2994,11 @@ body.fa-open {
   font-weight: 500;
 }
 
+/* Bovenkant van de bouwtekening in beeld houden (daar staan de figuren). */
+.fa-beeld img {
+  object-position: 50% 15%;
+}
+
 .fa-beeld figcaption {
   margin-top: 6px;
   font-size: 12px;

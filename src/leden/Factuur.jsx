@@ -17,6 +17,9 @@ const STANDAARD = {
   volg: 'Blijf op de hoogte van het bouwproces via onze Instagram en Facebook!',
 };
 
+// Afbeelding op de factuur zolang de beheerder in de instellingen geen eigen afbeelding kiest.
+const STANDAARD_BEELD = '/factuur/bouwtekening.webp';
+
 const vandaag = () => new Date().toISOString().slice(0, 10);
 const datumNl = (iso) => (iso ? iso.split('-').reverse().join('-') : '');
 const beeldUrl = (pad) => (!pad ? '' : /^(https?:)?\//.test(pad) ? pad : api.fotoUrl(pad));
@@ -175,7 +178,7 @@ export default function Factuur({ sponsor, jaar, bijdrage, volgendNummer, vastle
             <Tekst className="fa-slot" waarde={inst.slot} blok />
 
             <figure className="fa-beeld">
-              {inst.afbeelding ? <img src={beeldUrl(inst.afbeelding)} alt="" /> : <div className="fa-beeld-leeg">Bouwtekening {jaar} volgt</div>}
+              <img src={beeldUrl(inst.afbeelding || STANDAARD_BEELD)} alt="" />
               <figcaption>
                 <Tekst waarde={(inst.afbeelding_tekst || '').replace('{jaar}', jaar)} />
               </figcaption>
@@ -263,14 +266,14 @@ function Instellingen({ inst, onOpgeslagen }) {
       <div className="ld-veld is-breed">
         <span>Afbeelding (bouwtekening)</span>
         <div className="fa-inst-beeld">
-          {form.afbeelding && <img src={beeldUrl(form.afbeelding)} alt="" />}
+          <img src={beeldUrl(form.afbeelding || STANDAARD_BEELD)} alt="" />
           <label className="ld-knop is-klein is-rand">
-            <Icoon naam="foto" grootte={16} /> {form.afbeelding ? 'Andere kiezen' : 'Kiezen'}
+            <Icoon naam="foto" grootte={16} /> Andere kiezen
             <input type="file" accept="image/*" hidden onChange={upload} />
           </label>
           {form.afbeelding && (
             <button type="button" className="ld-link is-klein is-rood" onClick={() => setForm({ ...form, afbeelding: '' })}>
-              Weghalen
+              Terug naar standaard
             </button>
           )}
         </div>
